@@ -7,9 +7,11 @@ version '1.0.0'
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
+    implementation "org.joml:joml:1.9.20"
     implementation platform("org.lwjgl:lwjgl-bom:3.2.3")
     implementation "org.lwjgl:lwjgl"
     implementation "org.lwjgl:lwjgl-assimp"
