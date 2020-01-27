@@ -21,11 +21,6 @@ class Camera(private val view: View) {
             if (azimuth < width && elevation < height) {
                 this@Camera.azimuth = (azimuth - width / 2) / (width / 2)
                 this@Camera.elevation = (elevation - height / 2) / (height / 2)
-                println("""
-                    [ENGINE] Camera Debug
-                        Azimuth: ${this@Camera.azimuth}
-                        Elevation: ${this@Camera.elevation}
-                    """.trimIndent())
             }
         }
     }

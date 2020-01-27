@@ -13,7 +13,7 @@ abstract class Model {
     abstract var identifier: Int
 
     companion object {
-        fun fromRaw(vertices: FloatArray, instructions: IntArray): Model {
+        fun fromRaw(vertices: FloatArray, normals: FloatArray, instructions: IntArray): Model {
             return object : Model() {
                 override val instructionsCount: Int = instructions.size
                 override var identifier: Int = GL30.glGenVertexArrays()
@@ -25,6 +25,10 @@ abstract class Model {
                     }
                     val iBuffer = BufferUtils.createIntBuffer(instructions.size).apply {
                         put(instructions)
+                        flip()
+                    }
+                    val nBuffer = BufferUtils.createFloatBuffer(normals.size).apply {
+                        put(normals)
                         flip()
                     }
 
@@ -44,6 +48,15 @@ abstract class Model {
                                 false, 0, 0
                             )
                         }
+                        // Bind normals
+                        GL15.glGenBuffers().also { glBuffer ->
+                            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
+                            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, nBuffer, GL15.GL_STATIC_DRAW)
+                            GL20.glVertexAttribPointer(
+                                2, 3, GL11.GL_FLOAT,
+                                false, 0, 0
+                            )
+                        }
                         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0)
                         GL30.glBindVertexArray(0)
                     }
@@ -53,8 +66,9 @@ abstract class Model {
 
         fun fromResources(modelName: String, fileFormat: String): Model {
             val vertices = mutableListOf<Float>()
+            val normals = mutableListOf<Float>()
             val instructions = mutableListOf<Int>()
-            var buffer: String? = ""
+            var buffer: String?
 
             when (fileFormat) {
                 "obj" ->
@@ -64,16 +78,25 @@ abstract class Model {
                                 while (true) {
                                     buffer = data.readLine()
                                     buffer?.also { line ->
-
-                                        if (line.startsWith("v "))
-                                            line.substring(2)
+                                        when {
+                                            line.startsWith("v ") ->
+                                                line.substring(2)
                                                 .split(' ')
                                                 .filter { it.isNotEmpty() }
                                                 .map { str ->
                                                     str.toFloat()
                                                 }.also { vertices.addAll(it) }
-                                        else if (line.startsWith("f "))
-                                            line.substring(2).split(' ')
+
+                                            line.startsWith("vn ") ->
+                                                line.substring(2)
+                                                    .split(' ')
+                                                    .filter { it.isNotEmpty() }
+                                                    .map { str ->
+                                                        str.toFloat()
+                                                    }.also { normals.addAll(it) }
+
+                                            line.startsWith("f ") ->
+                                                line.substring(2).split(' ')
                                                 .filter { it.isNotEmpty() }
                                                 .forEach { values ->
                                                     values.split("/")
@@ -82,6 +105,7 @@ abstract class Model {
                                                             instructions.add(it[0] - 1)
                                                         }
                                                 }
+                                        }
                                     } ?: break
                                 }
                                 data.close()
@@ -92,7 +116,11 @@ abstract class Model {
                 else -> throw Exception("Model format don't supported")
             }
 
-            return fromRaw(vertices.toFloatArray(), instructions.toIntArray())
+            return fromRaw(
+                vertices.toFloatArray(),
+                normals.toFloatArray(),
+                instructions.toIntArray()
+            )
         }
     }
 }
