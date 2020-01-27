@@ -13,10 +13,10 @@ import kotlin.math.tan
 
 class Being(
     private val model: Model,
-    private val shader: Shader?,
+    val shader: Shader?,
     private val position: Vector3f = Vector3f(0f, 0f, -1f),
     private val rotation: Vector3f = Vector3f(0f),
-    private var scale: Float = .5f
+    var scale: Float = .5f
 ) {
 
     fun move(dx: Float, dy: Float, dz: Float, increment: Boolean = false) {
@@ -39,7 +39,7 @@ class Being(
         }
     }
 
-    fun draw(view: View) {
+    fun draw(view: View, camera: Camera) {
         val tMatrix: Matrix4f = Matrix4f()
             .apply {
                 translate(position)
@@ -65,8 +65,9 @@ class Being(
 
         shader?.apply {
             GL20.glUseProgram(this.identifier)
-            putUniform("transformation", tMatrix)
             putUniform("projection", pMatrix)
+            putUniform("camera", camera.view())
+            putUniform("transformation", tMatrix)
             putUniform("sys_time", GLFW.glfwGetTime().toFloat())
         }
 
