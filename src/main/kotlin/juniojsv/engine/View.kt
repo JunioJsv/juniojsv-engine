@@ -47,6 +47,11 @@ abstract class View(
     open fun setup(window: Long) {
         GLFW.glfwMakeContextCurrent(window)
         GLFW.glfwShowWindow(window)
+        GLFW.glfwSetCursorPos(
+            window,
+            (width / 2).toDouble(),
+            (height / 2).toDouble()
+        )
         GL.createCapabilities()
         GLUtil.setupDebugMessageCallback(PrintStream(object : OutputStream() {
             override fun write(char: Int) {

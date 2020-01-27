@@ -58,6 +58,8 @@ abstract class Shader {
                     GL20.glAttachShader(identifier, fragment)
 
                     GL20.glBindAttribLocation(identifier, 0, "position")
+                    GL20.glBindAttribLocation(identifier, 2, "normal")
+
                     GL20.glLinkProgram(identifier)
                     GL20.glValidateProgram(identifier)
                 }
@@ -67,7 +69,7 @@ abstract class Shader {
         fun fromResources(vertName: String, fragName: String): Shader {
             var vertShader = ""
             var fragShader = ""
-            var buffer: String? = ""
+            var buffer: String?
 
             Shader::class.java.classLoader.also { loader ->
                 loader.getResourceAsStream("$vertName.vert")?.let { vertex ->
