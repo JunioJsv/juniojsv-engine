@@ -6,8 +6,7 @@ import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
+import java.io.InputStreamReader
 
 abstract class Model {
     abstract val instructionsCount: Int
@@ -51,6 +50,7 @@ abstract class Model {
                 }
             }
         }
+
         fun fromResources(modelName: String, fileFormat: String): Model {
             val vertices = mutableListOf<Float>()
             val instructions = mutableListOf<Int>()
@@ -59,35 +59,34 @@ abstract class Model {
             when (fileFormat) {
                 "obj" ->
                     Model::class.java.classLoader.also { loader ->
-                        loader.getResource("$modelName.obj")?.also { src ->
-                            File(src.file).also { model ->
-                                BufferedReader(FileReader(model)).also { data ->
-                                    while (true) {
-                                        buffer = data.readLine()
-                                        buffer?.also { line ->
+                        loader.getResourceAsStream("$modelName.obj")?.also { model ->
+                            BufferedReader(InputStreamReader(model)).also { data ->
+                                while (true) {
+                                    buffer = data.readLine()
+                                    buffer?.also { line ->
 
-                                            if (line.startsWith("v "))
-                                                line.substring(2)
-                                                    .split(' ')
-                                                    .filter { it.isNotEmpty() }
-                                                    .map { str ->
-                                                        str.toFloat()
-                                                    }.also { vertices.addAll(it) }
-                                            else if (line.startsWith("f "))
-                                                line.substring(2).split(' ')
-                                                    .filter { it.isNotEmpty() }
-                                                    .forEach { values ->
-                                                        values.split("/")
-                                                            .filter { it.isNotEmpty() }
-                                                            .map { str -> str.toInt() }.also {
-                                                                instructions.add(it[0] - 1)
-                                                            }
-                                                    }
-
-                                        } ?: break
-                                    }
+                                        if (line.startsWith("v "))
+                                            line.substring(2)
+                                                .split(' ')
+                                                .filter { it.isNotEmpty() }
+                                                .map { str ->
+                                                    str.toFloat()
+                                                }.also { vertices.addAll(it) }
+                                        else if (line.startsWith("f "))
+                                            line.substring(2).split(' ')
+                                                .filter { it.isNotEmpty() }
+                                                .forEach { values ->
+                                                    values.split("/")
+                                                        .filter { it.isNotEmpty() }
+                                                        .map { str -> str.toInt() }.also {
+                                                            instructions.add(it[0] - 1)
+                                                        }
+                                                }
+                                    } ?: break
                                 }
+                                data.close()
                             }
+                            model.close()
                         }
                     }
                 else -> throw Exception("Model format don't supported")

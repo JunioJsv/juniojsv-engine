@@ -1,13 +1,14 @@
 #version 330
 
-attribute vec3 vertices;
+in vec3 position;
 
-out vec3 uv;
+out vec3 color;
 
 uniform mat4 transformation;
 uniform mat4 projection;
+uniform mat4 camera;
 
 void main() {
-    uv = vertices;
-    gl_Position = projection * transformation * vec4(vertices, 1.);
+    color = position;
+    gl_Position = projection * camera * transformation * vec4(position, 1.);
 }

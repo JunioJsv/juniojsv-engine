@@ -1,11 +1,11 @@
 package juniojsv.engine
 
 import org.joml.Matrix4f
+import org.joml.Vector3f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20
 import java.io.BufferedReader
-import java.io.File
-import java.io.FileReader
+import java.io.InputStreamReader
 
 abstract class Shader {
     abstract var identifier: Int
@@ -28,6 +28,11 @@ abstract class Shader {
                                 GL20.glUniform1i(location, value)
                             is Float ->
                                 GL20.glUniform1f(location, value)
+                            is Vector3f ->
+                                BufferUtils.createFloatBuffer(3).also { vec3 ->
+                                    value.get(vec3)
+                                    GL20.glUniform3fv(location, vec3)
+                                }
                             is Matrix4f ->
                                 BufferUtils.createFloatBuffer(16).also { matrix4f ->
                                     value.get(matrix4f)
@@ -52,41 +57,42 @@ abstract class Shader {
                     GL20.glAttachShader(identifier, vertex)
                     GL20.glAttachShader(identifier, fragment)
 
-                    GL20.glBindAttribLocation(identifier, 0, "vertices")
+                    GL20.glBindAttribLocation(identifier, 0, "position")
                     GL20.glLinkProgram(identifier)
                     GL20.glValidateProgram(identifier)
                 }
             }
         }
+
         fun fromResources(vertName: String, fragName: String): Shader {
             var vertShader = ""
             var fragShader = ""
             var buffer: String? = ""
 
             Shader::class.java.classLoader.also { loader ->
-                loader.getResource("$vertName.vert")?.let { src ->
-                    File(src.file).also { vertex ->
-                        BufferedReader(FileReader(vertex)).also { shader ->
-                            while (true) {
-                                buffer = shader.readLine()
-                                if (buffer != null)
-                                    vertShader += "$buffer\n"
-                                else break
-                            }
+                loader.getResourceAsStream("$vertName.vert")?.let { vertex ->
+                    BufferedReader(InputStreamReader(vertex)).also { shader ->
+                        while (true) {
+                            buffer = shader.readLine()
+                            if (buffer != null)
+                                vertShader += "$buffer\n"
+                            else break
                         }
+                        shader.close()
                     }
+                    vertex.close()
                 }
-                loader.getResource("$fragName.frag")?.let { src ->
-                    File(src.file).also { fragment ->
-                        BufferedReader(FileReader(fragment)).also { shader ->
-                            while (true) {
-                                buffer = shader.readLine()
-                                if (buffer != null)
-                                    fragShader += "$buffer\n"
-                                else break
-                            }
+                loader.getResourceAsStream("$fragName.frag")?.let { fragment ->
+                    BufferedReader(InputStreamReader(fragment)).also { shader ->
+                        while (true) {
+                            buffer = shader.readLine()
+                            if (buffer != null)
+                                fragShader += "$buffer\n"
+                            else break
                         }
+                        shader.close()
                     }
+                    fragment.close()
                 }
             }
 
