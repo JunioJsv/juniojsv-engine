@@ -1,8 +1,5 @@
 package juniojsv.engine
 
-import juniojsv.engine.View.Companion.FAR
-import juniojsv.engine.View.Companion.FOV
-import juniojsv.engine.View.Companion.NEAR
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
@@ -13,9 +10,10 @@ import kotlin.math.tan
 
 class Being(
     private val model: Model,
+    private val texture: Texture?,
     private val shader: Shader?,
-    val position: Vector3f = Vector3f(0f, 0f, -1f),
-    private val rotation: Vector3f = Vector3f(0f),
+    val position: Vector3f = Vector3f(0f),
+    val rotation: Vector3f = Vector3f(0f),
     var scale: Float = .5f
 ) {
 
@@ -41,10 +39,15 @@ class Being(
 
     companion object {
 
-
-        fun draw(view: View, camera: Camera, beings: ArrayList<Being>) {
+        fun draw(
+            view: View,
+            camera: Camera,
+            light: Light,
+            beings: ArrayList<Being>
+        ) {
             var PREVIOUS_MODEL: Int? = null
             var PREVIOUS_SHADER: Int? = null
+            var PREVIOUS_TEXTURE: Int? = null
 
             beings.forEach { being ->
                 with(being) {
@@ -59,44 +62,69 @@ class Being(
                     val projection = Matrix4f().apply {
                         val ratio = view.width.toFloat() / view.height.toFloat()
                         val yScale =
-                            (1f / tan(Math.toRadians((FOV / 2f).toDouble())) * ratio).toFloat()
+                            (1f / tan(Math.toRadians((camera.fov / 2f).toDouble())) * ratio).toFloat()
                         val xScale = yScale / ratio
-                        val frustum: Float = FAR - NEAR
+                        val frustum: Float = camera.far - camera.near
 
                         m00(xScale)
                         m11(yScale)
-                        m22(-((FAR + NEAR) / frustum))
+                        m22(-((camera.far + camera.near) / frustum))
                         m23(-1f)
-                        m32(-(2 * NEAR * FAR / frustum))
+                        m32(-(2 * camera.near * camera.far / frustum))
                         m33(0f)
                     }
 
-                    shader?.apply {
-                        if(PREVIOUS_SHADER != this.identifier) {
-                            GL20.glUseProgram(this.identifier)
-                            PREVIOUS_SHADER = this.identifier
+                    if (shader != null) {
+                        with(shader) {
+                            if (PREVIOUS_SHADER != this.id) {
+                                GL20.glUseProgram(this.id)
+                                PREVIOUS_SHADER = this.id
+                            }
+                            putUniform("projection", projection)
+                            putUniform("camera_view", camera.view())
+                            putUniform("transformation", transformation)
+                            putUniform("light_position", light.position)
+                            putUniform("light_color", light.color)
+                            putUniform("sys_time", GLFW.glfwGetTime().toFloat())
+
+                            if (texture != null) {
+                                putUniform("has_texture", 1)
+                                with(texture) {
+                                    if (PREVIOUS_TEXTURE != this.id) {
+                                        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture.id)
+                                        PREVIOUS_TEXTURE = this.id
+                                    }
+                                }
+                            } else {
+                                putUniform("has_texture", 0)
+                                GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
+                                PREVIOUS_TEXTURE = null
+                            }
+
                         }
-                        putUniform("projection", projection)
-                        putUniform("camera", camera.view())
-                        putUniform("transformation", transformation)
-                        putUniform("sys_time", GLFW.glfwGetTime().toFloat())
+                    } else {
+                        GL20.glUseProgram(0)
+                        PREVIOUS_SHADER = null
+                        PREVIOUS_TEXTURE = null
                     }
 
-                    if(PREVIOUS_MODEL != model.identifier) {
-                        GL30.glBindVertexArray(model.identifier)
+                    if (PREVIOUS_MODEL != model.id) {
+                        GL30.glBindVertexArray(model.id)
                         GL20.glEnableVertexAttribArray(0)
+                        GL20.glEnableVertexAttribArray(1)
                         GL20.glEnableVertexAttribArray(2)
-                        PREVIOUS_MODEL = model.identifier
+                        PREVIOUS_MODEL = model.id
                     }
 
                     GL11.glDrawElements(
                         GL11.GL_TRIANGLES,
-                        model.instructionsCount,
+                        model.indicesCount,
                         GL11.GL_UNSIGNED_INT, 0
                     )
                 }
             }
             GL20.glDisableVertexAttribArray(0)
+            GL20.glDisableVertexAttribArray(1)
             GL20.glDisableVertexAttribArray(2)
             GL30.glBindVertexArray(0)
         }
