@@ -8,21 +8,21 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 abstract class Shader {
-    abstract var identifier: Int
+    abstract var id: Int
     abstract var vertex: Int
     abstract var fragment: Int
 
     abstract fun putUniform(name: String, value: Any)
 
     companion object {
-        fun fromRaw(vertShader: String, fragShader: String): Shader {
+        fun fromRaw(vertexSrc: String, fragmentSrc: String): Shader {
             return object : Shader() {
-                override var identifier: Int = GL20.glCreateProgram()
+                override var id: Int = GL20.glCreateProgram()
                 override var vertex: Int = GL20.glCreateShader(GL20.GL_VERTEX_SHADER)
                 override var fragment: Int = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER)
 
                 override fun putUniform(name: String, value: Any) {
-                    GL20.glGetUniformLocation(identifier, name).also { location ->
+                    GL20.glGetUniformLocation(id, name).also { location ->
                         when (value) {
                             is Int ->
                                 GL20.glUniform1i(location, value)
@@ -48,57 +48,51 @@ abstract class Shader {
                 }
 
                 init {
-                    GL20.glShaderSource(vertex, vertShader)
+                    GL20.glShaderSource(vertex, vertexSrc)
                     GL20.glCompileShader(vertex)
 
-                    GL20.glShaderSource(fragment, fragShader)
+                    GL20.glShaderSource(fragment, fragmentSrc)
                     GL20.glCompileShader(fragment)
 
-                    GL20.glAttachShader(identifier, vertex)
-                    GL20.glAttachShader(identifier, fragment)
+                    GL20.glAttachShader(id, vertex)
+                    GL20.glAttachShader(id, fragment)
 
-                    GL20.glBindAttribLocation(identifier, 0, "position")
-                    GL20.glBindAttribLocation(identifier, 2, "normal")
+                    GL20.glBindAttribLocation(id, 0, "vertice_position")
+                    GL20.glBindAttribLocation(id, 1, "uv_coordinates")
+                    GL20.glBindAttribLocation(id, 2, "vertice_normal")
 
-                    GL20.glLinkProgram(identifier)
-                    GL20.glValidateProgram(identifier)
+                    GL20.glLinkProgram(id)
+                    GL20.glValidateProgram(id)
                 }
             }
         }
 
         fun fromResources(vertName: String, fragName: String): Shader {
-            var vertShader = ""
-            var fragShader = ""
-            var buffer: String?
+            // [0] vertex shader [1] fragment shader
+            val buffer: Array<String> = arrayOf(
+                String(),
+                String()
+            )
 
             Shader::class.java.classLoader.also { loader ->
-                loader.getResourceAsStream("$vertName.vert")?.let { vertex ->
-                    BufferedReader(InputStreamReader(vertex)).also { shader ->
-                        while (true) {
-                            buffer = shader.readLine()
-                            if (buffer != null)
-                                vertShader += "$buffer\n"
-                            else break
+                repeat(2) { index ->
+                    loader.getResourceAsStream(
+                        if (index == 0) "$vertName.vert"
+                        else "$fragName.frag"
+                    )?.let { src ->
+                        BufferedReader(InputStreamReader(src)).also { shader ->
+                            while (true) {
+                                shader.readLine()?.also { line ->
+                                    buffer[index] += "$line\n"
+                                } ?: break
+                            }
+                            shader.close()
                         }
-                        shader.close()
+                        src.close()
                     }
-                    vertex.close()
-                }
-                loader.getResourceAsStream("$fragName.frag")?.let { fragment ->
-                    BufferedReader(InputStreamReader(fragment)).also { shader ->
-                        while (true) {
-                            buffer = shader.readLine()
-                            if (buffer != null)
-                                fragShader += "$buffer\n"
-                            else break
-                        }
-                        shader.close()
-                    }
-                    fragment.close()
                 }
             }
-
-            return fromRaw(vertShader, fragShader)
+            return fromRaw(buffer[0], buffer[1])
         }
     }
 }

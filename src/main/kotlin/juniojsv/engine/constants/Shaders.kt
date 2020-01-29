@@ -2,4 +2,6 @@ package juniojsv.engine.constants
 
 import juniojsv.engine.Shader
 
-val DEFAULT_SHADER = Shader.fromResources("default", "default")
+val DEFAULT_SHADER by lazy {
+    Shader.fromResources("default", "default")
+}

@@ -3,16 +3,34 @@ package juniojsv.engine
 import org.joml.Matrix4f
 import org.joml.Vector3f
 
+enum class CAMERA_MOVEMENT {
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT,
+    DOWN,
+    UP
+}
+
 class Camera(private val view: View) {
     private val position: Vector3f = Vector3f(0f)
     private var elevation: Double = 0.0
     private var azimuth: Double = 0.0
 
-    fun move(dx: Float, dy: Float, dz: Float, increment: Boolean = false) {
+    var fov = 90f
+    var near = .1f
+    var far = 1000f
+
+    fun move(cameraMovement: CAMERA_MOVEMENT) {
         position.apply {
-            x = if (increment) x + dx else dx
-            y = if (increment) y + dy else dy
-            z = if (increment) z + dz else dz
+            when (cameraMovement) {
+                CAMERA_MOVEMENT.FORWARD ->
+                    if (z > 0)
+                        z -= 1f
+                CAMERA_MOVEMENT.BACKWARD ->
+                    z += 1f
+                else -> { }
+            }
         }
     }
 
@@ -28,9 +46,9 @@ class Camera(private val view: View) {
     fun view(): Matrix4f {
         val nPosition = Vector3f(-position.x, -position.y, -position.z)
         return Matrix4f().apply {
+            translate(nPosition)
             rotate(Math.toRadians(elevation * (view.height / 2)).toFloat(), 1f, 0f, 0f)
             rotate(Math.toRadians(azimuth * (view.width / 2)).toFloat(), 0f, 1f, 0f)
-            translate(nPosition)
         }
     }
 }

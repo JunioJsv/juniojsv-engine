@@ -8,8 +8,8 @@ import java.io.PrintStream
 
 abstract class View(
     title: String,
-    var width: Int = 640,
-    var height: Int = 480
+    var width: Int = 800,
+    var height: Int = 600
 ) {
     abstract var camera: Camera
 
@@ -71,11 +71,5 @@ abstract class View(
     open fun onResize(width: Int, height: Int) {
         this.width = width
         this.height = height
-    }
-
-    companion object {
-        const val FOV = 70f
-        const val NEAR = .1f
-        const val FAR = 1000f
     }
 }
