@@ -9,7 +9,7 @@ out vec2 out_uv_coordinates;
 out vec3 out_vertice_normal;
 
 uniform mat4 transformation;
-uniform mat4 projection;
+uniform mat4 camera_projection;
 uniform mat4 camera_view;
 
 void main() {
@@ -18,5 +18,5 @@ void main() {
     out_uv_coordinates = uv_coordinates;
     out_vertice_normal = normalize((transformation * vec4(vertice_normal, 0.0)).xyz);
 
-    gl_Position = projection * camera_view * world_position;
+    gl_Position = camera_projection * camera_view * world_position;
 }

@@ -1,54 +1,52 @@
 package juniojsv.engine
 
-import juniojsv.engine.constants.DEFAULT_SHADER
-import juniojsv.engine.constants.ROCK_MODEL
-import juniojsv.engine.constants.ROCK_TEXTURE
-import juniojsv.engine.constants.SPHERE_MODEL
+import juniojsv.engine.constants.*
+import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.system.exitProcess
 
 class Engine : View("juniojsv.engine") {
     private var window: Long = -1
     private var mPolygon: Int = 0
     private lateinit var light: Light
     private lateinit var beings: MutableList<Being>
-    override lateinit var camera: Camera
+    private lateinit var camera: Camera
+    override lateinit var gui: Gui
 
     override fun setup(window: Long) {
         super.setup(window)
         this.window = window
         mPolygon = GL11.GL_FILL
-        light = Light(this)
+        light = Light(Vector3f(0f, 300f, 0f))
         camera = Camera(this)
-
-        GL11.glEnable(GL11.GL_DEPTH_TEST)
-        GL11.glEnable(GL11.GL_CULL_FACE)
-        GL11.glCullFace(GL11.GL_BACK)
-        GL11.glClearColor(.25f, .25f, .25f, 1f)
-
-        beings = mutableListOf(
-            Being(
-                model = SPHERE_MODEL,
-                texture = ROCK_TEXTURE,
-                shader = DEFAULT_SHADER
-            )
-        )
-        repeat(100) {
-            beings.add(
+        gui = Gui(this)
+        beings = MutableList(1000) { index ->
+            if (index == 0)
+                Being(
+                    model = SPHERE_MODEL,
+                    texture = EARTH_TEXTURE,
+                    shader = DEFAULT_SHADER
+                )
+            else
                 Being(
                     model = ROCK_MODEL,
                     texture = ROCK_TEXTURE,
                     shader = DEFAULT_SHADER,
                     scale = 0.01f
                 )
-            )
         }
+        Thread(gui, "juniojsv.debug").start()
 
+        GL11.glEnable(GL11.GL_DEPTH_TEST)
+        GL11.glEnable(GL11.GL_CULL_FACE)
+        GL11.glCullFace(GL11.GL_BACK)
+        GL11.glClearColor(.25f, .25f, .25f, 1f)
     }
 
-    override fun draw() {
+    override fun draw(delta: Double) {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
 
@@ -76,7 +74,6 @@ class Engine : View("juniojsv.engine") {
         }
 
         Being.draw(
-            this,
             camera,
             light,
             beings as ArrayList<Being>
@@ -105,16 +102,57 @@ class Engine : View("juniojsv.engine") {
                     GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, mPolygon)
                 }
             }
-            GLFW.GLFW_KEY_W -> camera.move(CAMERA_MOVEMENT.FORWARD)
-            GLFW.GLFW_KEY_A -> camera.move(CAMERA_MOVEMENT.LEFT)
-            GLFW.GLFW_KEY_S -> camera.move(CAMERA_MOVEMENT.BACKWARD)
-            GLFW.GLFW_KEY_D -> camera.move(CAMERA_MOVEMENT.RIGHT)
-            else -> println("Key:$key Code:$code Action:$action")
+            GLFW.GLFW_KEY_W -> camera.move(CameraMovement.FORWARD, .25f)
+            GLFW.GLFW_KEY_A -> camera.move(CameraMovement.LEFT, .25f)
+            GLFW.GLFW_KEY_S -> camera.move(CameraMovement.BACKWARD, .25f)
+            GLFW.GLFW_KEY_D -> camera.move(CameraMovement.RIGHT, .25f)
+            else -> with(gui.console) {
+                println(
+                    debug(
+                        "Engine channel debug",
+                        "ENGINE",
+                        "DEBUG",
+                        "KEYBOARD",
+                        "Key: $key Code: $code Action: $action"
+                    )
+                )
+            }
         }
     }
 
     override fun onResize(width: Int, height: Int) {
         super.onResize(width, height)
         GL11.glViewport(0, 0, width, height)
+    }
+
+    override fun channel(method: String, args: List<String>?): Any? {
+        GLFW.glfwMakeContextCurrent(window)
+        when (method) {
+            "exit" -> exitProcess(0)
+            "get_beings" -> return beings
+            "clear_beings" -> {
+                beings.clear()
+                with(gui.console) {
+                    println(
+                        debug(
+                            "Engine channel debug",
+                            "ENGINE",
+                            "CHANNEL",
+                            "NOTIFICATION",
+                            "Beings cleaned"
+                        )
+                    )
+                }
+            }
+            else ->
+                gui.console.println(
+                    """[ENGINE] Engine channel debug
+                                Source: ENGINE
+                                Type: CHANNEL
+                                Severity: NOTIFICATION
+                                Message: No methods named $method"""
+                )
+        }
+        return null
     }
 }

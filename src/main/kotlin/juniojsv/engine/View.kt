@@ -11,7 +11,7 @@ abstract class View(
     var width: Int = 800,
     var height: Int = 600
 ) {
-    abstract var camera: Camera
+    internal abstract var gui: Gui
 
     init {
         if (!GLFW.glfwInit())
@@ -39,8 +39,13 @@ abstract class View(
             }
 
             setup(window)
-            while (!GLFW.glfwWindowShouldClose(window))
-                this.draw()
+            var previousFrame = 0.0
+            while (!GLFW.glfwWindowShouldClose(window)) {
+                draw(GLFW.glfwGetTime() - previousFrame)
+                previousFrame = GLFW.glfwGetTime()
+            }
+
+            channel("exit", null)
         }
     }
 
@@ -55,12 +60,12 @@ abstract class View(
         GL.createCapabilities()
         GLUtil.setupDebugMessageCallback(PrintStream(object : OutputStream() {
             override fun write(char: Int) {
-                print(char.toChar())
+                gui.console.print("${char.toChar()}")
             }
         }))
     }
 
-    abstract fun draw()
+    abstract fun draw(delta: Double)
 
     abstract fun onCursorEvent(xPos: Double, yPos: Double)
 
@@ -72,4 +77,6 @@ abstract class View(
         this.width = width
         this.height = height
     }
+
+    abstract fun channel(method: String, args: List<String>?) : Any?
 }

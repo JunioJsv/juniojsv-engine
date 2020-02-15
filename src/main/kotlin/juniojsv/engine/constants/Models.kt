@@ -11,6 +11,6 @@ val TERRAIN_MODEL by lazy {
 val ROCK_MODEL by lazy {
     Model.fromResources("rock.obj")
 }
-val SPHERE_MODEL by  lazy {
+val SPHERE_MODEL by lazy {
     Model.fromResources("sphere.obj")
 }
