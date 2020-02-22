@@ -49,6 +49,7 @@ class Being(
 
             val cameraProjection = camera.projection()
             val cameraView = camera.view()
+            val fogColor = Vector3f(1f)
 
             beings.forEach { being ->
                 with(being) {
@@ -69,9 +70,12 @@ class Being(
                             }
                             putUniform("camera_projection", cameraProjection)
                             putUniform("camera_view", cameraView)
+                            putUniform("camera_near", camera.near)
+                            putUniform("camera_far", camera.far)
                             putUniform("transformation", transformation)
                             putUniform("light_position", light.position)
                             putUniform("light_color", light.color)
+                            putUniform("fog_color", fogColor)
                             putUniform("sys_time", GLFW.glfwGetTime().toFloat())
 
                             if (texture != null) {

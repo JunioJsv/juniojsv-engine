@@ -10,14 +10,16 @@ enum class CameraMovement {
     FORWARD,
     BACKWARD,
     RIGHT,
-    LEFT
+    LEFT,
+    UP,
+    DOWN
 }
 
 class Camera(private val view: View, val position: Vector3f = Vector3f(0f)) {
     private var pitch: Float = 0f
     private var yaw: Float = 0f
 
-    val fov = 90f
+    private val fov = 90f
     val near = .1f
     val far = 1000f
 
@@ -46,6 +48,8 @@ class Camera(private val view: View, val position: Vector3f = Vector3f(0f)) {
                     x -= cosYaw
                     z -= sinYaw
                 }
+                CameraMovement.UP -> y += speed
+                CameraMovement.DOWN -> y -= speed
             }
         }
     }
