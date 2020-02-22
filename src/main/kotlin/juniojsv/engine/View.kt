@@ -52,6 +52,9 @@ abstract class View(
     open fun setup(window: Long) {
         GLFW.glfwMakeContextCurrent(window)
         GLFW.glfwShowWindow(window)
+        GLFW.glfwSetCursor(
+            window, GLFW.glfwCreateStandardCursor(GLFW.GLFW_CROSSHAIR_CURSOR)
+        )
         GLFW.glfwSetCursorPos(
             window,
             (width / 2).toDouble(),
@@ -78,5 +81,5 @@ abstract class View(
         this.height = height
     }
 
-    abstract fun channel(method: String, args: List<String>?) : Any?
+    abstract fun channel(method: String, args: List<String>?): Any?
 }

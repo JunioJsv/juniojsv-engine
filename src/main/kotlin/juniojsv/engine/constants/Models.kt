@@ -3,14 +3,11 @@ package juniojsv.engine.constants
 import juniojsv.engine.Model
 
 val DRAGON_MODEL by lazy {
-    Model.fromResources("dragon.obj")
-}
-val TERRAIN_MODEL by lazy {
-    Model.fromResources("terrain.obj")
+    Model.fromResources("models/dragon.obj")
 }
 val ROCK_MODEL by lazy {
-    Model.fromResources("rock.obj")
+    Model.fromResources("models/rock.obj")
 }
 val SPHERE_MODEL by lazy {
-    Model.fromResources("sphere.obj")
+    Model.fromResources("models/sphere.obj")
 }

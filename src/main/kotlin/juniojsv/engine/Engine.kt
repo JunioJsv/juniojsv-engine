@@ -1,6 +1,7 @@
 package juniojsv.engine
 
-import juniojsv.engine.constants.*
+import juniojsv.engine.constants.DEFAULT_SHADER
+import juniojsv.engine.constants.ROCK_TEXTURE
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
@@ -20,25 +21,18 @@ class Engine : View("juniojsv.engine") {
         super.setup(window)
         this.window = window
         mPolygon = GL11.GL_FILL
-        light = Light(Vector3f(0f, 300f, 0f))
+        light = Light(Vector3f(0f, 35f, 0f))
         camera = Camera(this)
         gui = Gui(this)
-        beings = MutableList(1000) { index ->
-            if (index == 0)
-                Being(
-                    model = SPHERE_MODEL,
-                    texture = EARTH_TEXTURE,
-                    shader = DEFAULT_SHADER
-                )
-            else
-                Being(
-                    model = ROCK_MODEL,
-                    texture = ROCK_TEXTURE,
-                    shader = DEFAULT_SHADER,
-                    scale = 0.01f
-                )
-        }
-        Thread(gui, "juniojsv.debug").start()
+        beings = mutableListOf(
+            Being(
+                Terrain.generate(128, 8f, 24f, 1f),
+                ROCK_TEXTURE,
+                DEFAULT_SHADER,
+                position = Vector3f(-256f, -10f, 256f)
+            )
+        )
+        Thread(gui, "juniojsv.debug")
 
         GL11.glEnable(GL11.GL_DEPTH_TEST)
         GL11.glEnable(GL11.GL_CULL_FACE)
@@ -53,24 +47,10 @@ class Engine : View("juniojsv.engine") {
         with(light) {
             val time = GLFW.glfwGetTime().toFloat()
             move(
-                cos(time * 0.45f) * 25f,
-                0f,
-                -sin(time * 0.45f) * 25f
+                -sin(time/4) * 256,
+                cos(time/4) * 266,
+                0f
             )
-        }
-
-        beings.forEachIndexed { index, being ->
-            when (index) {
-                0 -> {
-                }
-                else -> {
-                    val time = GLFW.glfwGetTime().toFloat()
-                    val y = cos(time / 4 + index * sin(index.toFloat())) / 8
-                    val x = cos(time + index)
-                    val z = -sin(time + index)
-                    being.move(x, y, z)
-                }
-            }
         }
 
         Being.draw(
@@ -106,6 +86,8 @@ class Engine : View("juniojsv.engine") {
             GLFW.GLFW_KEY_A -> camera.move(CameraMovement.LEFT, .25f)
             GLFW.GLFW_KEY_S -> camera.move(CameraMovement.BACKWARD, .25f)
             GLFW.GLFW_KEY_D -> camera.move(CameraMovement.RIGHT, .25f)
+            GLFW.GLFW_KEY_Q -> camera.move(CameraMovement.UP, 1f)
+            GLFW.GLFW_KEY_E -> camera.move(CameraMovement.DOWN, 1f)
             else -> with(gui.console) {
                 println(
                     debug(

@@ -2,12 +2,11 @@ package juniojsv.engine
 
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL32
+import org.lwjgl.opengl.GL30
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.IntBuffer
 import javax.imageio.ImageIO
-
 
 abstract class Texture {
     abstract val id: Int
@@ -23,6 +22,7 @@ abstract class Texture {
                     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT)
                     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST)
                     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR)
+                    GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_NEAREST)
 
                     GL11.glTexImage2D(
                         GL11.GL_TEXTURE_2D,
@@ -32,7 +32,7 @@ abstract class Texture {
                         GL11.GL_UNSIGNED_BYTE,
                         pixels
                     )
-                    GL32.glGenerateMipmap(GL11.GL_TEXTURE_2D)
+                    GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D)
                     GL11.glBindTexture(GL11.GL_TEXTURE_2D,0)
                 }
             }

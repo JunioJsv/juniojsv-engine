@@ -84,7 +84,10 @@ class Editor(engine: Engine) : JPanel() {
                     override fun addListDataListener(p0: ListDataListener?) = Unit
 
                     override fun removeListDataListener(p0: ListDataListener?) = Unit
-                })
+                }).apply {
+                    addListSelectionListener { _ ->
+                    }
+                }
             )
         )
     }
