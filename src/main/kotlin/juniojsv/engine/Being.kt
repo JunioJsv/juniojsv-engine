@@ -1,5 +1,6 @@
 package juniojsv.engine
 
+import juniojsv.engine.constants.CUBEMAP_MODEL
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
@@ -40,6 +41,7 @@ class Being(
 
         fun draw(
             camera: Camera,
+            skyBox: SkyBox,
             light: Light,
             beings: ArrayList<Being>
         ) {
@@ -114,9 +116,24 @@ class Being(
                     )
                 }
             }
-            GL20.glDisableVertexAttribArray(0)
-            GL20.glDisableVertexAttribArray(1)
-            GL20.glDisableVertexAttribArray(2)
+
+            with(skyBox) {
+                val transformation: Matrix4f = Matrix4f().scale(scale)
+                GL11.glDepthMask(false)
+                GL30.glBindVertexArray(CUBEMAP_MODEL.id)
+                GL20.glEnableVertexAttribArray(0)
+
+                with(shader) {
+                    GL20.glUseProgram(this.id)
+                    putUniform("transformation", transformation)
+                    putUniform("camera_projection", cameraProjection)
+                    putUniform("camera_view", cameraView)
+                }
+
+                GL30.glBindTexture(GL30.GL_TEXTURE_CUBE_MAP, cubeMap.id)
+                GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, CUBEMAP_MODEL.indicesCount)
+                GL11.glDepthMask(true)
+            }
             GL30.glBindVertexArray(0)
         }
     }

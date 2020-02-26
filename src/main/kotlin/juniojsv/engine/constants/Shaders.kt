@@ -8,3 +8,6 @@ val DEFAULT_SHADER by lazy {
 val DEPTH_SHADER by lazy {
     Shader.fromResources("shaders/default", "shaders/depth")
 }
+val SKYBOX_SHADER by lazy {
+    Shader.fromResources("shaders/skybox", "shaders/skybox")
+}
