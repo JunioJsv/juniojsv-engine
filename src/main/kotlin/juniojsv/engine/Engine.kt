@@ -1,17 +1,18 @@
 package juniojsv.engine
 
 import juniojsv.engine.constants.DEFAULT_SHADER
-import juniojsv.engine.constants.ROCK_TEXTURE
+import juniojsv.engine.constants.GROUND_TEXTURE
+import juniojsv.engine.constants.SKYBOX_DEFAULT_CUBEMAP
+import juniojsv.engine.constants.SKYBOX_SHADER
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.system.exitProcess
 
 class Engine : View("juniojsv.engine") {
     private var window: Long = -1
     private var mPolygon: Int = 0
+    private lateinit var skyBox: SkyBox
     private lateinit var light: Light
     private lateinit var beings: MutableList<Being>
     private lateinit var camera: Camera
@@ -21,18 +22,19 @@ class Engine : View("juniojsv.engine") {
         super.setup(window)
         this.window = window
         mPolygon = GL11.GL_FILL
+        skyBox = SkyBox(SKYBOX_DEFAULT_CUBEMAP, SKYBOX_SHADER)
         light = Light(Vector3f(0f, 35f, 0f))
         camera = Camera(this)
         gui = Gui(this)
         beings = mutableListOf(
             Being(
-                Terrain.generate(128, 8f, 24f, 1f),
-                ROCK_TEXTURE,
+                Terrain.generate(128, 8f, 24f, 32f),
+                GROUND_TEXTURE,
                 DEFAULT_SHADER,
                 position = Vector3f(-256f, -10f, 256f)
             )
         )
-        Thread(gui, "juniojsv.debug")
+        Thread(gui, "juniojsv.debug").start()
 
         GL11.glEnable(GL11.GL_DEPTH_TEST)
         GL11.glEnable(GL11.GL_CULL_FACE)
@@ -44,17 +46,9 @@ class Engine : View("juniojsv.engine") {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
 
-        with(light) {
-            val time = GLFW.glfwGetTime().toFloat()
-            move(
-                -sin(time/4) * 256,
-                cos(time/4) * 266,
-                0f
-            )
-        }
-
         Being.draw(
             camera,
+            skyBox,
             light,
             beings as ArrayList<Being>
         )

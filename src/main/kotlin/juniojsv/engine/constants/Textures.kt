@@ -1,19 +1,23 @@
 package juniojsv.engine.constants
 
+import juniojsv.engine.CubeMap
 import juniojsv.engine.Texture
 
-val ROCK_TEXTURE by lazy {
-    Texture.fromResource("textures/rock.jpg")
-}
-val BRICK_TEXTURE by lazy {
-    Texture.fromResource("textures/brick.jpg")
+val UV_TEXTURE by lazy {
+    Texture.fromResource("textures/uv.jpeg")
 }
 val GROUND_TEXTURE by lazy {
     Texture.fromResource("textures/ground.jpg")
 }
-val UV_TEXTURE by lazy {
-    Texture.fromResource("textures/uv.jpeg")
-}
-val EARTH_TEXTURE by lazy {
-    Texture.fromResource("textures/earth.jpg")
+val SKYBOX_DEFAULT_CUBEMAP by lazy {
+    CubeMap.fromResource(
+        arrayOf(
+            "textures/right.png",
+            "textures/left.png",
+            "textures/top.png",
+            "textures/bottom.png",
+            "textures/front.png",
+            "textures/back.png"
+        )
+    )
 }
