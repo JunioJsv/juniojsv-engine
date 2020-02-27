@@ -74,9 +74,9 @@ class Editor(engine: Engine) : JPanel() {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         add(
             JScrollPane(
-                JList<Being>(object : ListModel<Being> {
-                    override fun getElementAt(index: Int): Being =
-                        (engine.channel("get_beings", null) as List<*>)[index] as Being
+                JList<Entity.Being>(object : ListModel<Entity.Being> {
+                    override fun getElementAt(index: Int): Entity.Being =
+                        (engine.channel("get_beings", null) as List<*>)[index] as Entity.Being
 
                     override fun getSize(): Int =
                         (engine.channel("get_beings", null) as List<*>).size

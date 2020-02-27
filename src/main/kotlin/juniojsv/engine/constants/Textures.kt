@@ -1,16 +1,15 @@
 package juniojsv.engine.constants
 
-import juniojsv.engine.CubeMap
 import juniojsv.engine.Texture
 
 val UV_TEXTURE by lazy {
-    Texture.fromResource("textures/uv.jpeg")
+    Texture.TwoDimension("textures/uv.jpeg")
 }
 val GROUND_TEXTURE by lazy {
-    Texture.fromResource("textures/ground.jpg")
+    Texture.TwoDimension("textures/ground.jpg")
 }
 val SKYBOX_DEFAULT_CUBEMAP by lazy {
-    CubeMap.fromResource(
+    Texture.CubeMap(
         arrayOf(
             "textures/right.png",
             "textures/left.png",
