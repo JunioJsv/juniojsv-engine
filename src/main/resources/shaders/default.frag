@@ -1,8 +1,8 @@
 #version 330
 
-in vec3 out_vertice_position;
+in vec3 out_vertex_position;
 in vec2 out_uv_coordinates;
-in vec3 out_vertice_normal;
+in vec3 out_vertex_normal;
 
 uniform float sys_time;
 uniform vec3 light_position;
@@ -19,8 +19,8 @@ float near = .1;
 float far = 1000.;
 
 void main() {
-    vec3 n_light_position = normalize(light_position - out_vertice_position);
-    float brightness = max(dot(out_vertice_normal, n_light_position), 0.);
+    vec3 n_light_position = normalize(light_position - out_vertex_position);
+    float brightness = max(dot(out_vertex_normal, n_light_position), 0.);
     vec3 diffuse = brightness * light_color;
 
     float z = gl_FragCoord.z * 2. - 1.;

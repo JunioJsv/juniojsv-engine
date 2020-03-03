@@ -88,7 +88,7 @@ abstract class Model {
             val uvCoordinates = mutableListOf<Float>()
             val normals = mutableListOf<Float>()
             val faces = arrayOf<MutableList<Int>>(
-                mutableListOf(),    // [0] vertice_indices
+                mutableListOf(),    // [0] vertex_indices
                 mutableListOf(),    // [1] uvCoordinates_indices
                 mutableListOf()     // [2] normals_indices
             )

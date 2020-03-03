@@ -7,7 +7,7 @@ abstract class Resource {
         Resource::class.java.classLoader.also { loader ->
             loader.getResourceAsStream(file)?.also { stream ->
                 onSuccess(stream)
-            }
+            } ?: throw Exception("Can't find the resource")
         }
     }
 }
