@@ -34,7 +34,7 @@ abstract class Entity {
         }
     }
 
-    class SkyBox(val cubeMap: Texture.CubeMap, val shader: Shader, override var scale: Float = 500f) : Entity() {
+    class SkyBox(val cubeMap: Texture.CubeMap, val shader: Shader.Program, override var scale: Float = 500f) : Entity() {
         fun transformation(): Matrix4f = Matrix4f().scale(scale)
     }
 
@@ -127,7 +127,7 @@ abstract class Entity {
     class Being(
         val model: Model,
         val texture: Texture.TwoDimension?,
-        val shader: Shader?,
+        val shader: Shader.Program?,
         override val position: Vector3f = Vector3f(0f),
         override val rotation: Vector3f = Vector3f(0f),
         override var scale: Float = 1f

@@ -153,9 +153,9 @@ class Engine : View("juniojsv.engine") {
 
                     if (being.shader != null) {
                         with(being.shader) {
-                            if (PREVIOUS_SHADER != this.id) {
-                                GL20.glUseProgram(this.id)
-                                PREVIOUS_SHADER = this.id
+                            if (PREVIOUS_SHADER != id) {
+                                GL20.glUseProgram(id)
+                                PREVIOUS_SHADER = id
                             }
                             putUniform("camera_projection", cameraProjection)
                             putUniform("camera_view", cameraView)
@@ -170,12 +170,12 @@ class Engine : View("juniojsv.engine") {
                             if (being.texture != null) {
                                 putUniform("has_texture", 1)
                                 with(being.texture) {
-                                    if (PREVIOUS_TEXTURE != this.id) {
+                                    if (PREVIOUS_TEXTURE != id) {
                                         GL11.glBindTexture(
                                             GL11.GL_TEXTURE_2D,
                                             being.texture.id
                                         )
-                                        PREVIOUS_TEXTURE = this.id
+                                        PREVIOUS_TEXTURE = id
                                     }
                                 }
                             } else {
@@ -212,7 +212,7 @@ class Engine : View("juniojsv.engine") {
                     GL20.glEnableVertexAttribArray(0)
 
                     with(shader) {
-                        GL20.glUseProgram(this.id)
+                        GL20.glUseProgram(id)
                         putUniform("transformation", transformation())
                         putUniform("camera_projection", cameraProjection)
                         putUniform("camera_view", cameraView)
