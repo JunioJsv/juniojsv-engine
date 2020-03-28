@@ -1,4 +1,4 @@
-package juniojsv.engine
+package juniojsv.engine.essentials
 
 import juniojsv.engine.utils.Resource
 import org.lwjgl.opengl.GL11
@@ -70,7 +70,6 @@ abstract class Texture : Resource() {
             GL11.glTexParameteri(
                 GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_NEAREST
             )
-
         }
     }
 

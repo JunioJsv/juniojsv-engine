@@ -11,7 +11,8 @@ abstract class View(
     var width: Int = 800,
     var height: Int = 600
 ) {
-    internal abstract var gui: Gui
+    protected var window: Long = 0
+        private set
 
     init {
         if (!GLFW.glfwInit())
@@ -25,8 +26,9 @@ abstract class View(
             height,
             title, 0, 0
         ).also { window ->
-            GLFW.glfwSetCursorPosCallback(window) { _, xPos: Double, yPos: Double ->
-                onCursorEvent(xPos, yPos)
+            this.window = window
+            GLFW.glfwSetCursorPosCallback(window) { _, xPosition: Double, yPosition: Double ->
+                onCursorEvent(xPosition, yPosition)
             }
             GLFW.glfwSetMouseButtonCallback(window) { _, button: Int, action: Int, mods: Int ->
                 onMouseButtonEvent(button, action, mods)
@@ -38,18 +40,14 @@ abstract class View(
                 onResize(width, height)
             }
 
-            setup(window)
-            var previousFrame = 0.0
+            setup()
             while (!GLFW.glfwWindowShouldClose(window)) {
-                draw(GLFW.glfwGetTime() - previousFrame)
-                previousFrame = GLFW.glfwGetTime()
+                draw()
             }
-
-            channel("exit", null)
         }
     }
 
-    open fun setup(window: Long) {
+    open fun setup() {
         GLFW.glfwMakeContextCurrent(window)
         GLFW.glfwShowWindow(window)
         GLFW.glfwSetCursor(
@@ -62,15 +60,13 @@ abstract class View(
         )
         GL.createCapabilities()
         GLUtil.setupDebugMessageCallback(PrintStream(object : OutputStream() {
-            override fun write(char: Int) {
-                gui.console.print("${char.toChar()}")
-            }
+            override fun write(char: Int) {}
         }))
     }
 
-    abstract fun draw(delta: Double)
+    abstract fun draw()
 
-    abstract fun onCursorEvent(xPos: Double, yPos: Double)
+    abstract fun onCursorEvent(positionX: Double, positionY: Double)
 
     abstract fun onMouseButtonEvent(button: Int, action: Int, mods: Int)
 
@@ -80,6 +76,4 @@ abstract class View(
         this.width = width
         this.height = height
     }
-
-    abstract fun channel(method: String, args: List<String>?): Any?
 }
