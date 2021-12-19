@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
+    implementation("de.javagl:obj:0.3.0")
     implementation("org.joml:joml:1.9.20")
     implementation(platform("org.lwjgl:lwjgl-bom:3.2.3"))
     implementation("org.lwjgl:lwjgl")

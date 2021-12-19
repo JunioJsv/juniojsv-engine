@@ -1,16 +1,18 @@
-package juniojsv.engine.entities
+package juniojsv.engine.features.entity
 
-import juniojsv.engine.View
+import juniojsv.engine.features.window.Window
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
 
-class Camera(override val position: Vector3f, private val view: View) : Entity() {
+class Camera(private val position: Vector3f, private val window: Window) {
     var fov = 90f
     var near = .1f
-    var far = 1000f
+    var far = 10000f
+
+    private val rotation: Vector3f = Vector3f(0f)
 
     enum class CameraMovement {
         FORWARD,
@@ -20,6 +22,8 @@ class Camera(override val position: Vector3f, private val view: View) : Entity()
         UP,
         DOWN
     }
+
+    fun getPosition() = position
 
     fun move(direction: CameraMovement, speed: Float) {
         with(position) {
@@ -51,36 +55,27 @@ class Camera(override val position: Vector3f, private val view: View) : Entity()
         }
     }
 
-    override fun move(offsetX: Float, offsetY: Float, offsetZ: Float, increment: Boolean) {
-        throw UnsupportedOperationException("Don't use this!")
-    }
 
     fun rotate(offsetX: Double, offsetY: Double) {
-        with(view) {
-            if (offsetX < width && offsetY < height) {
-                rotation.x = Math.toRadians(offsetX - width / 2).toFloat()
-                rotation.y = Math.toRadians(offsetY - height / 2).toFloat()
-            }
-        }
-    }
-
-    override fun rotate(offsetX: Float, offsetY: Float, offsetZ: Float, increment: Boolean) {
-        throw UnsupportedOperationException("Don't use this!")
+        rotation.x += offsetX.toFloat()
+        rotation.y += offsetY.toFloat()
     }
 
     fun projection(): Matrix4f = Matrix4f().apply {
-        val ratio = view.width.toFloat() / view.height.toFloat()
-        val yScale =
+        window.getResolution().also { resolution ->
+            val ratio = resolution.width.toFloat() / resolution.height.toFloat()
+            val yScale =
                 (1f / tan(Math.toRadians((fov / 2f).toDouble())) * ratio).toFloat()
-        val xScale = yScale / ratio
-        val frustum: Float = far - near
+            val xScale = yScale / ratio
+            val frustum: Float = far - near
 
-        m00(xScale)
-        m11(yScale)
-        m22(-((far + near) / frustum))
-        m23(-1f)
-        m32(-(2 * near * far / frustum))
-        m33(0f)
+            m00(xScale)
+            m11(yScale)
+            m22(-((far + near) / frustum))
+            m23(-1f)
+            m32(-(2 * near * far / frustum))
+            m33(0f)
+        }
     }
 
     fun view(): Matrix4f {

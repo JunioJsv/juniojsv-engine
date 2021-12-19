@@ -1,29 +1,15 @@
-package juniojsv.engine.effects
+package juniojsv.engine.features.shader
 
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20
 
-class Effect(vertex: Shader, fragment: Shader) {
+class ShadersProgram(vertex: Shader, fragment: Shader) {
     val id: Int = GL20.glCreateProgram()
 
-    //    constructor(vertexFile: String, fragmentFile: String) : this() {
-//        getResources(vertexFile) { stream ->
-//            decode(stream) { vertexSource ->
-//                getResources(fragmentFile) { stream ->
-//                    decode(stream) { fragmentSource ->
-//                        attachAndValidate(
-//                                ShaderRaw(vertexSource, ShaderType.VERTEX).id,
-//                                ShaderRaw(fragmentSource, ShaderType.FRAGMENT).id
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
     init {
-        attachAndValidate(vertex.id, fragment.id)
+        attachShaders(vertex, fragment)
     }
 
     fun putUniform(name: String, value: Any) {
@@ -52,15 +38,21 @@ class Effect(vertex: Shader, fragment: Shader) {
         }
     }
 
-    private fun attachAndValidate(vertexId: Int, fragmentId: Int) {
-        GL20.glAttachShader(id, vertexId)
-        GL20.glAttachShader(id, fragmentId)
+    private fun attachShaders(vertex: Shader, fragment: Shader) {
+        GL20.glAttachShader(id, vertex.id)
+        GL20.glAttachShader(id, fragment.id)
 
-        GL20.glBindAttribLocation(id, 0, "vertex_position")
-        GL20.glBindAttribLocation(id, 1, "uv_coordinates")
-        GL20.glBindAttribLocation(id, 2, "vertex_normal")
+        GL20.glBindAttribLocation(id, 0, VERTEX_POSITION)
+        GL20.glBindAttribLocation(id, 1, UV_COORDINATE)
+        GL20.glBindAttribLocation(id, 2, VERTEX_NORMAL)
 
         GL20.glLinkProgram(id)
         GL20.glValidateProgram(id)
+    }
+
+    companion object {
+        const val VERTEX_POSITION = "vertex_position"
+        const val UV_COORDINATE = "uv_coordinates"
+        const val VERTEX_NORMAL = "vertex_normal"
     }
 }

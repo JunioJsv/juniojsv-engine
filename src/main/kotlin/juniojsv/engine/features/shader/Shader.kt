@@ -1,10 +1,11 @@
-package juniojsv.engine.effects
+package juniojsv.engine.features.shader
 
-import juniojsv.engine.utils.Resource
+import juniojsv.engine.features.utils.Resource
 import org.lwjgl.opengl.GL32
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
+import kotlin.properties.Delegates
 
 enum class ShaderType {
     GEOMETRY,
@@ -12,11 +13,10 @@ enum class ShaderType {
     FRAGMENT
 }
 
-class Shader(file: String, type: ShaderType) : Resource() {
-    var id = 0
-        private set
+class Shader(file: String, type: ShaderType) {
+    var id: Int by Delegates.notNull()
 
-    private fun decode(stream: InputStream, onSuccess: (source: String) -> Unit) {
+    private fun getSource(stream: InputStream, onSuccess: (source: String) -> Unit) {
         var source = String()
         BufferedReader(InputStreamReader(stream)).also { file ->
             while (true) {
@@ -36,8 +36,8 @@ class Shader(file: String, type: ShaderType) : Resource() {
             ShaderType.VERTEX -> GL32.glCreateShader(GL32.GL_VERTEX_SHADER)
             ShaderType.FRAGMENT -> GL32.glCreateShader(GL32.GL_FRAGMENT_SHADER)
         }
-        getResources(file) { stream ->
-            decode(stream) { source ->
+        Resource.getResource(file) { stream ->
+            getSource(stream) { source ->
                 compile(id, source)
             }
         }

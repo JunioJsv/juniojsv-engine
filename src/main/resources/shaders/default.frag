@@ -13,6 +13,7 @@ uniform float camera_near;
 uniform float camera_far;
 
 uniform int has_texture;
+uniform int has_uv;
 uniform sampler2D in_texture;
 
 void main() {
@@ -24,16 +25,7 @@ void main() {
     z = (2. * camera_near * camera_far) / (camera_far + camera_near - z * (camera_far - camera_near));
     vec4 fog = vec4(vec3(z / camera_far) * fog_color, 1.);
 
-    if (z / camera_far < .01) {
-        vec3 grid = vec3(cos(gl_FragCoord));
-        if (grid.x > .05 || grid.y > .05)
-            discard;
-    }
-
     gl_FragColor = (has_texture == 1 ?
-        texture(in_texture, out_uv_coordinates) * vec4(diffuse, 1.) :
-            vec4(diffuse, 1.)) + fog;
-    gl_FragColor += vec4(offset, 1) * .05;
-    if(z / camera_far < .0105 && z / camera_far > 0.01)
-        gl_FragColor += vec4(.75 , 0, 0, 1);
+        texture(in_texture, out_uv_coordinates) * vec4(diffuse * out_vertex_normal, 1.) :
+            vec4(diffuse * out_vertex_normal, 1.)) + fog;
 }
