@@ -1,3 +1,9 @@
 # juniojsv-engine
-My OpenGL engine with Kotlin http://www.youtube.com/watch?v=az-pS03nu-U
-[![juniojsv.engine](https://i.imgur.com/7EyuFS3.png)](http://www.youtube.com/watch?v=az-pS03nu-U "")
+My OpenGL engine write with Kotlin
+- Wavefront (.obj) loader
+- Skybox loader
+- 2D textures loader
+- Free camera
+- Light diffuse
+
+[![juniojsv.engine](https://imgur.com/CYRnVzT.png)](http://www.youtube.com/watch?v=az-pS03nu-U "")
