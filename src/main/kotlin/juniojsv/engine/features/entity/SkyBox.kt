@@ -1,12 +1,11 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.mesh.Mesh
+import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.CubeMapTexture
 import juniojsv.engine.features.window.IRenderContext
 import org.joml.Matrix4f
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL20
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL30
 
 class SkyBox(
@@ -17,15 +16,19 @@ class SkyBox(
 ) : IRender {
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
-    override fun render(context: IRenderContext, camera: Camera, light: Light) {
+    override fun render(context: IRenderContext) {
+        val camera = context.getCamera()
+        val light = context.getAmbientLight()!!
         GL30.glDisable(GL30.GL_DEPTH_TEST)
         context.setCurrentMesh(mesh)
 
         with(shader) {
             context.setCurrentShaderProgram(shader)
+            putUniform("light_color", light.color)
             putUniform("transformation", transformation())
             putUniform("camera_projection", camera.projection())
             putUniform("camera_view", camera.view())
+            putUniform("time", GLFW.glfwGetTime().toFloat())
         }
 
         GL30.glBindTexture(GL30.GL_TEXTURE_CUBE_MAP, texture.id)

@@ -7,12 +7,17 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
 
-class Camera(private val position: Vector3f, private val window: Window) {
-    var fov = 90f
+class Camera(
+    @Suppress("UNUSED_PARAMETER")
+    val position: Vector3f,
+    private val window: Window
+) {
+    var fov = 120f
     var near = .1f
-    var far = 10000f
+    var far = 10000000f
 
-    private val rotation: Vector3f = Vector3f(0f)
+    @Suppress("UNUSED_PARAMETER")
+    val rotation: Vector3f = Vector3f(0f)
 
     enum class CameraMovement {
         FORWARD,
@@ -22,8 +27,6 @@ class Camera(private val position: Vector3f, private val window: Window) {
         UP,
         DOWN
     }
-
-    fun getPosition() = position
 
     fun move(direction: CameraMovement, speed: Float) {
         with(position) {
@@ -53,12 +56,6 @@ class Camera(private val position: Vector3f, private val window: Window) {
                 CameraMovement.DOWN -> y -= speed
             }
         }
-    }
-
-
-    fun rotate(offsetX: Double, offsetY: Double) {
-        rotation.x += offsetX.toFloat()
-        rotation.y += offsetY.toFloat()
     }
 
     fun projection(): Matrix4f = Matrix4f().apply {

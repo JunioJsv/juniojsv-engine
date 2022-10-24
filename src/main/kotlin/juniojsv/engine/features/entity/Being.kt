@@ -6,32 +6,19 @@ import juniojsv.engine.features.texture.TwoDimensionTexture
 import juniojsv.engine.features.window.IRenderContext
 import org.joml.Matrix4f
 import org.joml.Vector3f
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 
 class Being(
     private val mesh: Mesh,
     private val texture: TwoDimensionTexture?,
     private val shader: ShadersProgram?,
-    private val position: Vector3f = Vector3f(0f),
-    private val rotation: Vector3f = Vector3f(0f),
+    @Suppress("UNUSED_PARAMETER")
+    val position: Vector3f = Vector3f(0f),
+    @Suppress("UNUSED_PARAMETER")
+    val rotation: Vector3f = Vector3f(0f),
     var scale: Float = 1f
 ) : IRender {
-
-    fun move(offsetX: Float, offsetY: Float, offsetZ: Float, increment: Boolean = false) {
-        with(position) {
-            x = if (increment) x + offsetX else offsetX
-            y = if (increment) y + offsetY else offsetY
-            z = if (increment) z + offsetZ else offsetZ
-        }
-    }
-
-    fun rotate(offsetX: Float, offsetY: Float, offsetZ: Float, increment: Boolean = false) {
-        with(rotation) {
-            x += if (increment) x + offsetX else offsetX
-            y += if (increment) y + offsetY else offsetY
-            z += if (increment) z + offsetZ else offsetZ
-        }
-    }
 
     private fun transformation(): Matrix4f = Matrix4f()
         .apply {
@@ -42,8 +29,10 @@ class Being(
             scale(scale)
         }
 
-    override fun render(context: IRenderContext, camera: Camera, light: Light) {
+    override fun render(context: IRenderContext) {
         val transformation = transformation()
+        val camera = context.getCamera()
+        val light = context.getAmbientLight()!!
 
         if (shader != null) {
             with(shader) {
@@ -55,7 +44,7 @@ class Being(
                 putUniform("transformation", transformation)
                 putUniform("light_position", light.position)
                 putUniform("light_color", light.color)
-                putUniform("fog_color", light.color)
+                putUniform("time", GLFW.glfwGetTime().toFloat())
 
                 putUniform("has_texture", if (texture != null) 1 else 0)
                 context.setCurrentTexture(texture)

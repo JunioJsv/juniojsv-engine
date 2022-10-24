@@ -1,19 +1,23 @@
 package juniojsv.engine.features.window
 
+import juniojsv.engine.features.entity.Camera
+import juniojsv.engine.features.entity.Light
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.CubeMapTexture
 import juniojsv.engine.features.texture.Texture
-import juniojsv.engine.features.texture.TwoDimensionTexture
+import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
-class RenderContext : IRenderContext {
+class RenderContext(window: Window) : IRenderContext {
+    private val currentCamera = Camera(Vector3f(0f), window)
     private var currentTexture: Texture? = null
     private var currentShaderProgram: ShadersProgram? = null
     private var currentMesh: Mesh? = null
+    private var currentAmbientLight: Light? = null
 
     private var lastOnInitFrame = 0.0
     private var delta = 0.0
@@ -34,7 +38,7 @@ class RenderContext : IRenderContext {
 
     override fun setCurrentTexture(texture: Texture?) {
         fun getTarget(texture: Texture): Int {
-            return if(texture is CubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP else GL11.GL_TEXTURE_2D;
+            return if(texture is CubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP else GL11.GL_TEXTURE_2D
         }
         if (texture != null) {
             if (texture.id != currentTexture?.id) {
@@ -67,6 +71,12 @@ class RenderContext : IRenderContext {
         }
     }
 
+    override fun setCurrentAmbientLight(light: Light) {
+        currentAmbientLight = light
+    }
+
+    override fun getAmbientLight(): Light? = currentAmbientLight
+
     private fun getTime(): Double {
         return GLFW.glfwGetTime()
     }
@@ -74,6 +84,8 @@ class RenderContext : IRenderContext {
     override fun getFramesCount(): Int = frames
 
     override fun getDelta(): Double = delta
+
+    override fun getCamera(): Camera = currentCamera
 
     fun onInitFrame() {
         val onInit = getTime()

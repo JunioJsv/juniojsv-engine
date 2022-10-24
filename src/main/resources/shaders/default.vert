@@ -5,6 +5,7 @@ layout(location = 1) in vec2 uv_coordinates;
 layout(location = 2) in vec3 vertex_normal;
 
 out vec3 out_vertex_position;
+out vec3 out_unnormal_vertex_position;
 out vec2 out_uv_coordinates;
 out vec3 out_vertex_normal;
 
@@ -17,6 +18,7 @@ void main() {
     out_vertex_position = world_position.xyz;
     out_uv_coordinates = uv_coordinates;
     out_vertex_normal = normalize((transformation * vec4(vertex_normal, 0.0)).xyz);
+    out_unnormal_vertex_position = vertex_position;
 
     gl_Position = camera_projection * camera_view * world_position;
 }

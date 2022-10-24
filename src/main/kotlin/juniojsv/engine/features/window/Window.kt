@@ -14,7 +14,7 @@ abstract class Window(private var resolution: Resolution) {
 
     private lateinit var windowContext: WindowContext
 
-    private val renderContext = RenderContext()
+    private lateinit var renderContext: RenderContext
 
     private fun getWidth(): Int = resolution.width
     private fun getHeight(): Int = resolution.height
@@ -34,11 +34,12 @@ abstract class Window(private var resolution: Resolution) {
             title, 0, 0
         ).also { window ->
             windowContext = WindowContext(window)
-            GLFW.glfwSetCursorPosCallback(window) { _, xPosition: Double, yPosition: Double ->
+            renderContext = RenderContext(this)
+            GLFW.glfwSetCursorPosCallback(window) { _, x: Double, y: Double ->
                 onCursorOffsetEvent(
                     renderContext,
-                    Math.toRadians(xPosition - resolution.width / 2),
-                    Math.toRadians(yPosition - resolution.height / 2)
+                    Math.toRadians(x - resolution.width / 2),
+                    Math.toRadians(y - resolution.height / 2)
                 )
             }
             GLFW.glfwSetMouseButtonCallback(window) { _, button: Int, action: Int, mods: Int ->
@@ -81,14 +82,14 @@ abstract class Window(private var resolution: Resolution) {
                 print(char.toChar())
             }
         }))
-        onCreate()
+        onCreate(renderContext)
     }
 
-    open fun onCreate() {}
+    open fun onCreate(context: IRenderContext) {}
 
     abstract fun draw(context: IRenderContext)
 
-    abstract fun onCursorOffsetEvent(context: IRenderContext, offsetX: Double, offsetY: Double)
+    abstract fun onCursorOffsetEvent(context: IRenderContext, x: Double, y: Double)
 
     abstract fun onMouseButtonEvent(button: Int, action: Int, mods: Int)
 

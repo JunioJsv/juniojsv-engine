@@ -9,19 +9,25 @@ import juniojsv.engine.features.texture.CubeMapTexture
 import juniojsv.engine.features.texture.TwoDimensionTexture
 
 object Shaders {
-    val DEFAULT_EFFECT by lazy {
+    val TERRAIN_PROGRAM by lazy {
         ShadersProgram(
             Shader("shaders/default.vert", ShaderType.VERTEX),
-            Shader("shaders/default.frag", ShaderType.FRAGMENT)
+            Shader("shaders/terrain.frag", ShaderType.FRAGMENT)
         )
     }
-    val DEPTH_EFFECT by lazy {
+    val DEPTH_PROGRAM by lazy {
         ShadersProgram(
             Shader("shaders/default.vert", ShaderType.VERTEX),
             Shader("shaders/depth.frag", ShaderType.FRAGMENT)
         )
     }
-    val SKYBOX_EFFECT by lazy {
+    val LIGHT_SHADER by lazy {
+        ShadersProgram(
+            Shader("shaders/default.vert", ShaderType.VERTEX),
+            Shader("shaders/light.frag", ShaderType.FRAGMENT)
+        )
+    }
+    val SKYBOX_PROGRAM by lazy {
         ShadersProgram(
             Shader("shaders/skybox.vert", ShaderType.VERTEX),
             Shader("shaders/skybox.frag", ShaderType.FRAGMENT)
@@ -30,10 +36,10 @@ object Shaders {
 }
 
 object Textures {
-    val UV_TEXTURE by lazy {
+    val TEST_TEXTURE by lazy {
         TwoDimensionTexture("textures/uv.jpeg")
     }
-    val GROUND_TEXTURE by lazy {
+    val TERRAIN_TEXTURE by lazy {
         TwoDimensionTexture("textures/ground.jpg")
     }
     val SKYBOX_DEFAULT_CUBEMAP by lazy {
