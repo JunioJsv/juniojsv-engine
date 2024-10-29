@@ -16,7 +16,7 @@ void main() {
 //    gl_FragColor = vec4(vec3(cos(time + abs(x - z) * 16)), 1);
 //    return;
     if(color >= 1){
-        gl_FragColor = vec4(vec3(color), 1);
+        gl_FragColor = vec4(light_color, 1);
         return;
     }
     gl_FragColor = vec4(vec3(min(color, 1) * light_color), 1);

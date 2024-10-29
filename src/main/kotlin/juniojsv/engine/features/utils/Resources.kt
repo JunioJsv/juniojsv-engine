@@ -33,6 +33,12 @@ object Shaders {
             Shader("shaders/skybox.frag", ShaderType.FRAGMENT)
         )
     }
+    val DEFAULT_PROGRAM by lazy {
+        ShadersProgram(
+            Shader("shaders/default.vert", ShaderType.VERTEX),
+            Shader("shaders/default.frag", ShaderType.FRAGMENT)
+        )
+    }
 }
 
 object Textures {

@@ -1,7 +1,7 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.mesh.Mesh
+import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.TwoDimensionTexture
 import juniojsv.engine.features.window.IRenderContext
 import org.joml.Matrix4f
@@ -9,13 +9,11 @@ import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 
-class Being(
+open class Being(
     private val mesh: Mesh,
     private val texture: TwoDimensionTexture?,
     private val shader: ShadersProgram?,
-    @Suppress("UNUSED_PARAMETER")
     val position: Vector3f = Vector3f(0f),
-    @Suppress("UNUSED_PARAMETER")
     val rotation: Vector3f = Vector3f(0f),
     var scale: Float = 1f
 ) : IRender {

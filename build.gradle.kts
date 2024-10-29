@@ -11,9 +11,9 @@ repositories {
     mavenCentral()
 }
 
-application {
+application(Action {
     mainClassName = "juniojsv.engine.MainKt"
-}
+})
 
 dependencies {
     implementation("de.javagl:obj:0.3.0")
@@ -25,6 +25,12 @@ dependencies {
     runtimeOnly("org.lwjgl:lwjgl::natives-windows")
     runtimeOnly("org.lwjgl:lwjgl-glfw::natives-windows")
     runtimeOnly("org.lwjgl:lwjgl-opengl::natives-windows")
+
+    val imGuiVersion = "1.81.0"
+    implementation("io.github.spair:imgui-java-binding:$imGuiVersion")
+    implementation("io.github.spair:imgui-java-lwjgl3:$imGuiVersion")
+    implementation("io.github.spair:imgui-java-natives-windows:$imGuiVersion")
+
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 }
 

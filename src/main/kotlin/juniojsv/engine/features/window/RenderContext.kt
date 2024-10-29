@@ -1,25 +1,29 @@
 package juniojsv.engine.features.window
 
+import imgui.ImGui
+import imgui.flag.ImGuiConfigFlags
 import juniojsv.engine.features.entity.Camera
 import juniojsv.engine.features.entity.Light
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.CubeMapTexture
 import juniojsv.engine.features.texture.Texture
+import juniojsv.engine.features.ui.IImGuiLayout
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
-class RenderContext(window: Window) : IRenderContext {
+class RenderContext(private val window: Window) : IRenderContext {
     private val currentCamera = Camera(Vector3f(0f), window)
     private var currentTexture: Texture? = null
     private var currentShaderProgram: ShadersProgram? = null
     private var currentMesh: Mesh? = null
     private var currentAmbientLight: Light? = null
+    private var currentUi: IImGuiLayout? = null
 
-    private var lastOnInitFrame = 0.0
+    private var lastOnInitDraw = 0.0
     private var delta = 0.0
 
     private var frames = 0
@@ -38,7 +42,7 @@ class RenderContext(window: Window) : IRenderContext {
 
     override fun setCurrentTexture(texture: Texture?) {
         fun getTarget(texture: Texture): Int {
-            return if(texture is CubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP else GL11.GL_TEXTURE_2D
+            return if (texture is CubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP else GL11.GL_TEXTURE_2D
         }
         if (texture != null) {
             if (texture.id != currentTexture?.id) {
@@ -75,6 +79,10 @@ class RenderContext(window: Window) : IRenderContext {
         currentAmbientLight = light
     }
 
+    override fun setCurrentUi(layout: IImGuiLayout) {
+        currentUi = layout
+    }
+
     override fun getAmbientLight(): Light? = currentAmbientLight
 
     private fun getTime(): Double {
@@ -87,13 +95,30 @@ class RenderContext(window: Window) : IRenderContext {
 
     override fun getCamera(): Camera = currentCamera
 
-    fun onInitFrame() {
+    fun onInitDraw() {
         val onInit = getTime()
-        delta = getTime() - lastOnInitFrame
-        lastOnInitFrame = onInit
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+        GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
+        delta = getTime() - lastOnInitDraw
+        lastOnInitDraw = onInit
     }
 
-    fun onPostFrame() {
+    fun onPostDraw() {
+        window.getImGuiGlfw().newFrame()
+        ImGui.newFrame()
+        currentUi?.render(this)
+        ImGui.render()
+        window.getImGuiGl3().renderDrawData(ImGui.getDrawData())
+
+        if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+            val context = GLFW.glfwGetCurrentContext()
+            ImGui.updatePlatformWindows()
+            ImGui.renderPlatformWindowsDefault()
+            GLFW.glfwMakeContextCurrent(context)
+        }
+
+        GLFW.glfwSwapBuffers(window.getWindowContext().id)
+        GLFW.glfwPollEvents()
         frames++
     }
 }

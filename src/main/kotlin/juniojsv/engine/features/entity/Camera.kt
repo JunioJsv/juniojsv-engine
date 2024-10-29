@@ -12,7 +12,7 @@ class Camera(
     val position: Vector3f,
     private val window: Window
 ) {
-    var fov = 120f
+    var fov = 90f
     var near = .1f
     var far = 10000000f
 
