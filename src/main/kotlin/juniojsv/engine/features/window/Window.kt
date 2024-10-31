@@ -53,9 +53,9 @@ abstract class Window(private var resolution: Resolution) {
             setup()
             while (!GLFW.glfwWindowShouldClose(window)) {
                 with(renderContext) {
-                    onInitDraw()
-                    draw(this)
-                    onPostDraw()
+                    onInitRender()
+                    onRender(this)
+                    onPostRender()
                 }
             }
             dispose()
@@ -111,7 +111,7 @@ abstract class Window(private var resolution: Resolution) {
 
     open fun onCreate(context: IRenderContext) {}
 
-    abstract fun draw(context: IRenderContext)
+    abstract fun onRender(context: IRenderContext)
 
     abstract fun onCursorOffsetEvent(context: IRenderContext, x: Double, y: Double)
 

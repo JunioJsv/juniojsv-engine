@@ -28,12 +28,14 @@ class Engine(resolution: Resolution) : Window(resolution) {
         onSetupKeyBoard(context)
         context.setCurrentUi(ui)
         GL11.glEnable(GL11.GL_DEPTH_TEST)
-        GL11.glEnable(GL11.GL_CULL_FACE)
-        GL11.glCullFace(GL11.GL_BACK)
+        if (!DebugMode) {
+            GL11.glEnable(GL11.GL_CULL_FACE)
+            GL11.glCullFace(GL11.GL_BACK)
+        }
         GL11.glClearColor(0f, 0f, 0f, 1f)
     }
 
-    override fun draw(context: IRenderContext) {
+    override fun onRender(context: IRenderContext) {
         scene.render(context)
         keyboard.pump(context)
     }

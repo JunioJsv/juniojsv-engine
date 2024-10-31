@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL32
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.util.concurrent.Executors
 import kotlin.properties.Delegates
 
 enum class ShaderType {
@@ -13,10 +14,10 @@ enum class ShaderType {
     FRAGMENT
 }
 
-class Shader(file: String, type: ShaderType) {
+class Shader(private val file: String, val type: ShaderType) {
     var id: Int by Delegates.notNull()
 
-    private fun getSource(stream: InputStream, onSuccess: (source: String) -> Unit) {
+    private fun getSource(stream: InputStream): String = Executors.newSingleThreadExecutor().submit<String> {
         var source = String()
         BufferedReader(InputStreamReader(stream)).also { file ->
             while (true) {
@@ -27,8 +28,9 @@ class Shader(file: String, type: ShaderType) {
             file.close()
         }
         stream.close()
-        onSuccess(source)
-    }
+        source
+    }.get()
+
 
     init {
         id = when (type) {
@@ -36,15 +38,32 @@ class Shader(file: String, type: ShaderType) {
             ShaderType.VERTEX -> GL32.glCreateShader(GL32.GL_VERTEX_SHADER)
             ShaderType.FRAGMENT -> GL32.glCreateShader(GL32.GL_FRAGMENT_SHADER)
         }
-        Resource.getResource(file) { stream ->
-            getSource(stream) { source ->
-                compile(id, source)
-            }
-        }
+        val source = Resource.get(file).let(::getSource)
+        compile(id, source)
+
     }
 
-    private fun compile(id: Int, source: String) {
-        GL32.glShaderSource(id, source)
-        GL32.glCompileShader(id)
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Shader
+
+        if (file != other.file) return false
+        if (type != other.type) return false
+
+        return true
     }
+
+    override fun hashCode(): Int {
+        var result = file.hashCode()
+        result = 31 * result + type.hashCode()
+        return result
+    }
+
+}
+
+private fun compile(id: Int, source: String) {
+    GL32.glShaderSource(id, source)
+    GL32.glCompileShader(id)
 }

@@ -4,19 +4,17 @@ import juniojsv.engine.features.utils.Resource
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 
-class CubeMapTexture(files: Array<String>) : Texture() {
+open class CubeMapTexture(files: Array<String>) : Texture() {
+
     init {
         GL11.glBindTexture(GL20.GL_TEXTURE_CUBE_MAP, id)
         files.forEachIndexed { index, file ->
-            Resource.getResource(file) { stream ->
-                getRawData(stream) { pixels, width, height ->
-                    GL11.glTexImage2D(
-                        GL20.GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
-                        0, GL11.GL_RGBA, width, height, 0,
-                        GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels
-                    )
-                }
-            }
+            val (pixels, width, height) = getRawTexture(Resource.get(file))
+            GL11.glTexImage2D(
+                GL20.GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
+                0, GL11.GL_RGBA, width, height, 0,
+                GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels
+            )
         }
         GL11.glTexParameteri(
             GL20.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR
@@ -35,4 +33,5 @@ class CubeMapTexture(files: Array<String>) : Texture() {
         )
         GL11.glBindTexture(GL20.GL_TEXTURE_CUBE_MAP, 0)
     }
+
 }

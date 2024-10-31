@@ -5,6 +5,7 @@ import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.CubeMapTexture
 import juniojsv.engine.features.window.IRenderContext
 import org.joml.Matrix4f
+import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL30
 
@@ -17,17 +18,16 @@ class SkyBox(
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
     override fun render(context: IRenderContext) {
-        val camera = context.getCamera()
-        val light = context.getAmbientLight()!!
+        val light = context.getAmbientLight()
         GL30.glDisable(GL30.GL_DEPTH_TEST)
         context.setCurrentMesh(mesh)
 
         with(shader) {
             context.setCurrentShaderProgram(shader)
-            putUniform("light_color", light.color)
+            putUniform("light_color", light?.color ?: Vector3f(0f))
             putUniform("transformation", transformation())
-            putUniform("camera_projection", camera.projection())
-            putUniform("camera_view", camera.view())
+            putUniform("camera_projection", context.getCameraProjection())
+            putUniform("camera_view", context.getCameraView())
             putUniform("time", GLFW.glfwGetTime().toFloat())
         }
 

@@ -5,11 +5,14 @@ import org.joml.Vector3f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20
 
-class ShadersProgram(vertex: Shader, fragment: Shader) {
+open class ShadersProgram(vararg shaders: Shader) {
     val id: Int = GL20.glCreateProgram()
 
     init {
-        attachShaders(vertex, fragment)
+        setup(
+            shaders.first { it.type == ShaderType.VERTEX },
+            shaders.first { it.type == ShaderType.FRAGMENT }
+        )
     }
 
     fun putUniform(name: String, value: Any) {
@@ -17,28 +20,32 @@ class ShadersProgram(vertex: Shader, fragment: Shader) {
             when (value) {
                 is Int ->
                     GL20.glUniform1i(location, value)
+
                 is Float ->
                     GL20.glUniform1f(location, value)
+
                 is Vector3f ->
                     BufferUtils.createFloatBuffer(3).also { vec3 ->
                         value.get(vec3)
                         GL20.glUniform3fv(location, vec3)
                     }
+
                 is Matrix4f ->
                     BufferUtils.createFloatBuffer(16).also { matrix4f ->
                         value.get(matrix4f)
                         GL20.glUniformMatrix4fv(
-                                location,
-                                false,
-                                matrix4f
+                            location,
+                            false,
+                            matrix4f
                         )
                     }
+
                 else -> throw Exception("Uniform type don't implemented")
             }
         }
     }
 
-    private fun attachShaders(vertex: Shader, fragment: Shader) {
+    private fun setup(vertex: Shader, fragment: Shader) {
         GL20.glAttachShader(id, vertex.id)
         GL20.glAttachShader(id, fragment.id)
 
@@ -49,6 +56,7 @@ class ShadersProgram(vertex: Shader, fragment: Shader) {
         GL20.glLinkProgram(id)
         GL20.glValidateProgram(id)
     }
+
 
     companion object {
         const val VERTEX_POSITION = "vertex_position"

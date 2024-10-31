@@ -12,7 +12,6 @@ interface MainLayoutListener {
 class MainLayout : IImGuiLayout {
     private val objectsCount = intArrayOf(0)
     private val ambientColor = floatArrayOf(0f, 0f, 0f)
-    private val ambientColorPosition = floatArrayOf(0f, 0f, 0f)
     private val listeners = mutableSetOf<MainLayoutListener>()
 
     fun addListener(listener: MainLayoutListener) {
@@ -32,7 +31,7 @@ class MainLayout : IImGuiLayout {
         ImGui.begin("Scene Settings")
 
         ImGui.text("Number of Objects to Generate")
-        ImGui.sliderInt("Objects", objectsCount, 1, 256)
+        ImGui.sliderInt("Objects", objectsCount, 1, 1024)
 
         if (ImGui.button("Generate Objects")) {
             listeners.forEach {
@@ -46,12 +45,6 @@ class MainLayout : IImGuiLayout {
         if (ImGui.colorEdit3("Color", ambientColor)) {
             val position = context.getAmbientLight()?.position ?: Vector3f(0f)
             val color = Vector3f(ambientColor[0], ambientColor[1], ambientColor[2])
-            context.setCurrentAmbientLight(Light(position, color))
-        }
-        ImGui.text("Ambient Color Position")
-        if (ImGui.sliderFloat3("Position", ambientColorPosition, -100000f, 100000f)) {
-            val position = Vector3f(ambientColorPosition[0], ambientColorPosition[1], ambientColorPosition[2])
-            val color = context.getAmbientLight()?.color ?: Vector3f(0f)
             context.setCurrentAmbientLight(Light(position, color))
         }
 
