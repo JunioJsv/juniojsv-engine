@@ -64,6 +64,7 @@ data class Being(
         val transformation = transformation()
         val light = context.getAmbientLight()
         val frustum = context.getCameraFrustum()
+        val camera = context.getCamera()
 
         when (boundary) {
             is SphereBoundary -> {
@@ -79,6 +80,7 @@ data class Being(
                 context.setCurrentShaderProgram(this)
                 putUniform("camera_projection", context.getCameraProjection())
                 putUniform("camera_view", context.getCameraView())
+                putUniform("camera_position", camera.position)
                 putUniform("transformation", transformation)
                 putUniform("light_position", light?.position ?: Vector3f(0f))
                 putUniform("light_color", light?.color ?: Vector3f(0f))
