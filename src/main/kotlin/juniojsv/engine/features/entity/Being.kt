@@ -102,4 +102,15 @@ data class Being(
         )
         if (DebugMode) renderBoundary(context)
     }
+
+    override fun toString(): String {
+        return "Being(" +
+                "mesh=${mesh.id}, " +
+                "texture=${texture?.id}, " +
+                "shader=${shader?.id}, " +
+                "position=$position, " +
+                "rotation=$rotation, " +
+                "scale=$scale)"
+    }
+
 }
