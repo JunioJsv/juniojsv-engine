@@ -68,11 +68,11 @@ class MainScene : IScene, MainLayoutListener {
                     textures.random(),
                     Vector3f(
                         (random.nextInt(offset) - offset / 2).toFloat(),
-                        (random.nextInt(offset / 2)).toFloat(),
+                        (random.nextInt(offset) - offset / 2).toFloat(),
                         (random.nextInt(offset) - offset / 2).toFloat()
                     ),
                     boundary = SphereBoundary(1f),
-                    scale = Scale.METER.length(50f) * random.nextFloat().coerceAtLeast(0.1f)
+                    scale = Scale.METER.length(70f) * random.nextFloat().coerceAtLeast(0.1f)
                 )
             )
         }

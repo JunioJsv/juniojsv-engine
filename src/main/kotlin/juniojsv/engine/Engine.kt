@@ -16,6 +16,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
     private val keyboard = KeyboardHandler()
 
     private var isCameraEnabled = false
+    private val movements = mutableSetOf<Camera.CameraMovement>()
 
     private val scene = MainScene()
 
@@ -31,6 +32,8 @@ class Engine(resolution: Resolution) : Window(resolution) {
     override fun onRender(context: IRenderContext) {
         scene.render(context)
         keyboard.pump(context)
+        context.getCamera().move(movements, context.getDelta())
+        movements.clear()
     }
 
     override fun onCursorOffsetEvent(context: IRenderContext, x: Double, y: Double) {
@@ -59,7 +62,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
         keyboard.handle(key, action)
     }
 
-    private fun onSetupKeyBoard(context: IRenderContext) = context.getCamera().also { camera ->
+    private fun onSetupKeyBoard(context: IRenderContext) {
         with(keyboard) {
             setKeyAction(GLFW.GLFW_KEY_ESCAPE) {
                 GLFW.glfwSetWindowShouldClose(
@@ -69,45 +72,27 @@ class Engine(resolution: Resolution) : Window(resolution) {
             }
             setKeyAction(GLFW.GLFW_KEY_W) { delta ->
                 if (isCameraEnabled)
-                    camera.move(
-                        Camera.CameraMovement.FORWARD,
-                        delta
-                    )
+                    movements.add(Camera.CameraMovement.FORWARD)
             }
-            setKeyAction(GLFW.GLFW_KEY_A) { delta ->
+            setKeyAction(GLFW.GLFW_KEY_A) {
                 if (isCameraEnabled)
-                    camera.move(
-                        Camera.CameraMovement.LEFT,
-                        delta
-                    )
+                    movements.add(Camera.CameraMovement.LEFT)
             }
-            setKeyAction(GLFW.GLFW_KEY_S) { delta ->
+            setKeyAction(GLFW.GLFW_KEY_S) {
                 if (isCameraEnabled)
-                    camera.move(
-                        Camera.CameraMovement.BACKWARD,
-                        delta
-                    )
+                    movements.add(Camera.CameraMovement.BACKWARD)
             }
-            setKeyAction(GLFW.GLFW_KEY_D) { delta ->
+            setKeyAction(GLFW.GLFW_KEY_D) {
                 if (isCameraEnabled)
-                    camera.move(
-                        Camera.CameraMovement.RIGHT,
-                        delta
-                    )
+                    movements.add(Camera.CameraMovement.RIGHT)
             }
-            setKeyAction(GLFW.GLFW_KEY_SPACE) { delta ->
+            setKeyAction(GLFW.GLFW_KEY_SPACE) {
                 if (isCameraEnabled)
-                    camera.move(
-                        Camera.CameraMovement.UP,
-                        delta
-                    )
+                    movements.add(Camera.CameraMovement.UP)
             }
-            setKeyAction(GLFW.GLFW_KEY_LEFT_SHIFT) { delta ->
+            setKeyAction(GLFW.GLFW_KEY_LEFT_SHIFT) {
                 if (isCameraEnabled)
-                    camera.move(
-                        Camera.CameraMovement.DOWN,
-                        delta
-                    )
+                    movements.add(Camera.CameraMovement.DOWN)
             }
         }
     }

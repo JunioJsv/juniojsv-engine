@@ -40,23 +40,33 @@ class Camera(
 
     fun up() = Vector3f(0f, 1f, 0f)
 
-    fun move(movement: CameraMovement, delta: Double) {
+    fun move(movements: Set<CameraMovement>, delta: Double) {
+        if (movements.isEmpty()) return
         val speed = (Scale.METER.length(500f) * delta).toFloat()
 
         val forward = forward()
         val right = right()
         val up = up()
 
-        val direction = when (movement) {
-            CameraMovement.FORWARD -> forward
-            CameraMovement.BACKWARD -> forward.negate()
-            CameraMovement.RIGHT -> right
-            CameraMovement.LEFT -> right.negate()
-            CameraMovement.UP -> up
-            CameraMovement.DOWN -> up.negate()
-        }.mul(speed)
+        var direction = Vector3f()
 
-        position.add(direction)
+        for (movement in movements) {
+            direction.add(
+                when (movement) {
+                    CameraMovement.FORWARD -> forward
+                    CameraMovement.BACKWARD -> forward.negate()
+                    CameraMovement.RIGHT -> right
+                    CameraMovement.LEFT -> right.negate()
+                    CameraMovement.UP -> up
+                    CameraMovement.DOWN -> up.negate()
+                }
+            )
+        }
+
+        if(direction.length() > 0f) {
+            direction = direction.normalize().mul(speed)
+            position.add(direction)
+        }
     }
 
     fun rotate(x: Float, y: Float) {
