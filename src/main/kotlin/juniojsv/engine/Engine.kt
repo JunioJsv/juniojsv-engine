@@ -4,7 +4,6 @@ import imgui.ImGui
 import juniojsv.engine.features.entity.Camera
 import juniojsv.engine.features.scene.MainScene
 import juniojsv.engine.features.utils.KeyboardHandler
-import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.window.IRenderContext
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
@@ -36,13 +35,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
 
     override fun onCursorOffsetEvent(context: IRenderContext, x: Double, y: Double) {
         if (!isCameraEnabled) return
-        val delta = context.getDelta().toFloat()
-        val speed = Scale.METER.length(10f)
-        context.getCamera().rotation.add(
-            (x.toFloat() * speed) * delta,
-            (y.toFloat() * speed) * delta,
-            0f
-        )
+        context.getCamera().rotate(x.toFloat() * 2, y.toFloat() * 2f)
         GLFW.glfwSetCursorPos(
             getWindowContext().id,
             (getResolution().width / 2).toDouble(),
@@ -67,7 +60,6 @@ class Engine(resolution: Resolution) : Window(resolution) {
     }
 
     private fun onSetupKeyBoard(context: IRenderContext) = context.getCamera().also { camera ->
-        val speed = Scale.METER.length(100f)
         with(keyboard) {
             setKeyAction(GLFW.GLFW_KEY_ESCAPE) {
                 GLFW.glfwSetWindowShouldClose(
@@ -79,42 +71,42 @@ class Engine(resolution: Resolution) : Window(resolution) {
                 if (isCameraEnabled)
                     camera.move(
                         Camera.CameraMovement.FORWARD,
-                        speed * delta.toFloat()
+                        delta
                     )
             }
             setKeyAction(GLFW.GLFW_KEY_A) { delta ->
                 if (isCameraEnabled)
                     camera.move(
                         Camera.CameraMovement.LEFT,
-                        speed * delta.toFloat()
+                        delta
                     )
             }
             setKeyAction(GLFW.GLFW_KEY_S) { delta ->
                 if (isCameraEnabled)
                     camera.move(
                         Camera.CameraMovement.BACKWARD,
-                        speed * delta.toFloat()
+                        delta
                     )
             }
             setKeyAction(GLFW.GLFW_KEY_D) { delta ->
                 if (isCameraEnabled)
                     camera.move(
                         Camera.CameraMovement.RIGHT,
-                        speed * delta.toFloat()
+                        delta
                     )
             }
             setKeyAction(GLFW.GLFW_KEY_SPACE) { delta ->
                 if (isCameraEnabled)
                     camera.move(
                         Camera.CameraMovement.UP,
-                        speed * delta.toFloat()
+                        delta
                     )
             }
             setKeyAction(GLFW.GLFW_KEY_LEFT_SHIFT) { delta ->
                 if (isCameraEnabled)
                     camera.move(
                         Camera.CameraMovement.DOWN,
-                        speed * delta.toFloat()
+                        delta
                     )
             }
         }
