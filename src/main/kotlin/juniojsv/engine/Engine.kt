@@ -18,20 +18,14 @@ class Engine(resolution: Resolution) : Window(resolution) {
 
     private var isCameraEnabled = false
 
-    private val ui = MainLayout()
     private val scene = MainScene()
 
     override fun onCreate(context: IRenderContext) {
         scene.setup(context)
-        ui.addListener(scene)
-        ui.setup(context)
         onSetupKeyBoard(context)
-        context.setCurrentUi(ui)
         GL11.glEnable(GL11.GL_DEPTH_TEST)
-        if (!DebugMode) {
-            GL11.glEnable(GL11.GL_CULL_FACE)
-            GL11.glCullFace(GL11.GL_BACK)
-        }
+        GL11.glEnable(GL11.GL_CULL_FACE)
+        GL11.glCullFace(GL11.GL_BACK)
         GL11.glClearColor(0f, 0f, 0f, 1f)
     }
 

@@ -40,20 +40,29 @@ open class ShadersProgram(vararg shaders: Shader) {
                         )
                     }
 
+                is IntArray ->
+                    GL20.glUniform1iv(location, value)
+
                 else -> throw Exception("Uniform type don't implemented")
             }
         }
     }
 
     private fun setup(vertex: Shader, fragment: Shader) {
-        GL20.glAttachShader(id, vertex.id)
-        GL20.glAttachShader(id, fragment.id)
-
         GL20.glBindAttribLocation(id, 0, VERTEX_POSITION)
         GL20.glBindAttribLocation(id, 1, UV_COORDINATE)
         GL20.glBindAttribLocation(id, 2, VERTEX_NORMAL)
 
+        GL20.glAttachShader(id, vertex.id)
+        GL20.glAttachShader(id, fragment.id)
         GL20.glLinkProgram(id)
+
+        val linked = GL20.glGetProgrami(id, GL20.GL_LINK_STATUS)
+        if (linked == GL20.GL_FALSE) {
+            val log = GL20.glGetProgramInfoLog(id)
+            throw RuntimeException("Error linking shader program:\n$log")
+        }
+
         GL20.glValidateProgram(id)
     }
 

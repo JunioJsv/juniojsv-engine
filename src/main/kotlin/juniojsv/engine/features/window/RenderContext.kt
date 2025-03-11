@@ -14,6 +14,7 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
@@ -32,6 +33,13 @@ class RenderContext(private val window: Window) : IRenderContext {
     private var delta = 0.0
 
     private var frames = 0
+
+    private val textureUnits = listOf(
+        GL13.GL_TEXTURE0, GL13.GL_TEXTURE1, GL13.GL_TEXTURE2, GL13.GL_TEXTURE3,
+        GL13.GL_TEXTURE4, GL13.GL_TEXTURE5, GL13.GL_TEXTURE6, GL13.GL_TEXTURE7,
+        GL13.GL_TEXTURE8, GL13.GL_TEXTURE9, GL13.GL_TEXTURE10, GL13.GL_TEXTURE11,
+        GL13.GL_TEXTURE12, GL13.GL_TEXTURE13, GL13.GL_TEXTURE14, GL13.GL_TEXTURE15
+    )
 
     override fun setCurrentShaderProgram(shader: ShadersProgram?) {
         if (shader != currentShaderProgram) {
@@ -53,9 +61,20 @@ class RenderContext(private val window: Window) : IRenderContext {
         }
     }
 
+    override fun setCurrentTextures(textures: Set<Texture>) {
+        assert(textures.size <= textureUnits.size)
+        textures.mapIndexed { index, texture ->
+            val target = if (texture is CubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP else GL11.GL_TEXTURE_2D
+            GL30.glActiveTexture(textureUnits[index])
+            GL30.glBindTexture(target, texture.id)
+        }
+        currentShaderProgram?.putUniform("textures", IntArray(textures.size) { it })
+        GL30.glActiveTexture(textureUnits[0])
+    }
+
     override fun setCurrentMesh(mesh: Mesh?) {
         if (mesh != currentMesh) {
-            GL30.glBindVertexArray(mesh?.id ?: 0)
+            GL30.glBindVertexArray(mesh?.vao ?: 0)
             if (mesh != null) {
                 GL20.glEnableVertexAttribArray(0)
                 GL20.glEnableVertexAttribArray(1)

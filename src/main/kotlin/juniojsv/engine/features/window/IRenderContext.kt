@@ -11,7 +11,9 @@ import org.joml.Matrix4f
 
 interface IRenderContext {
     fun setCurrentShaderProgram(shader: ShadersProgram?)
+    @Deprecated("")
     fun setCurrentTexture(texture: Texture?)
+    fun setCurrentTextures(textures: Set<Texture>)
     fun setCurrentMesh(mesh: Mesh?)
     fun setCurrentAmbientLight(light: Light)
     fun setCurrentUi(layout: IImGuiLayout)

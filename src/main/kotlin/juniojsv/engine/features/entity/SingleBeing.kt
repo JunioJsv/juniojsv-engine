@@ -1,12 +1,9 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.DebugMode
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.mesh.SphereMesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.shader.WhiteShaderProgram
-import juniojsv.engine.features.texture.TwoDimensionTexture
-import juniojsv.engine.features.utils.BoundaryShape
 import juniojsv.engine.features.utils.SphereBoundary
 import juniojsv.engine.features.window.IRenderContext
 import org.joml.Matrix4f
@@ -14,29 +11,17 @@ import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 
-data class Being(
-    private val mesh: Mesh,
-    private val texture: TwoDimensionTexture?,
-    private val shader: ShadersProgram?,
-    val position: Vector3f = Vector3f(0f),
-    val rotation: Vector3f = Vector3f(0f),
-    val scale: Float = 1f,
-    val boundary: BoundaryShape? = null
+data class SingleBeing(
+    val mesh: Mesh,
+    val shader: ShadersProgram?,
+    val being: BaseBeing
 ) : IRender {
 
-    private fun transformation(): Matrix4f = Matrix4f()
-        .apply {
-            translate(position)
-            rotate(Math.toRadians(rotation.x.toDouble()).toFloat(), 1f, 0f, 0f)
-            rotate(Math.toRadians(rotation.y.toDouble()).toFloat(), 0f, 1f, 0f)
-            rotate(Math.toRadians(rotation.z.toDouble()).toFloat(), 0f, 0f, 1f)
-            scale(scale)
-        }
-
-    private fun renderBoundary(context: IRenderContext) = when (boundary) {
+    @Deprecated("")
+    private fun renderBoundary(context: IRenderContext) = when (being.boundary) {
         is SphereBoundary -> {
-            val transformation = Matrix4f(transformation())
-            transformation.scale(boundary.radius)
+            val transformation = Matrix4f(being.transformation())
+            transformation.scale(being.boundary.radius)
 
             val mesh = SphereMesh.get()
             val shader = WhiteShaderProgram
@@ -61,15 +46,15 @@ data class Being(
     }
 
     override fun render(context: IRenderContext) {
-        val transformation = transformation()
+        val transformation = being.transformation()
         val light = context.getAmbientLight()
         val frustum = context.getCameraFrustum()
         val camera = context.getCamera()
 
-        when (boundary) {
+        when (being.boundary) {
             is SphereBoundary -> {
                 val transformedCenter = Vector3f()
-                val effectiveRadius = boundary.radius * scale
+                val effectiveRadius = being.boundary.radius * being.scale
                 transformation.transformPosition(Vector3f(0f), transformedCenter)
                 if (!frustum.isSphereInside(transformedCenter, effectiveRadius)) return
             }
@@ -86,8 +71,8 @@ data class Being(
                 putUniform("light_color", light?.color ?: Vector3f(0f))
                 putUniform("time", GLFW.glfwGetTime().toFloat())
 
-                putUniform("has_texture", if (texture != null) 1 else 0)
-                context.setCurrentTexture(texture)
+                putUniform("has_texture", if (being.texture != null) 1 else 0)
+                context.setCurrentTexture(being.texture)
             }
         } else {
             context.setCurrentShaderProgram(null)
@@ -100,17 +85,5 @@ data class Being(
             mesh.getIndicesCount(),
             GL11.GL_UNSIGNED_INT, 0
         )
-        if (DebugMode) renderBoundary(context)
     }
-
-    override fun toString(): String {
-        return "Being(" +
-                "mesh=${mesh.id}, " +
-                "texture=${texture?.id}, " +
-                "shader=${shader?.id}, " +
-                "position=$position, " +
-                "rotation=$rotation, " +
-                "scale=$scale)"
-    }
-
 }

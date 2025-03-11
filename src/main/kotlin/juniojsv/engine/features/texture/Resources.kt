@@ -1,9 +1,5 @@
 package juniojsv.engine.features.texture
 
-object TestTexture : TwoDimensionTexture("textures/uv.jpeg")
-
-object TerrainTexture : TwoDimensionTexture("textures/ground.jpg")
-
 object SkyboxTexture : CubeMapTexture(
     arrayOf(
         "textures/sunset_bay_skybox/SunsetBay_E.png",

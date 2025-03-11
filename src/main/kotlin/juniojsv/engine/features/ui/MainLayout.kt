@@ -31,7 +31,7 @@ class MainLayout : IImGuiLayout {
         ImGui.begin("Scene Settings")
 
         ImGui.text("Number of Objects to Generate")
-        ImGui.sliderInt("Objects", objectsCount, 1, 1024)
+        ImGui.sliderInt("Objects", objectsCount, 1, 5024)
 
         if (ImGui.button("Generate Objects")) {
             listeners.forEach {

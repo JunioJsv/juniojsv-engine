@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
+import org.lwjgl.system.MemoryUtil
 import kotlin.properties.Delegates
 
 open class Mesh(
@@ -13,7 +14,7 @@ open class Mesh(
     private val normals: FloatArray? = null,
     private val indices: IntArray? = null
 ) {
-    val id: Int = GL30.glGenVertexArrays()
+    val vao: Int = GL30.glGenVertexArrays()
     private var count by Delegates.notNull<Int>()
 
     init {
@@ -23,44 +24,51 @@ open class Mesh(
     fun getIndicesCount(): Int = count
 
     init {
-        GL30.glBindVertexArray(id)
+        GL30.glBindVertexArray(vao)
 
-        GL15.glGenBuffers().also { glBuffer ->
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertices.toBuffer(), GL15.GL_STATIC_DRAW)
-            GL20.glVertexAttribPointer(
-                0, 3, GL11.GL_FLOAT,
-                false, 0, 0
-            )
+        vertices.toBuffer().let {
+            GL15.glGenBuffers().also { vbo ->
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
+                GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
+                GL20.glVertexAttribPointer(
+                    0, 3, GL11.GL_FLOAT,
+                    false, 0, 0
+                )
+            }
+            MemoryUtil.memFree(it)
         }
 
+
         uv?.toBuffer()?.let {
-            GL15.glGenBuffers().also { glBuffer ->
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
+            GL15.glGenBuffers().also { vbo ->
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
                 GL20.glVertexAttribPointer(
                     1, 2, GL11.GL_FLOAT,
                     false, 0, 0
                 )
             }
+            MemoryUtil.memFree(it)
         }
 
         normals?.toBuffer()?.let {
-            GL15.glGenBuffers().also { glBuffer ->
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
+            GL15.glGenBuffers().also { vbo ->
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
                 GL20.glVertexAttribPointer(
                     2, 3, GL11.GL_FLOAT,
                     false, 0, 0
                 )
             }
+            MemoryUtil.memFree(it)
         }
 
         indices?.toBuffer()?.let {
-            GL15.glGenBuffers().also { glBuffer ->
-                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glBuffer)
+            GL15.glGenBuffers().also { vbo ->
+                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
             }
+            MemoryUtil.memFree(it)
         }
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0)

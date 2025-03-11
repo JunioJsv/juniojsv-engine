@@ -9,7 +9,6 @@ import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GLUtil
 
 
 data class WindowContext(val id: Long)
@@ -90,7 +89,7 @@ abstract class Window(private var resolution: Resolution) {
             onResize(width, height)
         }
         GL.createCapabilities()
-        GLUtil.setupDebugMessageCallback(System.out)
+//        GLUtil.setupDebugMessageCallback(System.out)
 
         ImGui.createContext()
         ImGui.getIO().addConfigFlags(ImGuiConfigFlags.ViewportsEnable)

@@ -39,7 +39,7 @@ class Shader(private val file: String, val type: ShaderType) {
             ShaderType.FRAGMENT -> GL32.glCreateShader(GL32.GL_FRAGMENT_SHADER)
         }
         val source = Resource.get(file).let(::getSource)
-        compile(id, source)
+        compile(id, source, file)
 
     }
 
@@ -63,7 +63,13 @@ class Shader(private val file: String, val type: ShaderType) {
 
 }
 
-private fun compile(id: Int, source: String) {
+private fun compile(id: Int, source: String, path: String = "") {
     GL32.glShaderSource(id, source)
     GL32.glCompileShader(id)
+
+    val compiled = GL32.glGetShaderi(id, GL32.GL_COMPILE_STATUS)
+    if (compiled == GL32.GL_FALSE) {
+        val log = GL32.glGetShaderInfoLog(id)
+        throw RuntimeException("Error compiling shader $path:\n$log")
+    }
 }

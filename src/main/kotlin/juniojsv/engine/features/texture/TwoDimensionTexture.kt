@@ -38,17 +38,4 @@ open class TwoDimensionTexture(private val file: String) : Texture() {
             GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_NEAREST
         )
     }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as TwoDimensionTexture
-
-        return file == other.file
-    }
-
-    override fun hashCode(): Int {
-        return file.hashCode()
-    }
 }

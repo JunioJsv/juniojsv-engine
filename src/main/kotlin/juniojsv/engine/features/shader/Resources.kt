@@ -25,6 +25,17 @@ object DefaultShaderProgram : ShadersProgram(
     Shader("shaders/default.frag", ShaderType.FRAGMENT)
 )
 
+object DefaultInstancedShaderProgram: ShadersProgram(
+    Shader(
+        "shaders/default_instanced.vert",
+        ShaderType.VERTEX
+    ),
+    Shader(
+        "shaders/default_instanced.frag",
+        ShaderType.FRAGMENT
+    )
+)
+
 object WhiteShaderProgram : ShadersProgram(
     Shader(
         "shaders/default.vert",
