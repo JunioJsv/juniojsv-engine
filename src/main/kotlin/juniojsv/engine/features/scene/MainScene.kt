@@ -9,9 +9,11 @@ import juniojsv.engine.features.texture.SkyboxTexture
 import juniojsv.engine.features.texture.TwoDimensionTexture
 import juniojsv.engine.features.ui.MainLayout
 import juniojsv.engine.features.ui.MainLayoutListener
+import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.SphereBoundary
 import juniojsv.engine.features.window.IRenderContext
 import org.joml.Vector3f
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class MainScene : IScene, MainLayoutListener {
@@ -19,13 +21,20 @@ class MainScene : IScene, MainLayoutListener {
     private var spheres: MultiBeing? = null
     private val textures = mutableListOf<TwoDimensionTexture>()
     private val ui = MainLayout()
+    private val light = Light(
+        Vector3f(
+            -Scale.KILOMETER.length(100f),
+            Scale.KILOMETER.length(20.7f),
+            0f
+        )
+    )
 
     private fun getTexturePath(index: Int) =
         "textures/metal/Metal_#-256x256.png"
             .replace("#", "$index".padStart(2, '0'))
 
     override fun setup(context: IRenderContext) {
-        context.setCurrentAmbientLight(Light(Vector3f(-1000000f, 60000f, 0f)))
+        context.setCurrentAmbientLight(light)
         ui.setup(context)
         ui.addListener(this)
         context.setCurrentUi(ui)
@@ -33,10 +42,10 @@ class MainScene : IScene, MainLayoutListener {
             CubeMapMesh,
             SkyboxTexture,
             SkyboxShaderProgram,
-            5000000f
+            Scale.KILOMETER.length(100f)
         )
         for (i in 1 until 16) {
-            val file = getTexturePath(Random.nextInt(1,21))
+            val file = getTexturePath(Random.nextInt(1, 21))
             textures.add(TwoDimensionTexture(file))
         }
         textures.add(TwoDimensionTexture("textures/uv.jpeg"))
@@ -49,7 +58,7 @@ class MainScene : IScene, MainLayoutListener {
 
     override fun onGenerateObjects(count: Int) {
         val random = Random(System.currentTimeMillis())
-        val offset = 1000000
+        val offset = Scale.KILOMETER.length(10f).roundToInt()
 
         val mesh = SphereMesh.get()
         val beings = mutableListOf<BaseBeing>()
@@ -63,7 +72,7 @@ class MainScene : IScene, MainLayoutListener {
                         (random.nextInt(offset) - offset / 2).toFloat()
                     ),
                     boundary = SphereBoundary(1f),
-                    scale = random.nextInt(10000).toFloat()
+                    scale = Scale.METER.length(50f) * random.nextFloat().coerceAtLeast(0.1f)
                 )
             )
         }

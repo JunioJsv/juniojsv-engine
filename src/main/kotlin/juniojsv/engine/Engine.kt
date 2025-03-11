@@ -3,8 +3,8 @@ package juniojsv.engine
 import imgui.ImGui
 import juniojsv.engine.features.entity.Camera
 import juniojsv.engine.features.scene.MainScene
-import juniojsv.engine.features.ui.MainLayout
 import juniojsv.engine.features.utils.KeyboardHandler
+import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.window.IRenderContext
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
@@ -37,9 +37,10 @@ class Engine(resolution: Resolution) : Window(resolution) {
     override fun onCursorOffsetEvent(context: IRenderContext, x: Double, y: Double) {
         if (!isCameraEnabled) return
         val delta = context.getDelta().toFloat()
+        val speed = Scale.METER.length(10f)
         context.getCamera().rotation.add(
-            (x.toFloat() * 10f) * delta,
-            (y.toFloat() * 10f) * delta,
+            (x.toFloat() * speed) * delta,
+            (y.toFloat() * speed) * delta,
             0f
         )
         GLFW.glfwSetCursorPos(
@@ -66,7 +67,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
     }
 
     private fun onSetupKeyBoard(context: IRenderContext) = context.getCamera().also { camera ->
-        val speed = 10000f
+        val speed = Scale.METER.length(100f)
         with(keyboard) {
             setKeyAction(GLFW.GLFW_KEY_ESCAPE) {
                 GLFW.glfwSetWindowShouldClose(

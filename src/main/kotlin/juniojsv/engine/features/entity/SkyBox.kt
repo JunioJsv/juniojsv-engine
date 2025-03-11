@@ -3,6 +3,7 @@ package juniojsv.engine.features.entity
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.CubeMapTexture
+import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.window.IRenderContext
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -13,7 +14,7 @@ class SkyBox(
     private val mesh: Mesh,
     val texture: CubeMapTexture,
     private val shader: ShadersProgram,
-    var scale: Float = 500f
+    var scale: Float = Scale.KILOMETER.length(1f)
 ) : IRender {
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 

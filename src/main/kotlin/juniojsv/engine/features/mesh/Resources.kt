@@ -1,5 +1,6 @@
 package juniojsv.engine.features.mesh
 
+import juniojsv.engine.features.utils.Scale
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -52,7 +53,7 @@ object CubeMapMesh : Mesh(
 object SphereMesh {
     private const val SECTOR_COUNT = 36
     private const val STACK_COUNT = 18
-    private const val RADIUS = 1.0f
+    private val RADIUS = Scale.METER.length(1f)
 
     private val vertices: FloatArray
     private val uv: FloatArray

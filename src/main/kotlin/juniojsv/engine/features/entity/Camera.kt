@@ -1,5 +1,6 @@
 package juniojsv.engine.features.entity
 
+import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.window.Window
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -11,8 +12,8 @@ class Camera(
     private val window: Window
 ) {
     var fov = 75f
-    var near = .5f
-    var far = 10000000f
+    var near = Scale.CENTIMETER.length(1f)
+    var far = Scale.KILOMETER.length(10f)
 
     val rotation: Vector3f = Vector3f(0f)
 
