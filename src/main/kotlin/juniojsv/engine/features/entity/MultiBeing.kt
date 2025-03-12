@@ -1,10 +1,10 @@
 package juniojsv.engine.features.entity
 
 import juniojsv.engine.extensions.toBuffer
+import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.utils.SphereBoundary
-import juniojsv.engine.features.window.IRenderContext
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL30
@@ -91,10 +91,10 @@ data class MultiBeing(
         MemoryUtil.memFree(transformationsBuffer)
     }
 
-    override fun render(context: IRenderContext) {
-        val light = context.getAmbientLight()
-        val frustum = context.getCameraFrustum()
-        val camera = context.getCamera()
+    override fun render(context: WindowContext) {
+        val light = context.render.state.light
+        val frustum = context.camera.frustum
+        val camera = context.camera.instance
 
         val beings = this.beings.filter {
             when (it.boundary) {
@@ -117,21 +117,21 @@ data class MultiBeing(
 
         if (shader != null) {
             with(shader) {
-                context.setCurrentShaderProgram(this)
-                putUniform("camera_projection", context.getCameraProjection())
-                putUniform("camera_view", context.getCameraView())
+                context.render.setShaderProgram(shader)
+                putUniform("camera_projection", context.camera.projection)
+                putUniform("camera_view", context.camera.view)
                 putUniform("camera_position", camera.position)
                 putUniform("light_position", light?.position ?: Vector3f(0f))
                 putUniform("light_color", light?.color ?: Vector3f(0f))
                 putUniform("time", GLFW.glfwGetTime().toFloat())
 
-                context.setCurrentTextures(textures)
+                context.render.setTextures(textures)
             }
         } else {
-            context.setCurrentShaderProgram(null)
+            context.render.setShaderProgram(null)
         }
 
-        context.setCurrentMesh(mesh)
+        context.render.setMesh(mesh)
         GL33.glDrawElementsInstanced(GL33.GL_TRIANGLES, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, beings.size)
     }
 

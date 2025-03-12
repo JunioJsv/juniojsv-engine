@@ -1,9 +1,11 @@
 package juniojsv.engine.features.scene
 
+import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.entity.*
 import juniojsv.engine.features.mesh.CubeMapMesh
 import juniojsv.engine.features.mesh.SphereMesh
 import juniojsv.engine.features.shader.DefaultInstancedShaderProgram
+import juniojsv.engine.features.shader.DefaultShaderProgram
 import juniojsv.engine.features.shader.SkyboxShaderProgram
 import juniojsv.engine.features.texture.SkyboxTexture
 import juniojsv.engine.features.texture.TwoDimensionTexture
@@ -11,16 +13,14 @@ import juniojsv.engine.features.ui.MainLayout
 import juniojsv.engine.features.ui.MainLayoutListener
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.SphereBoundary
-import juniojsv.engine.features.window.IRenderContext
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class MainScene : IScene, MainLayoutListener {
     private var sky: IRender? = null
-    private var spheres: MultiBeing? = null
     private val textures = mutableListOf<TwoDimensionTexture>()
-    private val ui = MainLayout()
+    private val layout = MainLayout()
     private val light = Light(
         Vector3f(
             -Scale.KILOMETER.length(100f),
@@ -28,16 +28,17 @@ class MainScene : IScene, MainLayoutListener {
             0f
         )
     )
+    private val objects = mutableListOf<IRender>()
 
     private fun getTexturePath(index: Int) =
         "textures/metal/Metal_#-256x256.png"
             .replace("#", "$index".padStart(2, '0'))
 
-    override fun setup(context: IRenderContext) {
-        context.setCurrentAmbientLight(light)
-        ui.setup(context)
-        ui.addListener(this)
-        context.setCurrentUi(ui)
+    override fun setup(context: WindowContext) {
+        context.render.setLight(light)
+        layout.setup(context)
+        layout.addListener(this)
+        context.gui.layout = layout
         sky = SkyBox(
             CubeMapMesh,
             SkyboxTexture,
@@ -51,12 +52,14 @@ class MainScene : IScene, MainLayoutListener {
         textures.add(TwoDimensionTexture("textures/uv.jpeg"))
     }
 
-    override fun render(context: IRenderContext) {
+    override fun render(context: WindowContext) {
         sky?.render(context)
-        spheres?.render(context)
+        objects.forEach { it.render(context) }
     }
 
-    override fun onGenerateObjects(count: Int) {
+    override fun onGenerateObjects(count: Int, instanced: Boolean) {
+        if (count < 1) return
+        objects.clear()
         val random = Random(System.currentTimeMillis())
         val offset = Scale.KILOMETER.length(10f).roundToInt()
 
@@ -76,10 +79,17 @@ class MainScene : IScene, MainLayoutListener {
                 )
             )
         }
-        spheres = MultiBeing(
-            mesh,
-            DefaultInstancedShaderProgram,
-            beings
-        )
+
+        if (instanced)
+            objects.add(
+                MultiBeing(
+                    mesh,
+                    DefaultInstancedShaderProgram,
+                    beings
+                )
+            )
+        else
+            objects.addAll(beings.map { SingleBeing(mesh, DefaultShaderProgram, it) })
+
     }
 }

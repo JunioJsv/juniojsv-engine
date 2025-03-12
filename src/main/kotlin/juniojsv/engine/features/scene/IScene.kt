@@ -1,8 +1,8 @@
 package juniojsv.engine.features.scene
 
-import juniojsv.engine.features.window.IRenderContext
+import juniojsv.engine.features.context.WindowContext
 
 interface IScene {
-    fun setup(context: IRenderContext)
-    fun render(context: IRenderContext)
+    fun setup(context: WindowContext)
+    fun render(context: WindowContext)
 }

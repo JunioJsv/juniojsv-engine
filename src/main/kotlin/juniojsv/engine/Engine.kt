@@ -1,10 +1,10 @@
 package juniojsv.engine
 
 import imgui.ImGui
+import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.entity.Camera
 import juniojsv.engine.features.scene.MainScene
 import juniojsv.engine.features.utils.KeyboardHandler
-import juniojsv.engine.features.window.IRenderContext
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW
@@ -15,32 +15,34 @@ class Engine(resolution: Resolution) : Window(resolution) {
 
     private val keyboard = KeyboardHandler()
 
+    private lateinit var camera: Camera
     private var isCameraEnabled = false
     private val movements = mutableSetOf<Camera.CameraMovement>()
 
     private val scene = MainScene()
 
-    override fun onCreate(context: IRenderContext) {
+    override fun onCreate(context: WindowContext) {
         scene.setup(context)
         onSetupKeyBoard(context)
+        camera = context.camera.instance
         GL11.glEnable(GL11.GL_DEPTH_TEST)
         GL11.glEnable(GL11.GL_CULL_FACE)
         GL11.glCullFace(GL11.GL_BACK)
         GL11.glClearColor(0f, 0f, 0f, 1f)
     }
 
-    override fun onRender(context: IRenderContext) {
+    override fun onRender(context: WindowContext) {
         scene.render(context)
         keyboard.pump(context)
-        context.getCamera().move(movements, context.getDelta())
+        camera.move(movements, context.time.delta)
         movements.clear()
     }
 
-    override fun onCursorOffsetEvent(context: IRenderContext, x: Double, y: Double) {
+    override fun onCursorOffsetEvent(context: WindowContext, x: Double, y: Double) {
         if (!isCameraEnabled) return
-        context.getCamera().rotate(x.toFloat() * 2, y.toFloat() * 2f)
+        camera.rotate(x.toFloat() * 2, y.toFloat() * 2f)
         GLFW.glfwSetCursorPos(
-            getWindowContext().id,
+            id,
             (getResolution().width / 2).toDouble(),
             (getResolution().height / 2).toDouble()
         )
@@ -51,26 +53,23 @@ class Engine(resolution: Resolution) : Window(resolution) {
         if (GLFW.GLFW_MOUSE_BUTTON_1 == button && action == GLFW.GLFW_PRESS) {
             isCameraEnabled = !isCameraEnabled
             GLFW.glfwSetInputMode(
-                getWindowContext().id,
+                id,
                 GLFW.GLFW_CURSOR,
                 if (isCameraEnabled) GLFW.GLFW_CURSOR_DISABLED else GLFW.GLFW_CURSOR_NORMAL
             )
         }
     }
 
-    override fun onKeyBoardEvent(context: IRenderContext, key: Int, code: Int, action: Int, mods: Int) {
+    override fun onKeyBoardEvent(context: WindowContext, key: Int, code: Int, action: Int, mods: Int) {
         keyboard.handle(key, action)
     }
 
-    private fun onSetupKeyBoard(context: IRenderContext) {
+    private fun onSetupKeyBoard(context: WindowContext) {
         with(keyboard) {
             setKeyAction(GLFW.GLFW_KEY_ESCAPE) {
-                GLFW.glfwSetWindowShouldClose(
-                    getWindowContext().id,
-                    true
-                )
+                GLFW.glfwSetWindowShouldClose(id, true)
             }
-            setKeyAction(GLFW.GLFW_KEY_W) { delta ->
+            setKeyAction(GLFW.GLFW_KEY_W) {
                 if (isCameraEnabled)
                     movements.add(Camera.CameraMovement.FORWARD)
             }

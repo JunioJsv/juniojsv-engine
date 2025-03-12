@@ -1,7 +1,7 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.features.window.IRenderContext
+import juniojsv.engine.features.context.WindowContext
 
 interface IRender {
-    fun render(context: IRenderContext)
+    fun render(context: WindowContext)
 }
