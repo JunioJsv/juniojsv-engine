@@ -11,9 +11,6 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
 data class RenderState(
-    val mesh: Mesh? = null,
-    val shader: ShadersProgram? = null,
-    val textures: Set<Texture> = setOf(),
     var light: Light? = null
 )
 
@@ -35,33 +32,44 @@ class RenderContext {
     }
 
     fun setTextures(textures: Set<Texture>) {
-        if (textures == state.textures) return
         assert(textures.size <= textureUnits.size)
-        textures.mapIndexed { index, texture ->
-            val target = if (texture is CubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP else GL11.GL_TEXTURE_2D
+        textures.forEachIndexed { index, texture ->
             GL30.glActiveTexture(textureUnits[index])
-            GL30.glBindTexture(target, texture.id)
+            val currentTexture =
+                GL30.glGetInteger(
+                    if (texture is CubeMapTexture) GL30.GL_TEXTURE_BINDING_CUBE_MAP
+                    else GL30.GL_TEXTURE_BINDING_2D
+                )
+            if (texture.id != currentTexture)
+                GL30.glBindTexture(
+                    if (texture is CubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP
+                    else GL11.GL_TEXTURE_2D,
+                    texture.id
+                )
         }
-        state.shader?.putUniform("textures", IntArray(textures.size) { it })
+        val currentShadersProgram = GL20.glGetInteger(GL20.GL_CURRENT_PROGRAM)
+        if (currentShadersProgram != 0) {
+            ShadersProgram(currentShadersProgram)
+                .putUniform("textures", IntArray(textures.size) { it })
+        }
         GL30.glActiveTexture(textureUnits[0])
-        state = state.copy(textures = textures)
     }
 
     fun setShaderProgram(shader: ShadersProgram?) {
-        if (shader == state.shader) return
+        val currentShadersProgram = GL20.glGetInteger(GL20.GL_CURRENT_PROGRAM)
+        if (shader?.id == currentShadersProgram) return
         GL20.glUseProgram(shader?.id ?: 0)
-        state = state.copy(shader = shader)
     }
 
     fun setMesh(mesh: Mesh?) {
-        if (mesh == state.mesh) return
+        val currentVao = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
+        if (mesh?.vao == currentVao) return
         GL30.glBindVertexArray(mesh?.vao ?: 0)
         if (mesh != null) {
             GL20.glEnableVertexAttribArray(0)
             GL20.glEnableVertexAttribArray(1)
             GL20.glEnableVertexAttribArray(2)
         }
-        state = state.copy(mesh = mesh)
     }
 
     fun setLight(light: Light?) {

@@ -1,4 +1,4 @@
-package juniojsv.engine.features.ui
+package juniojsv.engine.features.gui
 
 import juniojsv.engine.features.context.WindowContext
 

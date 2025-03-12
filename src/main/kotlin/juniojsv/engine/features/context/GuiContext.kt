@@ -2,7 +2,7 @@ package juniojsv.engine.features.context
 
 import imgui.ImGui
 import imgui.flag.ImGuiConfigFlags
-import juniojsv.engine.features.ui.IImGuiLayout
+import juniojsv.engine.features.gui.IImGuiLayout
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW
 

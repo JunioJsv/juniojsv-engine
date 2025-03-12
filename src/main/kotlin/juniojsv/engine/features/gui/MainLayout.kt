@@ -1,4 +1,4 @@
-package juniojsv.engine.features.ui
+package juniojsv.engine.features.gui
 
 import imgui.ImGui
 import juniojsv.engine.features.context.WindowContext
@@ -54,7 +54,6 @@ class MainLayout : IImGuiLayout {
             val color = Vector3f(ambientColor[0], ambientColor[1], ambientColor[2])
             context.render.setLight(Light(position, color))
         }
-
 
         ImGui.end()
     }

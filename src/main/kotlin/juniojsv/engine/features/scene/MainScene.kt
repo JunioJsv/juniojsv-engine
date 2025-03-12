@@ -9,8 +9,8 @@ import juniojsv.engine.features.shader.DefaultShaderProgram
 import juniojsv.engine.features.shader.SkyboxShaderProgram
 import juniojsv.engine.features.texture.SkyboxTexture
 import juniojsv.engine.features.texture.TwoDimensionTexture
-import juniojsv.engine.features.ui.MainLayout
-import juniojsv.engine.features.ui.MainLayoutListener
+import juniojsv.engine.features.gui.MainLayout
+import juniojsv.engine.features.gui.MainLayoutListener
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.SphereBoundary
 import org.joml.Vector3f

@@ -5,11 +5,13 @@ import imgui.flag.ImGuiConfigFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.features.utils.OpenGLDebugCallback
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL43
 import kotlin.properties.Delegates
 
 
@@ -87,7 +89,11 @@ abstract class Window(private var resolution: Resolution) {
             onResize(width, height)
         }
         GL.createCapabilities()
-//        GLUtil.setupDebugMessageCallback(System.out)
+        if (GL.getCapabilities().GL_ARB_debug_output) {
+            GL11.glEnable(GL43.GL_DEBUG_OUTPUT)
+            GL43.glDebugMessageCallback(OpenGLDebugCallback.create(), 0)
+            GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS)
+        }
 
         ImGui.createContext()
         ImGui.getIO().addConfigFlags(ImGuiConfigFlags.ViewportsEnable)

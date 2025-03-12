@@ -4,15 +4,29 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-open class ShadersProgram(vararg shaders: Shader) {
-    val id: Int = GL20.glCreateProgram()
+open class ShadersProgram {
+    val id: Int
 
-    init {
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(ShadersProgram::class.java)
+        const val VERTEX_POSITION = "vertex_position"
+        const val UV_COORDINATE = "uv_coordinates"
+        const val VERTEX_NORMAL = "vertex_normal"
+    }
+
+    constructor(vararg shaders: Shader) {
+        id = GL20.glCreateProgram()
         setup(
             shaders.first { it.type == ShaderType.VERTEX },
             shaders.first { it.type == ShaderType.FRAGMENT }
         )
+    }
+
+    constructor(id: Int) {
+        this.id = id
     }
 
     fun putUniform(name: String, value: Any) {
@@ -43,7 +57,7 @@ open class ShadersProgram(vararg shaders: Shader) {
                 is IntArray ->
                     GL20.glUniform1iv(location, value)
 
-                else -> throw Exception("Uniform type don't implemented")
+                else -> logger.error("Uniform($value) type don't implemented")
             }
         }
     }
@@ -60,16 +74,9 @@ open class ShadersProgram(vararg shaders: Shader) {
         val linked = GL20.glGetProgrami(id, GL20.GL_LINK_STATUS)
         if (linked == GL20.GL_FALSE) {
             val log = GL20.glGetProgramInfoLog(id)
-            throw RuntimeException("Error linking shader program:\n$log")
+            logger.error("Error linking shader program:\n$log")
         }
 
         GL20.glValidateProgram(id)
-    }
-
-
-    companion object {
-        const val VERTEX_POSITION = "vertex_position"
-        const val UV_COORDINATE = "uv_coordinates"
-        const val VERTEX_NORMAL = "vertex_normal"
     }
 }

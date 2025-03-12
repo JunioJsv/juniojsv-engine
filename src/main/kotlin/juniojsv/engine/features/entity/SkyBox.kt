@@ -21,7 +21,6 @@ class SkyBox(
     override fun render(context: WindowContext) {
         val light = context.render.state.light
         GL30.glDisable(GL30.GL_DEPTH_TEST)
-        context.render.setMesh(mesh)
 
         with(shader) {
             context.render.setShaderProgram(shader)
@@ -32,6 +31,8 @@ class SkyBox(
             putUniform("time", GLFW.glfwGetTime().toFloat())
             context.render.setTextures(setOf(texture))
         }
+
+        context.render.setMesh(mesh)
 
         GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, mesh.getIndicesCount())
         GL30.glEnable(GL30.GL_DEPTH_TEST)
