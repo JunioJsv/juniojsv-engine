@@ -21,6 +21,7 @@ data class MultiBeing(
     private val textures = beings.mapNotNull { it.texture }.toSet()
     private var transformationsVbo by Delegates.notNull<Int>()
     private var texturesIndexesVbo by Delegates.notNull<Int>()
+    private var texturesScaleVbo by Delegates.notNull<Int>()
 
     init {
         GL30.glBindVertexArray(mesh.vao)
@@ -51,6 +52,18 @@ data class MultiBeing(
             GL33.glVertexAttribDivisor(attrIndex, 1)
         }
 
+        /// Texture scale vbo
+        GL30.glGenBuffers().also { vbo ->
+            val attrIndex = 8
+            texturesScaleVbo = vbo
+            GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo)
+
+            GL30.glVertexAttribPointer(attrIndex, 1, GL30.GL_FLOAT, false, 0, 0)
+            GL30.glEnableVertexAttribArray(attrIndex)
+            GL33.glVertexAttribDivisor(attrIndex, 1)
+
+        }
+
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, 0)
         GL30.glBindVertexArray(0)
     }
@@ -58,6 +71,7 @@ data class MultiBeing(
     private fun updateVbos(beings: List<BaseBeing>) {
         updateTransformationsVbo(beings)
         updateTexturesIndexesVbo(beings)
+        updateTexturesScaleVbo(beings)
         GL30.glBindVertexArray(0)
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, 0)
     }
@@ -75,6 +89,20 @@ data class MultiBeing(
         GL30.glBufferData(GL30.GL_ARRAY_BUFFER, textureIndexesBuffer, GL30.GL_DYNAMIC_DRAW)
         MemoryUtil.memFree(textureIndexesBuffer)
     }
+
+    private fun updateTexturesScaleVbo(beings: List<BaseBeing>) {
+        GL30.glBindVertexArray(mesh.vao)
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, texturesScaleVbo)
+        val textureScales = FloatArray(beings.size)
+        for ((index, being) in beings.withIndex()) {
+            textureScales[index] = being.textureScale
+        }
+
+        val textureScalesBuffer = textureScales.toBuffer()
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, textureScalesBuffer, GL30.GL_DYNAMIC_DRAW)
+        MemoryUtil.memFree(textureScalesBuffer)
+    }
+
 
     private fun updateTransformationsVbo(beings: List<BaseBeing>) {
         GL30.glBindVertexArray(mesh.vao)

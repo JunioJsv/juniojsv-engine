@@ -11,7 +11,8 @@ data class BaseBeing(
     val position: Vector3f = Vector3f(0f),
     val rotation: Vector3f = Vector3f(0f),
     val scale: Float = Scale.METER.length(1f),
-    val boundary: BoundaryShape? = null
+    val boundary: BoundaryShape? = null,
+    val textureScale: Float = 1f
 ) {
     fun transformation(): Matrix4f = Matrix4f()
         .apply {

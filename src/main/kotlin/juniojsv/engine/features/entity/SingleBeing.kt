@@ -70,6 +70,7 @@ data class SingleBeing(
                 putUniform("light_position", light?.position ?: Vector3f(0f))
                 putUniform("light_color", light?.color ?: Vector3f(0f))
                 putUniform("time", GLFW.glfwGetTime().toFloat())
+                putUniform("texture_scale", being.textureScale)
 
                 putUniform("has_texture", if (being.texture != null) 1 else 0)
                 if (being.texture != null)

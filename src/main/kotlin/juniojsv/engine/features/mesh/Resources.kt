@@ -143,3 +143,28 @@ object SphereMesh {
 
     fun get(): Mesh = mesh
 }
+
+object QuadMesh : Mesh(
+    floatArrayOf(
+        -1f, 1f, 0f,
+        -1f, -1f, 0f,
+        1f, -1f, 0f,
+        1f, 1f, 0f
+    ),
+    floatArrayOf(
+        0f, 1f,
+        0f, 0f,
+        1f, 0f,
+        1f, 1f
+    ),
+    floatArrayOf(
+        0f, 0f, 1f,
+        0f, 0f, 1f,
+        0f, 0f, 1f,
+        0f, 0f, 1f
+    ),
+    indices = intArrayOf(
+        0, 1, 2,
+        0, 2, 3
+    )
+)

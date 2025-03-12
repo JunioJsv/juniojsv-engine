@@ -2,15 +2,16 @@ package juniojsv.engine.features.scene
 
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.entity.*
+import juniojsv.engine.features.gui.MainLayout
+import juniojsv.engine.features.gui.MainLayoutListener
 import juniojsv.engine.features.mesh.CubeMapMesh
+import juniojsv.engine.features.mesh.QuadMesh
 import juniojsv.engine.features.mesh.SphereMesh
 import juniojsv.engine.features.shader.DefaultInstancedShaderProgram
 import juniojsv.engine.features.shader.DefaultShaderProgram
 import juniojsv.engine.features.shader.SkyboxShaderProgram
 import juniojsv.engine.features.texture.SkyboxTexture
 import juniojsv.engine.features.texture.TwoDimensionTexture
-import juniojsv.engine.features.gui.MainLayout
-import juniojsv.engine.features.gui.MainLayoutListener
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.SphereBoundary
 import org.joml.Vector3f
@@ -29,6 +30,7 @@ class MainScene : IScene, MainLayoutListener {
         )
     )
     private val objects = mutableListOf<IRender>()
+    private lateinit var floor: IRender
 
     private fun getTexturePath(index: Int) =
         "textures/metal/Metal_#-256x256.png"
@@ -50,10 +52,22 @@ class MainScene : IScene, MainLayoutListener {
             textures.add(TwoDimensionTexture(file))
         }
         textures.add(TwoDimensionTexture("textures/uv.jpeg"))
+        floor = SingleBeing(
+            QuadMesh,
+            DefaultShaderProgram,
+            BaseBeing(
+                textures.random(),
+                Vector3f(0f, -Scale.METER.length(5f), 0f),
+                scale = Scale.KILOMETER.length(10f),
+                rotation = Vector3f(-90f, 0f, 0f),
+                textureScale = 20f
+            )
+        )
     }
 
     override fun render(context: WindowContext) {
         sky?.render(context)
+        floor.render(context)
         objects.forEach { it.render(context) }
     }
 
@@ -62,6 +76,7 @@ class MainScene : IScene, MainLayoutListener {
         objects.clear()
         val random = Random(System.currentTimeMillis())
         val offset = Scale.KILOMETER.length(10f).roundToInt()
+        val maxSize = Scale.METER.length(70f)
 
         val mesh = SphereMesh.get()
         val beings = mutableListOf<BaseBeing>()
@@ -71,11 +86,12 @@ class MainScene : IScene, MainLayoutListener {
                     textures.random(),
                     Vector3f(
                         (random.nextInt(offset) - offset / 2).toFloat(),
-                        (random.nextInt(offset) - offset / 2).toFloat(),
+                        (random.nextInt(offset) + maxSize),
                         (random.nextInt(offset) - offset / 2).toFloat()
                     ),
                     boundary = SphereBoundary(1f),
-                    scale = Scale.METER.length(70f) * random.nextFloat().coerceAtLeast(0.1f)
+                    scale = maxSize * random.nextFloat().coerceAtLeast(0.1f),
+                    textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f)
                 )
             )
         }

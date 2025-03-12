@@ -14,7 +14,7 @@ class Camera(
 ) {
     var fov = 75f
     var near = Scale.CENTIMETER.length(1f)
-    var far = Scale.KILOMETER.length(10f)
+    var far = Scale.KILOMETER.length(100f)
 
     val rotation: Vector3f = Vector3f(0f)
 

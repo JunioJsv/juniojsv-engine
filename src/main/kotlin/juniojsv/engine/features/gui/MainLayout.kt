@@ -36,6 +36,9 @@ class MainLayout : IImGuiLayout {
 
         if (ImGui.checkbox("Instanced", instanced)) {
             instanced = !instanced
+            listeners.forEach {
+                it.onGenerateObjects(objectsCount.first(), instanced)
+            }
         }
 
         if (ImGui.button("Generate Objects")) {
