@@ -3,7 +3,7 @@ package juniojsv.engine.features.entity
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
-import juniojsv.engine.features.texture.CubeMapTexture
+import juniojsv.engine.features.texture.FileCubeMapTexture
 import juniojsv.engine.features.utils.Scale
 import org.joml.Matrix4f
 import org.joml.Vector3f
@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL30
 
 class SkyBox(
     private val mesh: Mesh,
-    val texture: CubeMapTexture,
+    val texture: FileCubeMapTexture,
     private val shader: ShadersProgram,
     var scale: Float = Scale.KILOMETER.length(1f)
 ) : IRender {

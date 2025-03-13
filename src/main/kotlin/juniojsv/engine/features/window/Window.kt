@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL43
 import kotlin.properties.Delegates
-
+import kotlin.system.exitProcess
 
 abstract class Window(private var resolution: Resolution) {
     abstract val title: String
@@ -107,6 +107,7 @@ abstract class Window(private var resolution: Resolution) {
         Callbacks.glfwFreeCallbacks(id)
         GLFW.glfwDestroyWindow(id)
         GLFW.glfwTerminate()
+        exitProcess(0)
     }
 
     open fun onCreate(context: WindowContext) {}

@@ -4,7 +4,7 @@ import juniojsv.engine.features.utils.Resource
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 
-open class CubeMapTexture(files: Array<String>) : Texture() {
+open class FileCubeMapTexture(files: Array<String>) : Texture() {
 
     init {
         GL11.glBindTexture(GL20.GL_TEXTURE_CUBE_MAP, id)

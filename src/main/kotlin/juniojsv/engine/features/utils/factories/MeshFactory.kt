@@ -1,54 +1,57 @@
-package juniojsv.engine.features.mesh
+package juniojsv.engine.features.utils.factories
 
+import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.utils.Scale
 import kotlin.math.cos
 import kotlin.math.sin
 
-object CubeMapMesh : Mesh(
-    floatArrayOf(
-        -1.0f, 1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, 1.0f, -1.0f,
-        -1.0f, 1.0f, -1.0f,
+object CubeMesh {
+    fun create() = Mesh(
+        floatArrayOf(
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
 
-        -1.0f, -1.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, 1.0f, -1.0f,
-        -1.0f, 1.0f, -1.0f,
-        -1.0f, 1.0f, 1.0f,
-        -1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
 
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
 
-        -1.0f, -1.0f, 1.0f,
-        -1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,
-        -1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
 
-        -1.0f, 1.0f, -1.0f,
-        1.0f, 1.0f, -1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,
-        -1.0f, 1.0f, 1.0f,
-        -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, -1.0f,
 
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, 1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f
+        )
     )
-)
+}
 
 object SphereMesh {
     private const val SECTOR_COUNT = 36
@@ -139,32 +142,32 @@ object SphereMesh {
         indices = indicesList.toIntArray()
     }
 
-    private val mesh = Mesh(vertices = vertices, uv = uv, normals = normals, indices = indices)
-
-    fun get(): Mesh = mesh
+    fun create(): Mesh = Mesh(vertices = vertices, uv = uv, normals = normals, indices = indices)
 }
 
-object QuadMesh : Mesh(
-    floatArrayOf(
-        -1f, 1f, 0f,
-        -1f, -1f, 0f,
-        1f, -1f, 0f,
-        1f, 1f, 0f
-    ),
-    floatArrayOf(
-        0f, 1f,
-        0f, 0f,
-        1f, 0f,
-        1f, 1f
-    ),
-    floatArrayOf(
-        0f, 0f, 1f,
-        0f, 0f, 1f,
-        0f, 0f, 1f,
-        0f, 0f, 1f
-    ),
-    indices = intArrayOf(
-        0, 1, 2,
-        0, 2, 3
+object QuadMesh {
+    fun create() = Mesh(
+        floatArrayOf(
+            -1f, 1f, 0f,
+            -1f, -1f, 0f,
+            1f, -1f, 0f,
+            1f, 1f, 0f
+        ),
+        floatArrayOf(
+            0f, 1f,
+            0f, 0f,
+            1f, 0f,
+            1f, 1f
+        ),
+        floatArrayOf(
+            0f, 0f, 1f,
+            0f, 0f, 1f,
+            0f, 0f, 1f,
+            0f, 0f, 1f
+        ),
+        indices = intArrayOf(
+            0, 1, 2,
+            0, 2, 3
+        )
     )
-)
+}

@@ -3,8 +3,11 @@ package juniojsv.engine.features.texture
 import juniojsv.engine.features.utils.Resource
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
+import java.nio.file.Path
 
-open class TwoDimensionTexture(private val file: String) : Texture() {
+open class FileTexture(file: String) : Texture() {
+    val fileName = Path.of(file).fileName.toString()
+
     init {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
 

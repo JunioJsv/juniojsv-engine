@@ -1,9 +1,10 @@
 package juniojsv.engine.features.context
 
+import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.entity.Light
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
-import juniojsv.engine.features.texture.CubeMapTexture
+import juniojsv.engine.features.texture.FileCubeMapTexture
 import juniojsv.engine.features.texture.Texture
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
@@ -12,7 +13,8 @@ import org.lwjgl.opengl.GL30
 
 data class RenderState(
     val ambientLight: Light? = null,
-    val resolutionScale: Float = 1f
+    val resolutionScale: Float = 1f,
+    val beings: List<BaseBeing> = emptyList()
 )
 
 class RenderContext {
@@ -26,34 +28,60 @@ class RenderContext {
         GL13.GL_TEXTURE12, GL13.GL_TEXTURE13, GL13.GL_TEXTURE14, GL13.GL_TEXTURE15
     )
 
+    // Texture unit to Texture id
+    private val textureBindings = mutableMapOf<Int, Texture>()
+
 
     fun onPreRender() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
+        state = state.copy(beings = emptyList())
+    }
+
+    private fun getTextureBindType(texture: Texture): Int {
+        return if (texture is FileCubeMapTexture) GL30.GL_TEXTURE_BINDING_CUBE_MAP else GL30.GL_TEXTURE_BINDING_2D
+    }
+
+    private fun getTextureType(texture: Texture): Int {
+        return if (texture is FileCubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP else GL11.GL_TEXTURE_2D
     }
 
     fun setTextures(textures: Set<Texture>) {
+        if (textures.isEmpty()) clearTextureBindings()
         assert(textures.size <= textureUnits.size)
-        textures.forEachIndexed { index, texture ->
-            GL30.glActiveTexture(textureUnits[index])
-            val currentTexture =
-                GL30.glGetInteger(
-                    if (texture is CubeMapTexture) GL30.GL_TEXTURE_BINDING_CUBE_MAP
-                    else GL30.GL_TEXTURE_BINDING_2D
-                )
-            if (texture.id != currentTexture)
-                GL30.glBindTexture(
-                    if (texture is CubeMapTexture) GL30.GL_TEXTURE_CUBE_MAP
-                    else GL11.GL_TEXTURE_2D,
-                    texture.id
-                )
+        val currentProgram = GL20.glGetInteger(GL20.GL_CURRENT_PROGRAM)
+        val amountTextureBindings = textures.withIndex().count { (index, texture) ->
+            val textureUnit = textureUnits[index]
+            GL30.glActiveTexture(textureUnit)
+            val currentTexture = GL30.glGetInteger(getTextureBindType(texture))
+            val shouldBind = texture.id != currentTexture
+
+            if (shouldBind) {
+                GL30.glBindTexture(getTextureType(texture), texture.id)
+                textureBindings[textureUnit] = texture
+            }
+
+            shouldBind
         }
-        val currentShadersProgram = GL20.glGetInteger(GL20.GL_CURRENT_PROGRAM)
-        if (currentShadersProgram != 0) {
-            ShadersProgram(currentShadersProgram)
-                .putUniform("textures", IntArray(textures.size) { it })
+
+        if (currentProgram != 0) {
+            ShadersProgram(currentProgram)
+                .putUniform("textures", IntArray(amountTextureBindings) { it })
         }
+
         GL30.glActiveTexture(textureUnits[0])
+    }
+
+    private fun clearTextureBindings() {
+        textureBindings.forEach { (unit, texture) ->
+            GL30.glActiveTexture(unit)
+            val currentTexture = GL30.glGetInteger(getTextureBindType(texture))
+            val shouldUnbind = texture.id == currentTexture
+            if (shouldUnbind) {
+                GL30.glBindTexture(getTextureType(texture), 0)
+            }
+        }
+        textureBindings.clear()
     }
 
     fun setShaderProgram(shader: ShadersProgram?) {
@@ -75,5 +103,9 @@ class RenderContext {
 
     fun setState(callback: (RenderState) -> RenderState) {
         state = callback(state)
+    }
+
+    fun addBeings(beings: List<BaseBeing>) = setState {
+        it.copy(beings = it.beings + beings)
     }
 }

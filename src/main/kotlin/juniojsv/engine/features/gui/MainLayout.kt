@@ -2,6 +2,7 @@ package juniojsv.engine.features.gui
 
 import imgui.ImGui
 import imgui.flag.ImGuiWindowFlags
+import juniojsv.engine.Flags
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.entity.Light
 import org.joml.Vector3f
@@ -56,6 +57,10 @@ class MainLayout : IImGuiLayout {
         ImGui.spacing()
         ImGui.separator()
         ImGui.spacing()
+
+        if (ImGui.checkbox("Show Debug Objects", Flags.debug)) {
+            Flags.debug = !Flags.debug
+        }
 
         ImGui.text("Ambient Color")
         if (ImGui.colorEdit3("Color", ambientColor)) {

@@ -15,7 +15,8 @@ import kotlin.properties.Delegates
 data class MultiBeing(
     private val mesh: Mesh,
     private val shader: ShadersProgram?,
-    private val beings: List<BaseBeing>
+    private val beings: List<BaseBeing>,
+    private val isDebugger: Boolean = false
 ) : IRender {
 
     private val textures = beings.mapNotNull { it.texture }.toSet()
@@ -141,6 +142,8 @@ data class MultiBeing(
 
         if (beings.isEmpty()) return
 
+        if (!isDebugger)
+            context.render.addBeings(beings)
         updateVbos(beings)
 
         if (shader != null) {

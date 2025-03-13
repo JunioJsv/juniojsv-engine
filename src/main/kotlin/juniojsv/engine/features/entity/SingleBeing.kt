@@ -2,11 +2,8 @@ package juniojsv.engine.features.entity
 
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.mesh.Mesh
-import juniojsv.engine.features.mesh.SphereMesh
 import juniojsv.engine.features.shader.ShadersProgram
-import juniojsv.engine.features.shader.WhiteShaderProgram
 import juniojsv.engine.features.utils.SphereBoundary
-import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
@@ -14,36 +11,9 @@ import org.lwjgl.opengl.GL11
 data class SingleBeing(
     val mesh: Mesh,
     val shader: ShadersProgram?,
-    val being: BaseBeing = BaseBeing()
+    val being: BaseBeing = BaseBeing(),
+    private val isDebugger: Boolean = false
 ) : IRender {
-
-    @Deprecated("")
-    private fun renderBoundary(context: WindowContext) = when (being.boundary) {
-        is SphereBoundary -> {
-            val transformation = Matrix4f(being.transformation())
-            transformation.scale(being.boundary.radius)
-
-            val mesh = SphereMesh.get()
-            val shader = WhiteShaderProgram
-
-            with(shader) {
-                context.render.setShaderProgram(shader)
-                putUniform("camera_projection", context.camera.projection)
-                putUniform("camera_view", context.camera.view)
-                putUniform("transformation", transformation)
-            }
-
-            context.render.setMesh(mesh)
-
-            GL11.glDrawElements(
-                GL11.GL_LINE_LOOP,
-                mesh.getIndicesCount(),
-                GL11.GL_UNSIGNED_INT, 0
-            )
-        }
-
-        else -> {}
-    }
 
     override fun render(context: WindowContext) {
         val transformation = being.transformation()
@@ -59,6 +29,9 @@ data class SingleBeing(
                 if (!frustum.isSphereInside(transformedCenter, effectiveRadius)) return
             }
         }
+
+        if (!isDebugger)
+            context.render.addBeings(listOf(being))
 
         if (shader != null) {
             with(shader) {

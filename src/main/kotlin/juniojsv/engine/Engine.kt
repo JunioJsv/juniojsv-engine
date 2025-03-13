@@ -4,14 +4,16 @@ import imgui.ImGui
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.entity.Camera
+import juniojsv.engine.features.entity.Debugger
 import juniojsv.engine.features.entity.SingleBeing
 import juniojsv.engine.features.gui.MainLayoutListener
-import juniojsv.engine.features.mesh.QuadMesh
 import juniojsv.engine.features.scene.IScene
 import juniojsv.engine.features.scene.MainScene
-import juniojsv.engine.features.shader.ScreenProgram
 import juniojsv.engine.features.utils.FrameBuffer
 import juniojsv.engine.features.utils.KeyboardHandler
+import juniojsv.engine.features.utils.factories.QuadMesh
+import juniojsv.engine.features.utils.factories.ShaderProgramFactory
+import juniojsv.engine.features.utils.factories.ShaderPrograms
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW
@@ -29,6 +31,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
     private lateinit var scene: IScene
     private lateinit var fbo: FrameBuffer
     private lateinit var screen: SingleBeing
+    private lateinit var debugger: Debugger
 
     override fun onCreate(context: WindowContext) {
         onSetupScreen(context)
@@ -42,6 +45,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
         scene.setup(context)
         onSetupKeyBoard(context)
         camera = context.camera.instance
+        debugger = Debugger()
         GL11.glEnable(GL11.GL_DEPTH_TEST)
         GL11.glEnable(GL11.GL_CULL_FACE)
         GL11.glCullFace(GL11.GL_BACK)
@@ -51,6 +55,8 @@ class Engine(resolution: Resolution) : Window(resolution) {
     override fun onRender(context: WindowContext) {
         fbo.bind()
         scene.render(context)
+        if (Flags.debug)
+            debugger.render(context)
         fbo.unbind()
 
         screen.render(context)
@@ -100,7 +106,11 @@ class Engine(resolution: Resolution) : Window(resolution) {
             depth = true,
             color = true
         )
-        screen = SingleBeing(QuadMesh, ScreenProgram, BaseBeing(fbo.colorTexture))
+        screen = SingleBeing(
+            QuadMesh.create(),
+            ShaderProgramFactory.create(ShaderPrograms.SCREEN),
+            BaseBeing(fbo.colorTexture)
+        )
     }
 
     private fun onSetupKeyBoard(context: WindowContext) {
