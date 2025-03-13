@@ -49,7 +49,6 @@ abstract class Window(private var resolution: Resolution) {
             getHeight(),
             title, 0, 0
         )
-        context = WindowContext(this)
         setup()
         while (!GLFW.glfwWindowShouldClose(id)) {
             with(context) {
@@ -62,6 +61,14 @@ abstract class Window(private var resolution: Resolution) {
     }
 
     private fun setup() {
+        GLFW.glfwMakeContextCurrent(id)
+        GL.createCapabilities()
+        if (GL.getCapabilities().GL_ARB_debug_output) {
+            GL11.glEnable(GL43.GL_DEBUG_OUTPUT)
+            GL43.glDebugMessageCallback(OpenGLDebugCallback.create(), 0)
+            GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS)
+        }
+        context = WindowContext(this)
         GLFW.glfwSetCursorPosCallback(id) { _, x: Double, y: Double ->
             onCursorOffsetEvent(
                 context,
@@ -76,25 +83,14 @@ abstract class Window(private var resolution: Resolution) {
             onKeyBoardEvent(context, key, code, action, mods)
         }
         GLFW.glfwSetWindowSizeCallback(id) { _, width: Int, height: Int ->
-            onResize(width, height)
+            onResize(context, width, height)
         }
-        GLFW.glfwMakeContextCurrent(id)
         GLFW.glfwShowWindow(id)
         GLFW.glfwSetCursorPos(
             id,
             (getWidth() / 2).toDouble(),
             (getHeight() / 2).toDouble()
         )
-        GLFW.glfwSetWindowSizeCallback(id) { _, width: Int, height: Int ->
-            onResize(width, height)
-        }
-        GL.createCapabilities()
-        if (GL.getCapabilities().GL_ARB_debug_output) {
-            GL11.glEnable(GL43.GL_DEBUG_OUTPUT)
-            GL43.glDebugMessageCallback(OpenGLDebugCallback.create(), 0)
-            GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS)
-        }
-
         ImGui.createContext()
         ImGui.getIO().addConfigFlags(ImGuiConfigFlags.ViewportsEnable)
         imGuiGlfw.init(id, true)
@@ -122,7 +118,7 @@ abstract class Window(private var resolution: Resolution) {
 
     abstract fun onKeyBoardEvent(context: WindowContext, key: Int, code: Int, action: Int, mods: Int)
 
-    private fun onResize(width: Int, height: Int) {
+    open fun onResize(context: WindowContext, width: Int, height: Int) {
         GL11.glViewport(0, 0, width, height)
         resolution = Resolution(width, height)
     }

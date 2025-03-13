@@ -120,7 +120,7 @@ data class MultiBeing(
     }
 
     override fun render(context: WindowContext) {
-        val light = context.render.state.light
+        val light = context.render.state.ambientLight
         val frustum = context.camera.frustum
         val camera = context.camera.instance
 

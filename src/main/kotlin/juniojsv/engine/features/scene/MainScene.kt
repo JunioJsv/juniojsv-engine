@@ -21,7 +21,7 @@ import kotlin.random.Random
 class MainScene : IScene, MainLayoutListener {
     private var sky: IRender? = null
     private val textures = mutableListOf<TwoDimensionTexture>()
-    private val layout = MainLayout()
+    val layout = MainLayout()
     private val light = Light(
         Vector3f(
             -Scale.KILOMETER.length(100f),
@@ -37,7 +37,7 @@ class MainScene : IScene, MainLayoutListener {
             .replace("#", "$index".padStart(2, '0'))
 
     override fun setup(context: WindowContext) {
-        context.render.setLight(light)
+        context.render.setState { it.copy(ambientLight = light) }
         layout.setup(context)
         layout.addListener(this)
         context.gui.layout = layout

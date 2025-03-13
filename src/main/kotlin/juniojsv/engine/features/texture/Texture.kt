@@ -38,4 +38,8 @@ abstract class Texture {
             }
         }
     }.get()
+
+    fun dispose() {
+        GL11.glDeleteTextures(id)
+    }
 }

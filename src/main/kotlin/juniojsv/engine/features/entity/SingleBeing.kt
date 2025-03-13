@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL11
 data class SingleBeing(
     val mesh: Mesh,
     val shader: ShadersProgram?,
-    val being: BaseBeing
+    val being: BaseBeing = BaseBeing()
 ) : IRender {
 
     @Deprecated("")
@@ -47,7 +47,7 @@ data class SingleBeing(
 
     override fun render(context: WindowContext) {
         val transformation = being.transformation()
-        val light = context.render.state.light
+        val light = context.render.state.ambientLight
         val frustum = context.camera.frustum
         val camera = context.camera.instance
 

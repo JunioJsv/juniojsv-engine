@@ -1,14 +1,10 @@
 package juniojsv.engine.features.shader
 
-object TerrainShaderProgram : ShadersProgram(
-    Shader("shaders/default.vert", ShaderType.VERTEX),
-    Shader("shaders/terrain.frag", ShaderType.FRAGMENT)
+object ScreenProgram : ShadersProgram(
+    Shader("shaders/screen.vert", ShaderType.VERTEX),
+    Shader("shaders/screen.frag", ShaderType.FRAGMENT)
 )
 
-object DepthShaderProgram : ShadersProgram(
-    Shader("shaders/default.vert", ShaderType.VERTEX),
-    Shader("shaders/depth.frag", ShaderType.FRAGMENT)
-)
 
 object LightShaderProgram : ShadersProgram(
     Shader("shaders/default.vert", ShaderType.VERTEX),
@@ -25,7 +21,7 @@ object DefaultShaderProgram : ShadersProgram(
     Shader("shaders/default.frag", ShaderType.FRAGMENT)
 )
 
-object DefaultInstancedShaderProgram: ShadersProgram(
+object DefaultInstancedShaderProgram : ShadersProgram(
     Shader(
         "shaders/default_instanced.vert",
         ShaderType.VERTEX

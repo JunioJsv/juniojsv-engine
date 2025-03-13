@@ -2,8 +2,15 @@ package juniojsv.engine
 
 import imgui.ImGui
 import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.entity.Camera
+import juniojsv.engine.features.entity.SingleBeing
+import juniojsv.engine.features.gui.MainLayoutListener
+import juniojsv.engine.features.mesh.QuadMesh
+import juniojsv.engine.features.scene.IScene
 import juniojsv.engine.features.scene.MainScene
+import juniojsv.engine.features.shader.ScreenProgram
+import juniojsv.engine.features.utils.FrameBuffer
 import juniojsv.engine.features.utils.KeyboardHandler
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
@@ -19,9 +26,19 @@ class Engine(resolution: Resolution) : Window(resolution) {
     private var isCameraEnabled = false
     private val movements = mutableSetOf<Camera.CameraMovement>()
 
-    private val scene = MainScene()
+    private lateinit var scene: IScene
+    private lateinit var fbo: FrameBuffer
+    private lateinit var screen: SingleBeing
 
     override fun onCreate(context: WindowContext) {
+        onSetupScreen(context)
+        scene = MainScene().apply {
+            layout.addListener(object : MainLayoutListener {
+                override fun onChangeResolutionScale(scale: Float) {
+                    fbo.resize(getResolution().withResolutionScale(scale))
+                }
+            })
+        }
         scene.setup(context)
         onSetupKeyBoard(context)
         camera = context.camera.instance
@@ -32,7 +49,12 @@ class Engine(resolution: Resolution) : Window(resolution) {
     }
 
     override fun onRender(context: WindowContext) {
+        fbo.bind()
         scene.render(context)
+        fbo.unbind()
+
+        screen.render(context)
+
         keyboard.pump(context)
         camera.move(movements, context.time.delta)
         movements.clear()
@@ -62,6 +84,23 @@ class Engine(resolution: Resolution) : Window(resolution) {
 
     override fun onKeyBoardEvent(context: WindowContext, key: Int, code: Int, action: Int, mods: Int) {
         keyboard.handle(key, action)
+    }
+
+    override fun onResize(context: WindowContext, width: Int, height: Int) {
+        super.onResize(context, width, height)
+        val resolutionScale = context.render.state.resolutionScale
+        fbo.resize(getResolution().withResolutionScale(resolutionScale))
+    }
+
+    private fun onSetupScreen(context: WindowContext) {
+        val resolutionScale = context.render.state.resolutionScale
+        fbo = FrameBuffer(
+            this,
+            getResolution().withResolutionScale(resolutionScale),
+            depth = true,
+            color = true
+        )
+        screen = SingleBeing(QuadMesh, ScreenProgram, BaseBeing(fbo.colorTexture))
     }
 
     private fun onSetupKeyBoard(context: WindowContext) {

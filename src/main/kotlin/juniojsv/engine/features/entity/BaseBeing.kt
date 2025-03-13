@@ -1,13 +1,13 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.features.texture.TwoDimensionTexture
+import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.utils.BoundaryShape
 import juniojsv.engine.features.utils.Scale
 import org.joml.Matrix4f
 import org.joml.Vector3f
 
 data class BaseBeing(
-    val texture: TwoDimensionTexture?,
+    val texture: Texture? = null,
     val position: Vector3f = Vector3f(0f),
     val rotation: Vector3f = Vector3f(0f),
     val scale: Float = Scale.METER.length(1f),

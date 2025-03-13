@@ -19,7 +19,7 @@ class SkyBox(
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
     override fun render(context: WindowContext) {
-        val light = context.render.state.light
+        val light = context.render.state.ambientLight
         GL30.glDisable(GL30.GL_DEPTH_TEST)
 
         with(shader) {

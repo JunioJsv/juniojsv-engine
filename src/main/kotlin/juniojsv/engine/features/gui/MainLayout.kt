@@ -1,17 +1,20 @@
 package juniojsv.engine.features.gui
 
 import imgui.ImGui
+import imgui.flag.ImGuiWindowFlags
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.entity.Light
 import org.joml.Vector3f
 
 interface MainLayoutListener {
-    fun onGenerateObjects(count: Int, instanced: Boolean = false)
+    fun onGenerateObjects(count: Int, instanced: Boolean = false) {}
+    fun onChangeResolutionScale(scale: Float) {}
 }
 
 class MainLayout : IImGuiLayout {
     private var instanced = false
     private val objectsCount = intArrayOf(0)
+    private val resolutionScale = floatArrayOf(1f)
     private val ambientColor = floatArrayOf(0f, 0f, 0f)
     private val listeners = mutableSetOf<MainLayoutListener>()
 
@@ -20,7 +23,7 @@ class MainLayout : IImGuiLayout {
     }
 
     override fun setup(context: WindowContext) {
-        context.render.state.light?.let {
+        context.render.state.ambientLight?.let {
             val color = it.color
             ambientColor[0] = color.x
             ambientColor[1] = color.y
@@ -29,7 +32,10 @@ class MainLayout : IImGuiLayout {
     }
 
     override fun render(context: WindowContext) {
-        ImGui.begin("Scene Settings")
+        ImGui.begin(
+            "Scene Settings",
+            ImGuiWindowFlags.NoResize or ImGuiWindowFlags.AlwaysAutoResize
+        )
 
         ImGui.text("Number of Objects to Generate")
         ImGui.sliderInt("Objects", objectsCount, 1, 1024 * 5)
@@ -53,9 +59,17 @@ class MainLayout : IImGuiLayout {
 
         ImGui.text("Ambient Color")
         if (ImGui.colorEdit3("Color", ambientColor)) {
-            val position = context.render.state.light?.position ?: Vector3f(0f)
+            val position = context.render.state.ambientLight?.position ?: Vector3f(0f)
             val color = Vector3f(ambientColor[0], ambientColor[1], ambientColor[2])
-            context.render.setLight(Light(position, color))
+            context.render.setState { it.copy(ambientLight = Light(position, color)) }
+        }
+
+        ImGui.text("Resolution Scale")
+        if (ImGui.sliderFloat("Scale", resolutionScale, 0.1f, 1f)) {
+            context.render.setState { it.copy(resolutionScale = resolutionScale.first()) }
+            listeners.forEach {
+                it.onChangeResolutionScale(resolutionScale.first())
+            }
         }
 
         ImGui.end()

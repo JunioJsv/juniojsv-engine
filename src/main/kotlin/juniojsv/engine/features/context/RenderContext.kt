@@ -11,7 +11,8 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
 data class RenderState(
-    var light: Light? = null
+    val ambientLight: Light? = null,
+    val resolutionScale: Float = 1f
 )
 
 class RenderContext {
@@ -72,8 +73,7 @@ class RenderContext {
         }
     }
 
-    fun setLight(light: Light?) {
-        if (light == state.light) return
-        state = state.copy(light = light)
+    fun setState(callback: (RenderState) -> RenderState) {
+        state = callback(state)
     }
 }
