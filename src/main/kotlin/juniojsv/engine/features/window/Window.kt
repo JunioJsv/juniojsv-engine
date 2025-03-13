@@ -83,7 +83,8 @@ abstract class Window(private var resolution: Resolution) {
             onKeyBoardEvent(context, key, code, action, mods)
         }
         GLFW.glfwSetWindowSizeCallback(id) { _, width: Int, height: Int ->
-            onResize(context, width, height)
+            if (width > 0 && height > 0)
+                onResize(context, width, height)
         }
         GLFW.glfwShowWindow(id)
         GLFW.glfwSetCursorPos(
