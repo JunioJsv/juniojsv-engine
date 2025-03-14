@@ -9,17 +9,20 @@ import org.joml.Vector3f
 class CameraContext(window: Window) {
     private val camera = Camera(Vector3f(), window)
     lateinit var projection: Matrix4f
+        private set
     lateinit var view: Matrix4f
-    lateinit var frustum: Frustum
+        private set
+    var frustum = Frustum()
+        private set
 
     val instance: Camera
         get() = camera
 
-    internal fun onPreRender() {
+    fun onPreRender() {
         projection = camera.projection()
         view = camera.view()
         val projectionView = Matrix4f()
         projection.mul(view, projectionView)
-        frustum = Frustum(projectionView)
+        frustum.update(projectionView)
     }
 }

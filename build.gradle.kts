@@ -13,6 +13,10 @@ repositories {
 
 application(Action {
     mainClassName = "juniojsv.engine.MainKt"
+    applicationDefaultJvmArgs = arrayListOf(
+        "-Xmx2g",
+        "-XX:+AlwaysPreTouch"
+    )
 })
 
 dependencies {

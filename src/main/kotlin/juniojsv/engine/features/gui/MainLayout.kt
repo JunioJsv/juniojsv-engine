@@ -66,12 +66,12 @@ class MainLayout : IImGuiLayout {
         if (ImGui.colorEdit3("Color", ambientColor)) {
             val position = context.render.state.ambientLight?.position ?: Vector3f(0f)
             val color = Vector3f(ambientColor[0], ambientColor[1], ambientColor[2])
-            context.render.setState { it.copy(ambientLight = Light(position, color)) }
+            context.render.state.ambientLight = Light(position, color)
         }
 
         ImGui.text("Resolution Scale")
         if (ImGui.sliderFloat("Scale", resolutionScale, 0.1f, 1f)) {
-            context.render.setState { it.copy(resolutionScale = resolutionScale.first()) }
+            context.render.state.resolutionScale = resolutionScale.first()
             listeners.forEach {
                 it.onChangeResolutionScale(resolutionScale.first())
             }

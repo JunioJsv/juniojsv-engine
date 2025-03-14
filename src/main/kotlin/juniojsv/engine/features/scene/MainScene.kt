@@ -27,10 +27,10 @@ class MainScene : IScene, MainLayoutListener {
     private lateinit var floor: IRender
     private val defaultInstancedShadersProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED)
     private val defaultShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT)
-    private val sphereMesh = SphereMesh.create()
+    private val sphereMesh = SphereMesh(.5f).create()
 
     override fun setup(context: WindowContext) {
-        context.render.setState { it.copy(ambientLight = light) }
+        context.render.state.ambientLight = light
         layout.setup(context)
         layout.addListener(this)
         context.gui.layout = layout
@@ -77,6 +77,7 @@ class MainScene : IScene, MainLayoutListener {
         val maxSize = Scale.METER.length(70f)
 
         val beings = mutableListOf<BaseBeing>()
+        val boundary = SphereBoundary(1f)
         repeat(count) {
             beings.add(
                 BaseBeing(
@@ -86,7 +87,7 @@ class MainScene : IScene, MainLayoutListener {
                         (random.nextInt(offset) + maxSize),
                         (random.nextInt(offset) - offset / 2).toFloat()
                     ),
-                    boundary = SphereBoundary(1f),
+                    boundary = boundary,
                     scale = maxSize * random.nextFloat().coerceAtLeast(0.1f),
                     textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f)
                 )

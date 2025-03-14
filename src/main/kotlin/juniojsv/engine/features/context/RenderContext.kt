@@ -1,7 +1,5 @@
 package juniojsv.engine.features.context
 
-import juniojsv.engine.features.entity.BaseBeing
-import juniojsv.engine.features.entity.Light
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.FileCubeMapTexture
@@ -11,15 +9,9 @@ import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 
-data class RenderState(
-    val ambientLight: Light? = null,
-    val resolutionScale: Float = 1f,
-    val beings: List<BaseBeing> = emptyList()
-)
 
 class RenderContext {
-    var state = RenderState()
-        private set
+    val state = RenderState()
 
     private val textureUnits = listOf(
         GL13.GL_TEXTURE0, GL13.GL_TEXTURE1, GL13.GL_TEXTURE2, GL13.GL_TEXTURE3,
@@ -35,7 +27,7 @@ class RenderContext {
     fun onPreRender() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
-        state = state.copy(beings = emptyList())
+        state.beings.clear()
     }
 
     private fun getTextureBindType(texture: Texture): Int {
@@ -65,8 +57,11 @@ class RenderContext {
         }
 
         if (currentProgram != 0) {
-            ShadersProgram(currentProgram)
-                .putUniform("textures", IntArray(amountTextureBindings) { it })
+            ShadersProgram.putUniform(
+                currentProgram,
+                "textures",
+                IntArray(amountTextureBindings) { it }
+            )
         }
 
         GL30.glActiveTexture(textureUnits[0])
@@ -99,13 +94,5 @@ class RenderContext {
             GL20.glEnableVertexAttribArray(1)
             GL20.glEnableVertexAttribArray(2)
         }
-    }
-
-    fun setState(callback: (RenderState) -> RenderState) {
-        state = callback(state)
-    }
-
-    fun addBeings(beings: List<BaseBeing>) = setState {
-        it.copy(beings = it.beings + beings)
     }
 }

@@ -31,7 +31,7 @@ data class SingleBeing(
         }
 
         if (!isDebugger)
-            context.render.addBeings(listOf(being))
+            context.render.state.beings.add(being)
 
         if (shader != null) {
             with(shader) {

@@ -3,6 +3,7 @@ package juniojsv.engine.features.utils.factories
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.utils.Scale
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 object CubeMesh {
@@ -53,10 +54,10 @@ object CubeMesh {
     )
 }
 
-object SphereMesh {
-    private const val SECTOR_COUNT = 36
-    private const val STACK_COUNT = 18
-    private val RADIUS = Scale.METER.length(1f)
+class SphereMesh(details: Float = 1.0f) {
+    private val sector = (36 * details).roundToInt()
+    private val stack = (18 * details).roundToInt()
+    private val radius = Scale.METER.length(1f)
 
     private val vertices: FloatArray
     private val uv: FloatArray
@@ -69,8 +70,8 @@ object SphereMesh {
         val normalsList = mutableListOf<Float>()
         val indicesList = mutableListOf<Int>()
 
-        val sectorStep = 2 * Math.PI / SECTOR_COUNT
-        val stackStep = Math.PI / STACK_COUNT
+        val sectorStep = 2 * Math.PI / sector
+        val stackStep = Math.PI / stack
         var sectorAngle: Double
         var stackAngle: Double
         var xy: Float
@@ -85,22 +86,22 @@ object SphereMesh {
         var k1: Int
         var k2: Int
 
-        for (i in 0..STACK_COUNT) {
+        for (i in 0..stack) {
             stackAngle = Math.PI / 2 - i * stackStep
-            xy = (RADIUS * cos(stackAngle)).toFloat()
-            z = (RADIUS * sin(stackAngle)).toFloat()
+            xy = (radius * cos(stackAngle)).toFloat()
+            z = (radius * sin(stackAngle)).toFloat()
 
-            for (j in 0..SECTOR_COUNT) {
+            for (j in 0..sector) {
                 sectorAngle = j * sectorStep
                 x = (xy * cos(sectorAngle)).toFloat()
                 y = (xy * sin(sectorAngle)).toFloat()
 
-                nx = x / RADIUS
-                ny = y / RADIUS
-                nz = z / RADIUS
+                nx = x / radius
+                ny = y / radius
+                nz = z / radius
 
-                s = j.toFloat() / SECTOR_COUNT
-                t = i.toFloat() / STACK_COUNT
+                s = j.toFloat() / sector
+                t = i.toFloat() / stack
 
                 verticesList.add(x)
                 verticesList.add(y)
@@ -116,18 +117,18 @@ object SphereMesh {
             }
         }
 
-        for (i in 0 until STACK_COUNT) {
-            k1 = i * (SECTOR_COUNT + 1)
-            k2 = k1 + SECTOR_COUNT + 1
+        for (i in 0 until stack) {
+            k1 = i * (sector + 1)
+            k2 = k1 + sector + 1
 
-            for (j in 0 until SECTOR_COUNT) {
+            for (j in 0 until sector) {
                 if (i != 0) {
                     indicesList.add(k1)
                     indicesList.add(k2)
                     indicesList.add(k1 + 1)
                 }
 
-                if (i != (STACK_COUNT - 1)) {
+                if (i != (stack - 1)) {
                     indicesList.add(k1 + 1)
                     indicesList.add(k2)
                     indicesList.add(k2 + 1)

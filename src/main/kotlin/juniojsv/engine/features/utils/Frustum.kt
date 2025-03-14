@@ -5,10 +5,17 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.sqrt
 
-data class Frustum(val projectionView: Matrix4f) {
+class Frustum {
     private val planes = Array(6) { Vector4f() }
 
-    init {
+    constructor()
+
+    constructor(projectionView: Matrix4f) {
+        update(projectionView)
+    }
+
+
+    fun update(projectionView: Matrix4f) {
         with(projectionView) {
             planes[0].set(m03() + m00(), m13() + m10(), m23() + m20(), m33() + m30()) // Left
             planes[1].set(m03() - m00(), m13() - m10(), m23() - m20(), m33() - m30()) // Right

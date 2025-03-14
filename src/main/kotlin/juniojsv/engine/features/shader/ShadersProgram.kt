@@ -15,6 +15,39 @@ open class ShadersProgram {
         const val VERTEX_POSITION = "vertex_position"
         const val UV_COORDINATE = "uv_coordinates"
         const val VERTEX_NORMAL = "vertex_normal"
+
+        fun putUniform(id: Int, name: String, value: Any) {
+            GL20.glGetUniformLocation(id, name).also { location ->
+                when (value) {
+                    is Int ->
+                        GL20.glUniform1i(location, value)
+
+                    is Float ->
+                        GL20.glUniform1f(location, value)
+
+                    is Vector3f ->
+                        BufferUtils.createFloatBuffer(3).also { vec3 ->
+                            value.get(vec3)
+                            GL20.glUniform3fv(location, vec3)
+                        }
+
+                    is Matrix4f ->
+                        BufferUtils.createFloatBuffer(16).also { matrix4f ->
+                            value.get(matrix4f)
+                            GL20.glUniformMatrix4fv(
+                                location,
+                                false,
+                                matrix4f
+                            )
+                        }
+
+                    is IntArray ->
+                        GL20.glUniform1iv(location, value)
+
+                    else -> logger.error("Uniform($value) type don't implemented")
+                }
+            }
+        }
     }
 
     constructor(vararg shaders: Shader) {
@@ -29,38 +62,7 @@ open class ShadersProgram {
         this.id = id
     }
 
-    fun putUniform(name: String, value: Any) {
-        GL20.glGetUniformLocation(id, name).also { location ->
-            when (value) {
-                is Int ->
-                    GL20.glUniform1i(location, value)
-
-                is Float ->
-                    GL20.glUniform1f(location, value)
-
-                is Vector3f ->
-                    BufferUtils.createFloatBuffer(3).also { vec3 ->
-                        value.get(vec3)
-                        GL20.glUniform3fv(location, vec3)
-                    }
-
-                is Matrix4f ->
-                    BufferUtils.createFloatBuffer(16).also { matrix4f ->
-                        value.get(matrix4f)
-                        GL20.glUniformMatrix4fv(
-                            location,
-                            false,
-                            matrix4f
-                        )
-                    }
-
-                is IntArray ->
-                    GL20.glUniform1iv(location, value)
-
-                else -> logger.error("Uniform($value) type don't implemented")
-            }
-        }
-    }
+    fun putUniform(name: String, value: Any) = Companion.putUniform(id, name, value)
 
     private fun setup(vertex: Shader, fragment: Shader) {
         GL20.glBindAttribLocation(id, 0, VERTEX_POSITION)

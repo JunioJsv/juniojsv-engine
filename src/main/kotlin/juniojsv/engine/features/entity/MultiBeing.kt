@@ -143,7 +143,7 @@ data class MultiBeing(
         if (beings.isEmpty()) return
 
         if (!isDebugger)
-            context.render.addBeings(beings)
+            context.render.state.beings.addAll(beings)
         updateVbos(beings)
 
         if (shader != null) {

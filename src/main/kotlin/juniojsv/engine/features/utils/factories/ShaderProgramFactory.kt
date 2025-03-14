@@ -7,6 +7,7 @@ import juniojsv.engine.features.shader.ShadersProgram
 enum class ShaderPrograms {
     DEFAULT,
     DEFAULT_INSTANCED,
+    DEFAULT_INSTANCED_DEBUG,
     SCREEN,
     SKYBOX
 }
@@ -23,6 +24,12 @@ object ShaderProgramFactory {
             ShadersProgram(
                 Shader("shaders/default_instanced.vert", ShaderType.VERTEX),
                 Shader("shaders/default_instanced.frag", ShaderType.FRAGMENT)
+            )
+        },
+        ShaderPrograms.DEFAULT_INSTANCED_DEBUG to {
+            ShadersProgram(
+                Shader("shaders/default_instanced.vert", ShaderType.VERTEX),
+                Shader("shaders/default_instanced_debug.frag", ShaderType.FRAGMENT)
             )
         },
         ShaderPrograms.SCREEN to {

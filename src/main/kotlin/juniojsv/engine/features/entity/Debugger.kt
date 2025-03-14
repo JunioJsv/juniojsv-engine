@@ -12,8 +12,8 @@ import org.lwjgl.opengl.GL30
 
 class Debugger : IRender {
     private val debugColorTexture = ColorTextureFactory.create(Vector3f(1f, 1f, 0f))
-    private val defaultInstancedShadersProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED)
-    private val sphereMesh = SphereMesh.create()
+    private val defaultInstancedShadersProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED_DEBUG)
+    private val sphereMesh = SphereMesh(.5f).create()
 
     override fun render(context: WindowContext) {
         val beingsWithSphereBoundary = context.render.state.beings.filter { it.boundary is SphereBoundary }
