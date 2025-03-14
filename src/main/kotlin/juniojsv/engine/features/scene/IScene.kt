@@ -1,8 +1,9 @@
 package juniojsv.engine.features.scene
 
 import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.features.entity.IRender
 
-interface IScene {
+interface IScene : IRender {
     fun setup(context: WindowContext)
-    fun render(context: WindowContext)
+    override fun render(context: WindowContext)
 }

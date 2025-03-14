@@ -4,6 +4,7 @@ import juniojsv.engine.extensions.toBuffer
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
+import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.utils.SphereBoundary
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW
@@ -12,17 +13,31 @@ import org.lwjgl.opengl.GL33
 import org.lwjgl.system.MemoryUtil
 import kotlin.properties.Delegates
 
-data class MultiBeing(
+class MultiBeing(
     private val mesh: Mesh,
     private val shader: ShadersProgram?,
-    private val beings: List<BaseBeing>,
     private val isDebugger: Boolean = false
 ) : IRender {
 
-    private val textures = beings.mapNotNull { it.texture }.toSet()
+    private lateinit var beings: List<BaseBeing>
+    private lateinit var textures: Set<Texture>
     private var transformationsVbo by Delegates.notNull<Int>()
     private var texturesIndexesVbo by Delegates.notNull<Int>()
     private var texturesScaleVbo by Delegates.notNull<Int>()
+
+    constructor(
+        mesh: Mesh,
+        shader: ShadersProgram?,
+        beings: List<BaseBeing>,
+        isDebugger: Boolean = false
+    ) : this(mesh, shader, isDebugger) {
+        update(beings)
+    }
+
+    fun update(beings: List<BaseBeing>) {
+        this.beings = beings
+        textures = this.beings.mapNotNull { it.texture }.toSet()
+    }
 
     init {
         GL30.glBindVertexArray(mesh.vao)
@@ -32,7 +47,7 @@ data class MultiBeing(
             val attrIndex = 3
             transformationsVbo = vbo
             GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo)
-            GL30.glBufferData(GL30.GL_ARRAY_BUFFER, beings.size * 16 * 4L, GL30.GL_STATIC_DRAW)
+//            GL30.glBufferData(GL30.GL_ARRAY_BUFFER, beings.size * 16 * 4L, GL30.GL_STATIC_DRAW)
 
             /// Attr index 3, 4, 5 will be used to store the transformation matrix
             for (i in 0..3) {
@@ -87,7 +102,7 @@ data class MultiBeing(
         }
 
         val textureIndexesBuffer = textureIndexes.toBuffer()
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, textureIndexesBuffer, GL30.GL_DYNAMIC_DRAW)
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, textureIndexesBuffer, GL30.GL_STREAM_DRAW)
         MemoryUtil.memFree(textureIndexesBuffer)
     }
 
@@ -100,7 +115,7 @@ data class MultiBeing(
         }
 
         val textureScalesBuffer = textureScales.toBuffer()
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, textureScalesBuffer, GL30.GL_DYNAMIC_DRAW)
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, textureScalesBuffer, GL30.GL_STREAM_DRAW)
         MemoryUtil.memFree(textureScalesBuffer)
     }
 
@@ -116,7 +131,7 @@ data class MultiBeing(
             transformationsBuffer.put(transformationArray)
         }
         transformationsBuffer.flip()
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, transformationsBuffer, GL30.GL_DYNAMIC_DRAW)
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, transformationsBuffer, GL30.GL_STREAM_DRAW)
         MemoryUtil.memFree(transformationsBuffer)
     }
 
@@ -164,6 +179,13 @@ data class MultiBeing(
 
         context.render.setMesh(mesh)
         GL33.glDrawElementsInstanced(GL33.GL_TRIANGLES, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, beings.size)
+    }
+
+    override fun dispose() {
+        super.dispose()
+        GL30.glDeleteBuffers(transformationsVbo)
+        GL30.glDeleteBuffers(texturesIndexesVbo)
+        GL30.glDeleteBuffers(texturesScaleVbo)
     }
 
 }

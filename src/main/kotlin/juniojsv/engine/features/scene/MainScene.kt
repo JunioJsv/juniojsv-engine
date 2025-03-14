@@ -71,6 +71,7 @@ class MainScene : IScene, MainLayoutListener {
 
     override fun onGenerateObjects(count: Int, instanced: Boolean) {
         if (count < 1) return
+        objects.forEach { it.dispose() }
         objects.clear()
         val random = Random(System.currentTimeMillis())
         val offset = Scale.KILOMETER.length(10f).roundToInt()
