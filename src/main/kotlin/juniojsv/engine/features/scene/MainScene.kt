@@ -30,6 +30,7 @@ class MainScene : IScene, MainLayoutListener {
     private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
 
     override fun setup(context: WindowContext) {
+        context.camera.instance.position.add(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
         context.render.state.ambientLight = light
         layout.setup(context)
         layout.addListener(this)
