@@ -4,47 +4,19 @@ import juniojsv.engine.features.shader.Shader
 import juniojsv.engine.features.shader.ShaderType
 import juniojsv.engine.features.shader.ShadersProgram
 
-enum class ShaderPrograms {
-    DEFAULT,
-    DEFAULT_INSTANCED,
-    DEFAULT_INSTANCED_DEBUG,
-    SCREEN,
-    SKYBOX
+enum class ShaderPrograms(val vertex: String, val fragment: String) {
+    DEFAULT("shaders/default.vert", "shaders/default.frag"),
+    DEFAULT_INSTANCED("shaders/default_instanced.vert", "shaders/default_instanced.frag"),
+    DEFAULT_INSTANCED_DEBUG("shaders/default_instanced.vert", "shaders/default_instanced_debug.frag"),
+    SCREEN("shaders/screen.vert", "shaders/screen.frag"),
+    SKYBOX("shaders/skybox.vert", "shaders/skybox.frag")
 }
 
 object ShaderProgramFactory {
-    private val programs: Map<ShaderPrograms, () -> ShadersProgram> = mapOf(
-        ShaderPrograms.DEFAULT to {
-            ShadersProgram(
-                Shader("shaders/default.vert", ShaderType.VERTEX),
-                Shader("shaders/default.frag", ShaderType.FRAGMENT)
-            )
-        },
-        ShaderPrograms.DEFAULT_INSTANCED to {
-            ShadersProgram(
-                Shader("shaders/default_instanced.vert", ShaderType.VERTEX),
-                Shader("shaders/default_instanced.frag", ShaderType.FRAGMENT)
-            )
-        },
-        ShaderPrograms.DEFAULT_INSTANCED_DEBUG to {
-            ShadersProgram(
-                Shader("shaders/default_instanced.vert", ShaderType.VERTEX),
-                Shader("shaders/default_instanced_debug.frag", ShaderType.FRAGMENT)
-            )
-        },
-        ShaderPrograms.SCREEN to {
-            ShadersProgram(
-                Shader("shaders/screen.vert", ShaderType.VERTEX),
-                Shader("shaders/screen.frag", ShaderType.FRAGMENT)
-            )
-        },
-        ShaderPrograms.SKYBOX to {
-            ShadersProgram(
-                Shader("shaders/skybox.vert", ShaderType.VERTEX),
-                Shader("shaders/skybox.frag", ShaderType.FRAGMENT)
-            )
-        }
-    )
-
-    fun create(program: ShaderPrograms) = programs[program]!!.invoke()
+    fun create(program: ShaderPrograms): ShadersProgram {
+        return ShadersProgram(
+            Shader(program.vertex, ShaderType.VERTEX),
+            Shader(program.fragment, ShaderType.FRAGMENT)
+        )
+    }
 }

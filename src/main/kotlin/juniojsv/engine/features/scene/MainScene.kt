@@ -27,7 +27,7 @@ class MainScene : IScene, MainLayoutListener {
     private lateinit var floor: IRender
     private val defaultInstancedShadersProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED)
     private val defaultShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT)
-    private val sphereMesh = SphereMesh(.5f).create()
+    private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
 
     override fun setup(context: WindowContext) {
         context.render.state.ambientLight = light
@@ -35,7 +35,7 @@ class MainScene : IScene, MainLayoutListener {
         layout.addListener(this)
         context.gui.layout = layout
         sky = SkyBox(
-            CubeMesh.create(),
+            SkyboxMesh.create(),
             TextureFactory.createCubeMapTexture(Textures.SKYBOX),
             ShaderProgramFactory.create(ShaderPrograms.SKYBOX),
             Scale.KILOMETER.length(100f)
@@ -77,10 +77,10 @@ class MainScene : IScene, MainLayoutListener {
         val offset = Scale.KILOMETER.length(10f).roundToInt()
         val maxSize = Scale.METER.length(70f)
 
-        val beings = mutableListOf<BaseBeing>()
-        val boundary = SphereBoundary(1f)
-        repeat(count) {
-            beings.add(
+
+        meshes.forEachIndexed { index, mesh ->
+            val boundary = SphereBoundary(if (index == 0) 1.7f else 1f)
+            val beings = List(count / meshes.size) {
                 BaseBeing(
                     textures.random(),
                     Vector3f(
@@ -92,19 +92,15 @@ class MainScene : IScene, MainLayoutListener {
                     scale = maxSize * random.nextFloat().coerceAtLeast(0.1f),
                     textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f)
                 )
-            )
-        }
+            }
 
-        if (instanced)
-            objects.add(
-                MultiBeing(
-                    sphereMesh,
-                    defaultInstancedShadersProgram,
-                    beings
+            if (instanced) {
+                objects.add(
+                    MultiBeing(mesh, defaultInstancedShadersProgram, beings)
                 )
-            )
-        else
-            objects.addAll(beings.map { SingleBeing(sphereMesh, defaultShaderProgram, it) })
-
+            } else {
+                objects.addAll(beings.map { SingleBeing(mesh, defaultShaderProgram, it) })
+            }
+        }
     }
 }
