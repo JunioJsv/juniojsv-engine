@@ -18,8 +18,7 @@ class KeyboardHandler {
 
     fun pump(context: WindowContext) {
         if (pressed.isNotEmpty()) {
-            val delta = context.time.delta
-            for (key in pressed) actions[key]?.invoke(delta)
+            for (key in pressed) actions[key]?.invoke(context.time.deltaInSeconds)
         }
     }
 }

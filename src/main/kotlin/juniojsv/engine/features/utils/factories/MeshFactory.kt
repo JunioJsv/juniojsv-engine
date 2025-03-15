@@ -1,6 +1,7 @@
 package juniojsv.engine.features.utils.factories
 
 import juniojsv.engine.features.mesh.Mesh
+import juniojsv.engine.features.utils.BoundarySphere
 import juniojsv.engine.features.utils.Scale
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -111,7 +112,8 @@ object CubeMesh {
             12, 13, 14, 12, 14, 15,
             16, 17, 18, 16, 18, 19,
             20, 21, 22, 20, 22, 23
-        )
+        ),
+        boundary = BoundarySphere(1.7f)
     )
 }
 
@@ -204,7 +206,8 @@ class SphereMesh(details: Float = 1.0f) {
         indices = indicesList.toIntArray()
     }
 
-    fun create(): Mesh = Mesh(vertices = vertices, uv = uv, normals = normals, indices = indices)
+    fun create(): Mesh =
+        Mesh(vertices = vertices, uv = uv, normals = normals, indices = indices, boundary = BoundarySphere(1f))
 }
 
 object QuadMesh {

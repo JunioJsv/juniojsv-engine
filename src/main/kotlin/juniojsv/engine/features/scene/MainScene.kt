@@ -6,7 +6,6 @@ import juniojsv.engine.features.gui.MainLayout
 import juniojsv.engine.features.gui.MainLayoutListener
 import juniojsv.engine.features.texture.FileTexture
 import juniojsv.engine.features.utils.Scale
-import juniojsv.engine.features.utils.SphereBoundary
 import juniojsv.engine.features.utils.factories.*
 import org.joml.Vector3f
 import kotlin.math.roundToInt
@@ -31,7 +30,7 @@ class MainScene : IScene, MainLayoutListener {
 
     override fun setup(context: WindowContext) {
         context.camera.instance.position.add(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
-        context.render.state.ambientLight = light
+        context.render.ambientLight = light
         layout.setup(context)
         layout.addListener(this)
         context.gui.layout = layout
@@ -78,9 +77,7 @@ class MainScene : IScene, MainLayoutListener {
         val offset = Scale.KILOMETER.length(10f).roundToInt()
         val maxSize = Scale.METER.length(70f)
 
-
-        meshes.forEachIndexed { index, mesh ->
-            val boundary = SphereBoundary(if (index == 0) 1.7f else 1f)
+        meshes.forEach { mesh ->
             val beings = List(count / meshes.size) {
                 BaseBeing(
                     textures.random(),
@@ -89,7 +86,6 @@ class MainScene : IScene, MainLayoutListener {
                         (random.nextInt(offset) + maxSize),
                         (random.nextInt(offset) - offset / 2).toFloat()
                     ),
-                    boundary = boundary,
                     scale = maxSize * random.nextFloat().coerceAtLeast(0.1f),
                     textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f)
                 )

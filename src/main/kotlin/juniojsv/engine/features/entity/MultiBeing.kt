@@ -1,13 +1,12 @@
 package juniojsv.engine.features.entity
 
+import juniojsv.engine.Flags
 import juniojsv.engine.extensions.toBuffer
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
-import juniojsv.engine.features.utils.SphereBoundary
 import org.joml.Vector3f
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
 import org.lwjgl.system.MemoryUtil
@@ -16,7 +15,8 @@ import kotlin.properties.Delegates
 class MultiBeing(
     private val mesh: Mesh,
     private val shader: ShadersProgram?,
-    private val isDebugger: Boolean = false
+    private val isDebuggable: Boolean = true,
+    private val isFrustumCullingEnabled: Boolean = true
 ) : IRender {
 
     private lateinit var beings: List<BaseBeing>
@@ -25,12 +25,15 @@ class MultiBeing(
     private var texturesIndexesVbo by Delegates.notNull<Int>()
     private var texturesScaleVbo by Delegates.notNull<Int>()
 
+    private val canDebug: Boolean
+        get() = isDebuggable && Flags.debug
+
     constructor(
         mesh: Mesh,
         shader: ShadersProgram?,
         beings: List<BaseBeing>,
-        isDebugger: Boolean = false
-    ) : this(mesh, shader, isDebugger) {
+        isDebuggable: Boolean = true
+    ) : this(mesh, shader, isDebuggable) {
         update(beings)
     }
 
@@ -47,7 +50,6 @@ class MultiBeing(
             val attrIndex = 3
             transformationsVbo = vbo
             GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo)
-//            GL30.glBufferData(GL30.GL_ARRAY_BUFFER, beings.size * 16 * 4L, GL30.GL_STATIC_DRAW)
 
             /// Attr index 3, 4, 5 will be used to store the transformation matrix
             for (i in 0..3) {
@@ -136,29 +138,22 @@ class MultiBeing(
     }
 
     override fun render(context: WindowContext) {
-        val light = context.render.state.ambientLight
+        val light = context.render.ambientLight
         val frustum = context.camera.frustum
         val camera = context.camera.instance
+        val boundary = mesh.boundary
 
-        val beings = this.beings.filter {
-            when (it.boundary) {
-                is SphereBoundary -> {
-                    val boundary = it.boundary
-                    val transformation = it.transformation()
-                    val transformedCenter = Vector3f()
-                    val effectiveRadius = boundary.radius * it.scale
-                    transformation.transformPosition(Vector3f(0f), transformedCenter)
-                    frustum.isSphereInside(transformedCenter, effectiveRadius)
-                }
-
-                else -> true
-            }
+        val beings = if (!isFrustumCullingEnabled || boundary == null) beings else beings.filter {
+            val position = it.transformedPosition()
+            val scale = it.scale
+            val isInsideFrustum = boundary.isInsideFrustum(frustum, position, scale)
+            if (canDebug && isInsideFrustum)
+                context.render.debugBeings.add(boundary.getDebugBeing(position, scale))
+            isInsideFrustum
         }
 
         if (beings.isEmpty()) return
 
-        if (!isDebugger)
-            context.render.state.beings.addAll(beings)
         updateVbos(beings)
 
         if (shader != null) {
@@ -169,7 +164,7 @@ class MultiBeing(
                 putUniform("camera_position", camera.position)
                 putUniform("light_position", light?.position ?: Vector3f(0f))
                 putUniform("light_color", light?.color ?: Vector3f(0f))
-                putUniform("time", GLFW.glfwGetTime().toFloat())
+                putUniform("time", context.time.elapsedInSeconds.toFloat())
 
                 context.render.setTextures(textures)
             }

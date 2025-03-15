@@ -63,7 +63,7 @@ class Camera(
             )
         }
 
-        if(direction.length() > 0f) {
+        if (direction.length() > 0f) {
             direction = direction.normalize().mul(speed)
             position.add(direction)
         }

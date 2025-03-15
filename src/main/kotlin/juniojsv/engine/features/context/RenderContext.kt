@@ -1,5 +1,7 @@
 package juniojsv.engine.features.context
 
+import juniojsv.engine.features.entity.Light
+import juniojsv.engine.features.entity.debugger.IDebugBeing
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.FileCubeMapTexture
@@ -11,7 +13,9 @@ import org.lwjgl.opengl.GL30
 
 
 class RenderContext {
-    val state = RenderState()
+    var ambientLight: Light? = null
+    var resolutionScale: Float = 1f
+    val debugBeings: MutableList<IDebugBeing> = mutableListOf()
 
     private val textureUnits = listOf(
         GL13.GL_TEXTURE0, GL13.GL_TEXTURE1, GL13.GL_TEXTURE2, GL13.GL_TEXTURE3,
@@ -23,11 +27,10 @@ class RenderContext {
     // Texture unit to Texture id
     private val textureBindings = mutableMapOf<Int, Texture>()
 
-
     fun onPreRender() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
         GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
-        state.beings.clear()
+        debugBeings.clear()
     }
 
     private fun getTextureBindType(texture: Texture): Int {

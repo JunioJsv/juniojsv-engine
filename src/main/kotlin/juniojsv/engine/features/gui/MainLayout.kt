@@ -24,7 +24,7 @@ class MainLayout : IImGuiLayout {
     }
 
     override fun setup(context: WindowContext) {
-        context.render.state.ambientLight?.let {
+        context.render.ambientLight?.let {
             val color = it.color
             ambientColor[0] = color.x
             ambientColor[1] = color.y
@@ -64,14 +64,14 @@ class MainLayout : IImGuiLayout {
 
         ImGui.text("Ambient Color")
         if (ImGui.colorEdit3("Color", ambientColor)) {
-            val position = context.render.state.ambientLight?.position ?: Vector3f(0f)
+            val position = context.render.ambientLight?.position ?: Vector3f(0f)
             val color = Vector3f(ambientColor[0], ambientColor[1], ambientColor[2])
-            context.render.state.ambientLight = Light(position, color)
+            context.render.ambientLight = Light(position, color)
         }
 
         ImGui.text("Resolution Scale")
         if (ImGui.sliderFloat("Scale", resolutionScale, 0.1f, 1f)) {
-            context.render.state.resolutionScale = resolutionScale.first()
+            context.render.resolutionScale = resolutionScale.first()
             listeners.forEach {
                 it.onChangeResolutionScale(resolutionScale.first())
             }

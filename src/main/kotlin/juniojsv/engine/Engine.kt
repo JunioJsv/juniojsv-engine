@@ -4,8 +4,8 @@ import imgui.ImGui
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.entity.Camera
-import juniojsv.engine.features.entity.Debugger
 import juniojsv.engine.features.entity.SingleBeing
+import juniojsv.engine.features.entity.debugger.Debugger
 import juniojsv.engine.features.gui.MainLayoutListener
 import juniojsv.engine.features.scene.IScene
 import juniojsv.engine.features.scene.MainScene
@@ -62,7 +62,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
         screen.render(context)
 
         keyboard.pump(context)
-        camera.move(movements, context.time.delta)
+        camera.move(movements, context.time.deltaInSeconds)
         movements.clear()
     }
 
@@ -94,12 +94,12 @@ class Engine(resolution: Resolution) : Window(resolution) {
 
     override fun onResize(context: WindowContext, width: Int, height: Int) {
         super.onResize(context, width, height)
-        val resolutionScale = context.render.state.resolutionScale
+        val resolutionScale = context.render.resolutionScale
         fbo.resize(getResolution().withResolutionScale(resolutionScale))
     }
 
     private fun onSetupScreen(context: WindowContext) {
-        val resolutionScale = context.render.state.resolutionScale
+        val resolutionScale = context.render.resolutionScale
         fbo = FrameBuffer(
             this,
             getResolution().withResolutionScale(resolutionScale),

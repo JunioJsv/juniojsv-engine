@@ -1,6 +1,8 @@
 package juniojsv.engine.features.mesh
 
 import juniojsv.engine.extensions.toBuffer
+import juniojsv.engine.features.utils.IBoundaryShape
+import juniojsv.engine.features.utils.IDisposable
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
@@ -12,9 +14,11 @@ open class Mesh(
     private val vertices: FloatArray,
     private val uv: FloatArray? = null,
     private val normals: FloatArray? = null,
-    private val indices: IntArray? = null
-) {
+    private val indices: IntArray? = null,
+    val boundary: IBoundaryShape? = null
+) : IDisposable {
     val vao: Int = GL30.glGenVertexArrays()
+    private val vbos: MutableList<Int> = mutableListOf()
     private var count by Delegates.notNull<Int>()
 
     init {
@@ -28,6 +32,7 @@ open class Mesh(
 
         vertices.toBuffer().let {
             GL15.glGenBuffers().also { vbo ->
+                vbos.add(vbo)
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
                 GL20.glVertexAttribPointer(
@@ -41,6 +46,7 @@ open class Mesh(
 
         uv?.toBuffer()?.let {
             GL15.glGenBuffers().also { vbo ->
+                vbos.add(vbo)
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
                 GL20.glVertexAttribPointer(
@@ -53,6 +59,7 @@ open class Mesh(
 
         normals?.toBuffer()?.let {
             GL15.glGenBuffers().also { vbo ->
+                vbos.add(vbo)
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
                 GL20.glVertexAttribPointer(
@@ -65,6 +72,7 @@ open class Mesh(
 
         indices?.toBuffer()?.let {
             GL15.glGenBuffers().also { vbo ->
+                vbos.add(vbo)
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
             }
@@ -73,6 +81,11 @@ open class Mesh(
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0)
         GL30.glBindVertexArray(0)
+    }
+
+    override fun dispose() {
+        vbos.forEach { GL15.glDeleteBuffers(it) }
+        GL30.glDeleteVertexArrays(vao)
     }
 
     override fun equals(other: Any?): Boolean {

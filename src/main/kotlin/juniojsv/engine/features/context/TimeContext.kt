@@ -3,17 +3,16 @@ package juniojsv.engine.features.context
 import org.lwjgl.glfw.GLFW
 
 class TimeContext {
-    private var lastPreRender = 0.0
-    var delta = 0.0
+    private var lastRenderElapsedInSeconds = elapsedInSeconds
+    var deltaInSeconds = 0.0
         private set
 
-    fun onPreRender() {
-        val time = getTime()
-        delta = time - lastPreRender
-        lastPreRender = time
-    }
+    val elapsedInSeconds: Double
+        get() = GLFW.glfwGetTime()
 
-    private fun getTime(): Double {
-        return GLFW.glfwGetTime()
+    fun onPreRender() {
+        val elapsedInSeconds = this.elapsedInSeconds
+        deltaInSeconds = elapsedInSeconds - lastRenderElapsedInSeconds
+        lastRenderElapsedInSeconds = elapsedInSeconds
     }
 }
