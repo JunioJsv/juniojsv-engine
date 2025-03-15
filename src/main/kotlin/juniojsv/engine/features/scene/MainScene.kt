@@ -56,7 +56,7 @@ class MainScene : IScene, MainLayoutListener {
             BaseBeing(
                 textures.random(),
                 Vector3f(0f, -Scale.METER.length(5f), 0f),
-                scale = Scale.KILOMETER.length(10f),
+                scale = Vector3f(Scale.KILOMETER.length(10f)),
                 rotation = Vector3f(-90f, 0f, 0f),
                 textureScale = 20f
             )
@@ -86,7 +86,7 @@ class MainScene : IScene, MainLayoutListener {
                         (random.nextInt(offset) + maxSize),
                         (random.nextInt(offset) - offset / 2).toFloat()
                     ),
-                    scale = maxSize * random.nextFloat().coerceAtLeast(0.1f),
+                    scale = Vector3f(maxSize * random.nextFloat().coerceAtLeast(0.1f)),
                     textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f)
                 )
             }

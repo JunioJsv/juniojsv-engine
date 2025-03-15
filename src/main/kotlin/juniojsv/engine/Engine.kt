@@ -109,7 +109,9 @@ class Engine(resolution: Resolution) : Window(resolution) {
         screen = SingleBeing(
             QuadMesh.create(),
             ShaderProgramFactory.create(ShaderPrograms.SCREEN),
-            BaseBeing(fbo.colorTexture)
+            BaseBeing(fbo.colorTexture),
+            isFrustumCullingEnabled = false,
+            isDebuggable = false
         )
     }
 

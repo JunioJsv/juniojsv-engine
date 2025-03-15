@@ -9,7 +9,7 @@ data class BaseBeing(
     val texture: Texture? = null,
     val position: Vector3f = Vector3f(0f),
     val rotation: Vector3f = Vector3f(0f),
-    val scale: Float = Scale.METER.length(1f),
+    val scale: Vector3f = Vector3f(Scale.METER.length(1f)),
     val textureScale: Float = 1f
 ) {
     fun transformation(): Matrix4f = Matrix4f()

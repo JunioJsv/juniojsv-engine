@@ -1,8 +1,10 @@
 package juniojsv.engine.features.utils.factories
 
 import juniojsv.engine.features.mesh.Mesh
-import juniojsv.engine.features.utils.BoundarySphere
+import juniojsv.engine.features.utils.BoundaryEllipsoid
+import juniojsv.engine.features.utils.BoundaryRectangle
 import juniojsv.engine.features.utils.Scale
+import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -113,7 +115,7 @@ object CubeMesh {
             16, 17, 18, 16, 18, 19,
             20, 21, 22, 20, 22, 23
         ),
-        boundary = BoundarySphere(1.7f)
+        boundary = BoundaryRectangle(2f, 2f, 2f)
     )
 }
 
@@ -207,7 +209,13 @@ class SphereMesh(details: Float = 1.0f) {
     }
 
     fun create(): Mesh =
-        Mesh(vertices = vertices, uv = uv, normals = normals, indices = indices, boundary = BoundarySphere(1f))
+        Mesh(
+            vertices = vertices,
+            uv = uv,
+            normals = normals,
+            indices = indices,
+            boundary = BoundaryEllipsoid(Vector3f(1f))
+        )
 }
 
 object QuadMesh {
@@ -233,6 +241,7 @@ object QuadMesh {
         indices = intArrayOf(
             0, 1, 2,
             0, 2, 3
-        )
+        ),
+        boundary = BoundaryRectangle(2f, 0f, 2f)
     )
 }
