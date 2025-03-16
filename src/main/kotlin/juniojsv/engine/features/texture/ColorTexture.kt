@@ -1,6 +1,7 @@
 package juniojsv.engine.features.texture
 
 import org.joml.Vector3f
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL32
 import org.lwjgl.system.MemoryUtil
@@ -8,7 +9,8 @@ import org.lwjgl.system.MemoryUtil
 
 class ColorTexture(width: Int, height: Int, color: Vector3f? = null) : Texture() {
     init {
-        GL32.glBindTexture(GL32.GL_TEXTURE_2D, id)
+        val type = getTextureType()
+        GL32.glBindTexture(type, id)
         val pixels = color?.let {
             val buffer = MemoryUtil.memAlloc(width * height * 4)
             for (y in 0 until height) {
@@ -23,7 +25,7 @@ class ColorTexture(width: Int, height: Int, color: Vector3f? = null) : Texture()
             buffer
         }
         GL32.glTexImage2D(
-            GL32.GL_TEXTURE_2D,
+            type,
             0,
             GL30.GL_RGBA,
             width,
@@ -36,8 +38,16 @@ class ColorTexture(width: Int, height: Int, color: Vector3f? = null) : Texture()
 
         pixels?.let { MemoryUtil.memFree(it) }
 
-        GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_LINEAR)
-        GL32.glTexParameteri(GL32.GL_TEXTURE_2D, GL32.GL_TEXTURE_MAG_FILTER, GL32.GL_LINEAR)
-        GL32.glBindTexture(GL32.GL_TEXTURE_2D, 0)
+        GL32.glTexParameteri(type, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_LINEAR)
+        GL32.glTexParameteri(type, GL32.GL_TEXTURE_MAG_FILTER, GL32.GL_LINEAR)
+        GL32.glBindTexture(type, 0)
+    }
+
+    override fun getTextureBindType(): Int {
+        return GL30.GL_TEXTURE_BINDING_2D
+    }
+
+    override fun getTextureType(): Int {
+        return GL11.GL_TEXTURE_2D
     }
 }

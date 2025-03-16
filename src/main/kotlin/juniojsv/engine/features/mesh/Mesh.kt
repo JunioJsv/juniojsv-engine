@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL30
 import org.lwjgl.system.MemoryUtil
 import kotlin.properties.Delegates
 
-open class Mesh(
+class Mesh(
     private val vertices: FloatArray,
     private val uv: FloatArray? = null,
     private val normals: FloatArray? = null,
@@ -83,6 +83,8 @@ open class Mesh(
         GL30.glBindVertexArray(0)
     }
 
+    fun bind() = Companion.bind(vao)
+
     override fun dispose() {
         vbos.forEach { GL15.glDeleteBuffers(it) }
         GL30.glDeleteVertexArrays(vao)
@@ -117,5 +119,21 @@ open class Mesh(
         result = 31 * result + (indices?.contentHashCode() ?: 0)
         result = 31 * result + count
         return result
+    }
+
+    companion object {
+        fun bind(vao: Int?) {
+            @Suppress("NAME_SHADOWING")
+            val vao = vao ?: 0
+            val currentVao = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
+            if (vao == currentVao) return
+            GL30.glBindVertexArray(vao)
+            if (vao != 0) {
+                // Todo(verify this)
+                GL20.glEnableVertexAttribArray(0)
+                GL20.glEnableVertexAttribArray(1)
+                GL20.glEnableVertexAttribArray(2)
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
+import juniojsv.engine.features.texture.Texture.Companion.bind
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
@@ -14,7 +15,7 @@ import kotlin.properties.Delegates
 
 class MultiBeing(
     private val mesh: Mesh,
-    private val shader: ShadersProgram?,
+    private val shader: ShadersProgram,
     private val isDebuggable: Boolean = true,
     private val isFrustumCullingEnabled: Boolean = true
 ) : IRender {
@@ -30,7 +31,7 @@ class MultiBeing(
 
     constructor(
         mesh: Mesh,
-        shader: ShadersProgram?,
+        shader: ShadersProgram,
         beings: List<BaseBeing>,
         isDebuggable: Boolean = true
     ) : this(mesh, shader, isDebuggable) {
@@ -156,23 +157,17 @@ class MultiBeing(
 
         updateVbos(beings)
 
-        if (shader != null) {
-            with(shader) {
-                context.render.setShaderProgram(shader)
-                putUniform("camera_projection", context.camera.projection)
-                putUniform("camera_view", context.camera.view)
-                putUniform("camera_position", camera.position)
-                putUniform("light_position", light?.position ?: Vector3f(0f))
-                putUniform("light_color", light?.color ?: Vector3f(0f))
-                putUniform("time", context.time.elapsedInSeconds.toFloat())
-
-                context.render.setTextures(textures)
-            }
-        } else {
-            context.render.setShaderProgram(null)
+        shader.apply {
+            bind()
+            putUniform("camera_projection", context.camera.projection)
+            putUniform("camera_view", context.camera.view)
+            putUniform("camera_position", camera.position)
+            putUniform("light_position", light?.position ?: Vector3f(0f))
+            putUniform("light_color", light?.color ?: Vector3f(0f))
+            putUniform("time", context.time.elapsedInSeconds.toFloat())
         }
-
-        context.render.setMesh(mesh)
+        textures.bind()
+        mesh.bind()
         GL33.glDrawElementsInstanced(GL33.GL_TRIANGLES, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, beings.size)
     }
 

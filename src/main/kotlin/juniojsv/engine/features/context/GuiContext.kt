@@ -17,10 +17,10 @@ class GuiContext(private val window: Window) {
         window.getImGuiGl3().renderDrawData(ImGui.getDrawData())
 
         if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-            val glfwContext = GLFW.glfwGetCurrentContext()
+            val defaultGlfwContext = GLFW.glfwGetCurrentContext()
             ImGui.updatePlatformWindows()
             ImGui.renderPlatformWindowsDefault()
-            GLFW.glfwMakeContextCurrent(glfwContext)
+            GLFW.glfwMakeContextCurrent(defaultGlfwContext)
         }
     }
 }

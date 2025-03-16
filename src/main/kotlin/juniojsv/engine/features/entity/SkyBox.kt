@@ -21,19 +21,18 @@ class SkyBox(
         val light = context.render.ambientLight
         GL30.glDisable(GL30.GL_DEPTH_TEST)
 
-        with(shader) {
-            context.render.setShaderProgram(shader)
+        shader.apply {
+            bind()
             putUniform("light_color", light?.color ?: Vector3f(0f))
             putUniform("transformation", transformation())
             putUniform("camera_projection", context.camera.projection)
             putUniform("camera_view", context.camera.view)
             putUniform("time", context.time.elapsedInSeconds.toFloat())
-            context.render.setTextures(setOf(texture))
         }
-
-        context.render.setMesh(mesh)
-
+        texture.bind()
+        mesh.bind()
         GL30.glDrawArrays(GL30.GL_TRIANGLES, 0, mesh.getIndicesCount())
+
         GL30.glEnable(GL30.GL_DEPTH_TEST)
     }
 

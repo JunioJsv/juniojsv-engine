@@ -5,40 +5,51 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import java.nio.file.Path
 
-open class FileTexture(file: String) : Texture() {
+class FileTexture(file: String) : Texture() {
     val fileName = Path.of(file).fileName.toString()
 
     init {
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, id)
+        val type = getTextureType()
+        GL11.glBindTexture(type, id)
 
-        val (pixels, width, height) = getRawTexture(Resource.get(file))
+        val texture = getRawTexture(Resource.get(file))
 
         GL11.glTexImage2D(
-            GL11.GL_TEXTURE_2D,
+            type,
             0, GL11.GL_RGBA,
-            width, height, 0,
+            texture.width, texture.height, 0,
             GL11.GL_RGBA,
             GL11.GL_UNSIGNED_BYTE,
-            pixels
+            texture.pixels
         )
 
-        GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D)
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
+        texture.dispose()
+
+        GL30.glGenerateMipmap(type)
+        GL11.glBindTexture(type, 0)
 
         GL11.glTexParameteri(
-            GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT
+            type, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT
         )
         GL11.glTexParameteri(
-            GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT
+            type, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT
         )
         GL11.glTexParameteri(
-            GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST
+            type, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST
         )
         GL11.glTexParameteri(
-            GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR
+            type, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR
         )
         GL11.glTexParameteri(
-            GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_NEAREST
+            type, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_NEAREST
         )
+    }
+
+    override fun getTextureBindType(): Int {
+        return GL30.GL_TEXTURE_BINDING_2D
+    }
+
+    override fun getTextureType(): Int {
+        return GL11.GL_TEXTURE_2D
     }
 }
