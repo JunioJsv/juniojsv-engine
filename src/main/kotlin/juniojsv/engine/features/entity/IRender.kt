@@ -1,7 +1,8 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.features.window.IRenderContext
+import juniojsv.engine.features.context.IWindowContext
+import juniojsv.engine.features.utils.IDisposable
 
-interface IRender {
-    fun render(context: IRenderContext)
+interface IRender : IDisposable {
+    fun render(context: IWindowContext)
 }

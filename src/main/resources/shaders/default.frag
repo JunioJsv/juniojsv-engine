@@ -7,6 +7,7 @@ in vec3 out_vertex_normal;
 uniform vec3 light_position;
 uniform vec3 light_color;
 uniform sampler2D in_texture;
+uniform float texture_scale;
 uniform vec3 camera_position;
 
 void main() {
@@ -27,7 +28,7 @@ void main() {
     vec3 specular = spec * specular_strength * vec3(1) * light_color;// Brilho branco
 
     // Calcular a cor final
-    vec3 texture_color = texture(in_texture, out_uv_coordinates).rgb;
+    vec3 texture_color = texture(in_texture, out_uv_coordinates * texture_scale).rgb;
     vec3 final_color = texture_color * (diffuse + specular);
 
     gl_FragColor = vec4(final_color, 1.0);

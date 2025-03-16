@@ -1,6 +1,6 @@
 package juniojsv.engine.features.utils
 
-import juniojsv.engine.features.window.IRenderContext
+import juniojsv.engine.features.context.IWindowContext
 import org.lwjgl.glfw.GLFW
 
 class KeyboardHandler {
@@ -16,10 +16,9 @@ class KeyboardHandler {
         if (action == GLFW.GLFW_PRESS) pressed.add(key)
     }
 
-    fun pump(context: IRenderContext) {
+    fun pump(context: IWindowContext) {
         if (pressed.isNotEmpty()) {
-            val delta = context.getDelta()
-            for (key in pressed) actions[key]?.invoke(delta)
+            for (key in pressed) actions[key]?.invoke(context.time.deltaInSeconds)
         }
     }
 }

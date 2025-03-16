@@ -1,19 +1,24 @@
 package juniojsv.engine.features.mesh
 
 import juniojsv.engine.extensions.toBuffer
+import juniojsv.engine.features.utils.IBoundaryShape
+import juniojsv.engine.features.utils.IDisposable
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
+import org.lwjgl.system.MemoryUtil
 import kotlin.properties.Delegates
 
-open class Mesh(
+class Mesh(
     private val vertices: FloatArray,
     private val uv: FloatArray? = null,
     private val normals: FloatArray? = null,
-    private val indices: IntArray? = null
-) {
-    val id: Int = GL30.glGenVertexArrays()
+    private val indices: IntArray? = null,
+    val boundary: IBoundaryShape? = null
+) : IDisposable {
+    val vao: Int = GL30.glGenVertexArrays()
+    private val vbos: MutableList<Int> = mutableListOf()
     private var count by Delegates.notNull<Int>()
 
     init {
@@ -23,48 +28,66 @@ open class Mesh(
     fun getIndicesCount(): Int = count
 
     init {
-        GL30.glBindVertexArray(id)
+        GL30.glBindVertexArray(vao)
 
-        GL15.glGenBuffers().also { glBuffer ->
-            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
-            GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertices.toBuffer(), GL15.GL_STATIC_DRAW)
-            GL20.glVertexAttribPointer(
-                0, 3, GL11.GL_FLOAT,
-                false, 0, 0
-            )
+        vertices.toBuffer().let {
+            GL15.glGenBuffers().also { vbo ->
+                vbos.add(vbo)
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
+                GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
+                GL20.glVertexAttribPointer(
+                    0, 3, GL11.GL_FLOAT,
+                    false, 0, 0
+                )
+            }
+            MemoryUtil.memFree(it)
         }
 
+
         uv?.toBuffer()?.let {
-            GL15.glGenBuffers().also { glBuffer ->
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
+            GL15.glGenBuffers().also { vbo ->
+                vbos.add(vbo)
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
                 GL20.glVertexAttribPointer(
                     1, 2, GL11.GL_FLOAT,
                     false, 0, 0
                 )
             }
+            MemoryUtil.memFree(it)
         }
 
         normals?.toBuffer()?.let {
-            GL15.glGenBuffers().also { glBuffer ->
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBuffer)
+            GL15.glGenBuffers().also { vbo ->
+                vbos.add(vbo)
+                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
                 GL20.glVertexAttribPointer(
                     2, 3, GL11.GL_FLOAT,
                     false, 0, 0
                 )
             }
+            MemoryUtil.memFree(it)
         }
 
         indices?.toBuffer()?.let {
-            GL15.glGenBuffers().also { glBuffer ->
-                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glBuffer)
+            GL15.glGenBuffers().also { vbo ->
+                vbos.add(vbo)
+                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
             }
+            MemoryUtil.memFree(it)
         }
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0)
         GL30.glBindVertexArray(0)
+    }
+
+    fun bind() = Companion.bind(vao)
+
+    override fun dispose() {
+        vbos.forEach { GL15.glDeleteBuffers(it) }
+        GL30.glDeleteVertexArrays(vao)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -96,5 +119,21 @@ open class Mesh(
         result = 31 * result + (indices?.contentHashCode() ?: 0)
         result = 31 * result + count
         return result
+    }
+
+    companion object {
+        fun bind(vao: Int?) {
+            @Suppress("NAME_SHADOWING")
+            val vao = vao ?: 0
+            val currentVao = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
+            if (vao == currentVao) return
+            GL30.glBindVertexArray(vao)
+            if (vao != 0) {
+                // Todo(verify this)
+                GL20.glEnableVertexAttribArray(0)
+                GL20.glEnableVertexAttribArray(1)
+                GL20.glEnableVertexAttribArray(2)
+            }
+        }
     }
 }

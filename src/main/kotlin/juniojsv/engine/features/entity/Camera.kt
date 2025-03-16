@@ -1,6 +1,8 @@
 package juniojsv.engine.features.entity
 
+import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.window.Window
+import org.joml.Math.toRadians
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import kotlin.math.cos
@@ -11,58 +13,77 @@ class Camera(
     private val window: Window
 ) {
     var fov = 75f
-    var near = .5f
-    var far = 10000000f
+    var near = Scale.CENTIMETER.length(1f)
+    var far = Scale.KILOMETER.length(100f)
 
     val rotation: Vector3f = Vector3f(0f)
 
     enum class CameraMovement {
-        FORWARD,
-        BACKWARD,
-        RIGHT,
-        LEFT,
-        UP,
-        DOWN
+        FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN
     }
 
-    fun move(direction: CameraMovement, speed: Float) {
-        with(position) {
-            val sinRotX = sin(rotation.x) * speed
-            val cosRotX = cos(rotation.x) * speed
-            val sinRotY = sin(rotation.y) * speed
-            when (direction) {
-                CameraMovement.FORWARD -> {
-                    x += sinRotX
-                    z -= cosRotX
-                    y -= sinRotY
-                }
+    fun yaw() = toRadians(rotation.x.toDouble()).toFloat()
 
-                CameraMovement.BACKWARD -> {
-                    x -= sinRotX
-                    z += cosRotX
-                    y += sinRotY
-                }
+    fun pitch() = toRadians(rotation.y.toDouble()).toFloat()
 
-                CameraMovement.RIGHT -> {
-                    x += cosRotX
-                    z += sinRotX
-                }
+    fun forward(): Vector3f {
+        val yaw = yaw()
+        val pitch = pitch()
 
-                CameraMovement.LEFT -> {
-                    x -= cosRotX
-                    z -= sinRotX
-                }
+        return Vector3f(sin(yaw) * cos(pitch), -sin(pitch), -(cos(yaw) * cos(pitch)))
+    }
 
-                CameraMovement.UP -> y += speed
-                CameraMovement.DOWN -> y -= speed
-            }
+    fun right(): Vector3f {
+        val forward = forward()
+        return Vector3f(-1f * forward.z, 0f, forward.x)
+    }
+
+    fun up() = Vector3f(0f, 1f, 0f)
+
+    fun move(movements: Set<CameraMovement>) {
+        if (movements.isEmpty()) return
+        val delta = window.context.time.deltaInSeconds
+        val speed = (Scale.METER.length(500f) * delta).toFloat()
+
+        val forward = forward()
+        val right = right()
+        val up = up()
+
+        var direction = Vector3f()
+
+        for (movement in movements) {
+            direction.add(
+                when (movement) {
+                    CameraMovement.FORWARD -> forward
+                    CameraMovement.BACKWARD -> forward.negate()
+                    CameraMovement.RIGHT -> right
+                    CameraMovement.LEFT -> right.negate()
+                    CameraMovement.UP -> up
+                    CameraMovement.DOWN -> up.negate()
+                }
+            )
+        }
+
+        if (direction.length() > 0f) {
+            direction = direction.normalize().mul(speed)
+            position.add(direction)
         }
     }
 
+    fun rotate(x: Float, y: Float) {
+        // Limit Pitch
+        rotation.y = (rotation.y + y).coerceIn(-89f, 89f)
+
+        // Normalize Yaw
+        rotation.x += x
+        if (rotation.x > 360) rotation.x -= 360f
+        if (rotation.x < -360) rotation.x += 360f
+    }
+
     fun projection(): Matrix4f {
-        val resolution = window.getResolution()
+        val resolution = window.resolution
         return Matrix4f().setPerspective(
-            Math.toRadians(fov.toDouble()).toFloat(),
+            toRadians(fov.toDouble()).toFloat(),
             resolution.getAspectRatio(),
             near,
             far
@@ -70,10 +91,8 @@ class Camera(
     }
 
     fun view(): Matrix4f {
-        return Matrix4f().apply {
-            rotate(rotation.y, 1f, 0f, 0f)
-            rotate(rotation.x, 0f, 1f, 0f)
-            translate(Vector3f(position).negate())
-        }
+        val center = Vector3f(position).add(forward())
+
+        return Matrix4f().setLookAt(position, center, up())
     }
 }

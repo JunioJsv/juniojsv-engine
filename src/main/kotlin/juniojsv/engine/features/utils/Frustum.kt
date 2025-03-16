@@ -5,10 +5,17 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.sqrt
 
-data class Frustum(val projectionView: Matrix4f) {
+class Frustum {
     private val planes = Array(6) { Vector4f() }
 
-    init {
+    constructor()
+
+    constructor(projectionView: Matrix4f) {
+        update(projectionView)
+    }
+
+
+    fun update(projectionView: Matrix4f) {
         with(projectionView) {
             planes[0].set(m03() + m00(), m13() + m10(), m23() + m20(), m33() + m30()) // Left
             planes[1].set(m03() - m00(), m13() - m10(), m23() - m20(), m33() - m30()) // Right
@@ -28,10 +35,49 @@ data class Frustum(val projectionView: Matrix4f) {
         }
     }
 
+    fun isRectangleInside(position: Vector3f, width: Float, height: Float, depth: Float): Boolean {
+        for (plane in planes) {
+            val pX = if (plane.x > 0) width / 2f else -width / 2f
+            val pY = if (plane.y > 0) height / 2f else -height / 2f
+            val pZ = if (plane.z > 0) depth / 2f else -depth / 2f
+            val distance = plane.x * (position.x + pX) +
+                    plane.y * (position.y + pY) +
+                    plane.z * (position.z + pZ) +
+                    plane.w
+            if (distance < 0) {
+                return false
+            } else {
+                continue
+            }
+        }
+        return true
+    }
+
     fun isSphereInside(position: Vector3f, radius: Float): Boolean {
         for (plane in planes) {
             val distance = plane.x * position.x + plane.y * position.y + plane.z * position.z + plane.w
             if (distance < -radius) return false
+        }
+        return true
+    }
+
+    fun iseEllipsoidInside(position: Vector3f, radius: Vector3f): Boolean {
+        for (plane in planes) {
+            // Calculate the distance from the sphere's center to the plane
+            val centerDistance = plane.x * position.x + plane.y * position.y + plane.z * position.z + plane.w
+
+            // Find the radius component along the normal of the plane.
+            // Calculate the distance to the farthest point on the ellipsoid along the plane's normal
+            val maxDistanceAlongNormal = sqrt(
+                (plane.x * radius.x).let { it * it } +
+                        (plane.y * radius.y).let { it * it } +
+                        (plane.z * radius.z).let { it * it }
+            )
+
+            //If the closest point is outside the frustum, the entire ellipsoid is outside.
+            if (centerDistance + maxDistanceAlongNormal < 0) {
+                return false
+            }
         }
         return true
     }
