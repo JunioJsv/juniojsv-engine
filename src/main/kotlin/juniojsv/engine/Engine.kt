@@ -1,7 +1,6 @@
 package juniojsv.engine
 
 import imgui.ImGui
-import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.entity.Camera
 import juniojsv.engine.features.entity.SingleBeing
@@ -33,17 +32,17 @@ class Engine(resolution: Resolution) : Window(resolution) {
     private lateinit var screen: SingleBeing
     private lateinit var debugger: Debugger
 
-    override fun onCreate(context: WindowContext) {
-        onSetupScreen(context)
+    override fun onCreate() {
+        onSetupScreen()
         scene = MainScene().apply {
             layout.addListener(object : MainLayoutListener {
                 override fun onChangeResolutionScale(scale: Float) {
-                    fbo.resize(getResolution().withResolutionScale(scale))
+                    fbo.resize(resolution.withResolutionScale(scale))
                 }
             })
         }
         scene.setup(context)
-        onSetupKeyBoard(context)
+        onSetupKeyBoard()
         camera = context.camera.instance
         debugger = Debugger()
         GL11.glEnable(GL11.GL_DEPTH_TEST)
@@ -52,27 +51,27 @@ class Engine(resolution: Resolution) : Window(resolution) {
         GL11.glClearColor(0f, 0f, 0f, 1f)
     }
 
-    override fun onRender(context: WindowContext) {
+    override fun onRender() {
         fbo.bind()
         scene.render(context)
-        if (Flags.debug)
+        if (Config.isDebug)
             debugger.render(context)
         fbo.unbind()
 
         screen.render(context)
 
         keyboard.pump(context)
-        camera.move(movements, context.time.deltaInSeconds)
+        camera.move(movements)
         movements.clear()
     }
 
-    override fun onCursorOffsetEvent(context: WindowContext, x: Double, y: Double) {
+    override fun onCursorOffsetEvent(x: Double, y: Double) {
         if (!isCameraEnabled) return
         camera.rotate(x.toFloat() * 2, y.toFloat() * 2f)
         GLFW.glfwSetCursorPos(
             id,
-            (getResolution().width / 2).toDouble(),
-            (getResolution().height / 2).toDouble()
+            (resolution.width / 2).toDouble(),
+            (resolution.height / 2).toDouble()
         )
     }
 
@@ -88,21 +87,21 @@ class Engine(resolution: Resolution) : Window(resolution) {
         }
     }
 
-    override fun onKeyBoardEvent(context: WindowContext, key: Int, code: Int, action: Int, mods: Int) {
+    override fun onKeyBoardEvent(key: Int, code: Int, action: Int, mods: Int) {
         keyboard.handle(key, action)
     }
 
-    override fun onResize(context: WindowContext, width: Int, height: Int) {
-        super.onResize(context, width, height)
+    override fun onResize(width: Int, height: Int) {
+        super.onResize(width, height)
         val resolutionScale = context.render.resolutionScale
-        fbo.resize(getResolution().withResolutionScale(resolutionScale))
+        fbo.resize(resolution.withResolutionScale(resolutionScale))
     }
 
-    private fun onSetupScreen(context: WindowContext) {
+    private fun onSetupScreen() {
         val resolutionScale = context.render.resolutionScale
         fbo = FrameBuffer(
             this,
-            getResolution().withResolutionScale(resolutionScale),
+            resolution.withResolutionScale(resolutionScale),
             depth = true,
             color = true
         )
@@ -115,7 +114,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
         )
     }
 
-    private fun onSetupKeyBoard(context: WindowContext) {
+    private fun onSetupKeyBoard() {
         with(keyboard) {
             setKeyAction(GLFW.GLFW_KEY_ESCAPE) {
                 GLFW.glfwSetWindowShouldClose(id, true)

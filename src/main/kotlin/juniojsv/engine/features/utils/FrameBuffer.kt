@@ -73,7 +73,7 @@ class FrameBuffer(
     }
 
     fun unbind() {
-        val viewport = window.getResolution()
+        val viewport = window.resolution
         GL32.glBindFramebuffer(GL32.GL_FRAMEBUFFER, 0)
         GL32.glViewport(0, 0, viewport.width, viewport.height)
     }

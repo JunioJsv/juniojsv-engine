@@ -1,6 +1,6 @@
 package juniojsv.engine.features.entity.debugger
 
-import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.entity.IRender
 import juniojsv.engine.features.entity.MultiBeing
@@ -25,7 +25,7 @@ class Debugger : IRender {
         isDebuggable = false
     )
 
-    override fun render(context: WindowContext) {
+    override fun render(context: IWindowContext) {
         val defaultDepthFunction = GL11.glGetInteger(GL11.GL_DEPTH_FUNC)
         val defaultPolygonMode = GL11.glGetInteger(GL30.GL_POLYGON_MODE)
         GL11.glDepthFunc(GL11.GL_LEQUAL)

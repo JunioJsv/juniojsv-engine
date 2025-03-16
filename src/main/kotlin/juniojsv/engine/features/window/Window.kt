@@ -4,6 +4,8 @@ import imgui.ImGui
 import imgui.flag.ImGuiConfigFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
+import juniojsv.engine.Config
+import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.context.WindowContext
 import juniojsv.engine.features.utils.OpenGLDebugCallback
 import org.lwjgl.glfw.Callbacks
@@ -15,24 +17,21 @@ import org.lwjgl.opengl.GL43
 import kotlin.properties.Delegates
 import kotlin.system.exitProcess
 
-abstract class Window(private var resolution: Resolution) {
+abstract class Window(resolution: Resolution) {
     abstract val title: String
 
+    var resolution = resolution
+        private set
     private val glslVersion = "#version 330"
 
     var id by Delegates.notNull<Long>()
         private set
 
-    private lateinit var context: WindowContext
+    lateinit var context: IWindowContext
+        private set
 
-    private val imGuiGlfw = ImGuiImplGlfw()
-    private val imGuiGl3 = ImGuiImplGl3()
-
-    private fun getWidth(): Int = resolution.width
-    private fun getHeight(): Int = resolution.height
-    fun getResolution(): Resolution = resolution
-    fun getImGuiGlfw() = imGuiGlfw
-    fun getImGuiGl3() = imGuiGl3
+    val imGuiGlfw = ImGuiImplGlfw()
+    val imGuiGl3 = ImGuiImplGl3()
 
     fun init() {
         GLFWErrorCallback.createPrint(System.err).set()
@@ -43,19 +42,19 @@ abstract class Window(private var resolution: Resolution) {
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3)
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3)
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE)
+        if (!Config.isWindowResizable)
+            GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_FALSE)
 
         id = GLFW.glfwCreateWindow(
-            getWidth(),
-            getHeight(),
+            resolution.width,
+            resolution.height,
             title, 0, 0
         )
         setup()
-        while (!GLFW.glfwWindowShouldClose(id)) {
-            with(context) {
-                onPreRender()
-                onRender(this)
-                onPostRender()
-            }
+        while (!GLFW.glfwWindowShouldClose(id)) (context as WindowContext).apply {
+            onPreRender()
+            onRender()
+            onPostRender()
         }
         dispose()
     }
@@ -71,7 +70,6 @@ abstract class Window(private var resolution: Resolution) {
         context = WindowContext(this)
         GLFW.glfwSetCursorPosCallback(id) { _, x: Double, y: Double ->
             onCursorOffsetEvent(
-                context,
                 Math.toRadians(x - resolution.width / 2),
                 Math.toRadians(y - resolution.height / 2)
             )
@@ -80,24 +78,24 @@ abstract class Window(private var resolution: Resolution) {
             onMouseButtonEvent(button, action, mods)
         }
         GLFW.glfwSetKeyCallback(id) { _, key: Int, code: Int, action: Int, mods: Int ->
-            onKeyBoardEvent(context, key, code, action, mods)
+            onKeyBoardEvent(key, code, action, mods)
         }
         GLFW.glfwSetWindowSizeCallback(id) { _, width: Int, height: Int ->
             if (width > 0 && height > 0)
-                onResize(context, width, height)
+                onResize(width, height)
         }
         GLFW.glfwShowWindow(id)
         GLFW.glfwSetCursorPos(
             id,
-            (getWidth() / 2).toDouble(),
-            (getHeight() / 2).toDouble()
+            (resolution.width / 2).toDouble(),
+            (resolution.height / 2).toDouble()
         )
         ImGui.createContext()
         ImGui.getIO().addConfigFlags(ImGuiConfigFlags.ViewportsEnable)
         imGuiGlfw.init(id, true)
         imGuiGl3.init(glslVersion)
 
-        onCreate(context)
+        onCreate()
     }
 
     private fun dispose() {
@@ -110,17 +108,17 @@ abstract class Window(private var resolution: Resolution) {
         exitProcess(0)
     }
 
-    open fun onCreate(context: WindowContext) {}
+    protected open fun onCreate() {}
 
-    abstract fun onRender(context: WindowContext)
+    protected abstract fun onRender()
 
-    abstract fun onCursorOffsetEvent(context: WindowContext, x: Double, y: Double)
+    protected abstract fun onCursorOffsetEvent(x: Double, y: Double)
 
-    abstract fun onMouseButtonEvent(button: Int, action: Int, mods: Int)
+    protected abstract fun onMouseButtonEvent(button: Int, action: Int, mods: Int)
 
-    abstract fun onKeyBoardEvent(context: WindowContext, key: Int, code: Int, action: Int, mods: Int)
+    protected abstract fun onKeyBoardEvent(key: Int, code: Int, action: Int, mods: Int)
 
-    open fun onResize(context: WindowContext, width: Int, height: Int) {
+    protected open fun onResize(width: Int, height: Int) {
         GL11.glViewport(0, 0, width, height)
         resolution = Resolution(width, height)
     }

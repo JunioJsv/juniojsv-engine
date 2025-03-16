@@ -40,8 +40,9 @@ class Camera(
 
     fun up() = Vector3f(0f, 1f, 0f)
 
-    fun move(movements: Set<CameraMovement>, delta: Double) {
+    fun move(movements: Set<CameraMovement>) {
         if (movements.isEmpty()) return
+        val delta = window.context.time.deltaInSeconds
         val speed = (Scale.METER.length(500f) * delta).toFloat()
 
         val forward = forward()
@@ -80,7 +81,7 @@ class Camera(
     }
 
     fun projection(): Matrix4f {
-        val resolution = window.getResolution()
+        val resolution = window.resolution
         return Matrix4f().setPerspective(
             toRadians(fov.toDouble()).toFloat(),
             resolution.getAspectRatio(),

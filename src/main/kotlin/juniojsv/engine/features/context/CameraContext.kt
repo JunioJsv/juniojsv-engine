@@ -6,16 +6,23 @@ import juniojsv.engine.features.window.Window
 import org.joml.Matrix4f
 import org.joml.Vector3f
 
-class CameraContext(window: Window) {
+interface ICameraContext {
+    val instance: Camera
+    val projection: Matrix4f
+    val view: Matrix4f
+    val frustum: Frustum
+}
+
+class CameraContext(window: Window) : ICameraContext {
     private val camera = Camera(Vector3f(), window)
-    lateinit var projection: Matrix4f
+    override lateinit var projection: Matrix4f
         private set
-    lateinit var view: Matrix4f
+    override lateinit var view: Matrix4f
         private set
-    var frustum = Frustum()
+    override var frustum = Frustum()
         private set
 
-    val instance: Camera
+    override val instance: Camera
         get() = camera
 
     fun onPreRender() {

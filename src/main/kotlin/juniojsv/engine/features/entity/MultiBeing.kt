@@ -1,8 +1,8 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.Flags
+import juniojsv.engine.Config
 import juniojsv.engine.extensions.toBuffer
-import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
@@ -27,7 +27,7 @@ class MultiBeing(
     private var texturesScaleVbo by Delegates.notNull<Int>()
 
     private val canDebug: Boolean
-        get() = isDebuggable && Flags.debug
+        get() = isDebuggable && Config.isDebug
 
     constructor(
         mesh: Mesh,
@@ -138,7 +138,7 @@ class MultiBeing(
         MemoryUtil.memFree(transformationsBuffer)
     }
 
-    override fun render(context: WindowContext) {
+    override fun render(context: IWindowContext) {
         val light = context.render.ambientLight
         val frustum = context.camera.frustum
         val camera = context.camera.instance

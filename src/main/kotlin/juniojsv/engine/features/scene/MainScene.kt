@@ -1,6 +1,6 @@
 package juniojsv.engine.features.scene
 
-import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.*
 import juniojsv.engine.features.gui.MainLayout
 import juniojsv.engine.features.gui.MainLayoutListener
@@ -28,7 +28,7 @@ class MainScene : IScene, MainLayoutListener {
     private val defaultShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT)
     private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
 
-    override fun setup(context: WindowContext) {
+    override fun setup(context: IWindowContext) {
         context.camera.instance.position.add(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
         context.render.ambientLight = light
         layout.setup(context)
@@ -63,7 +63,7 @@ class MainScene : IScene, MainLayoutListener {
         )
     }
 
-    override fun render(context: WindowContext) {
+    override fun render(context: IWindowContext) {
         sky?.render(context)
         floor.render(context)
         objects.forEach { it.render(context) }

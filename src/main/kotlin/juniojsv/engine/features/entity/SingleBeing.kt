@@ -1,7 +1,7 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.Flags
-import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.Config
+import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
@@ -18,9 +18,9 @@ data class SingleBeing(
 ) : IRender {
 
     private val canDebug: Boolean
-        get() = isDebuggable && Flags.debug
+        get() = isDebuggable && Config.isDebug
 
-    override fun render(context: WindowContext) {
+    override fun render(context: IWindowContext) {
         val transformation = being.transformation()
         val light = context.render.ambientLight
         val frustum = context.camera.frustum

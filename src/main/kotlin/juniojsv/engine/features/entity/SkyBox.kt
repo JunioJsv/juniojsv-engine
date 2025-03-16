@@ -1,6 +1,6 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.FileCubeMapTexture
@@ -17,7 +17,7 @@ class SkyBox(
 ) : IRender {
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
-    override fun render(context: WindowContext) {
+    override fun render(context: IWindowContext) {
         val light = context.render.ambientLight
         GL30.glDisable(GL30.GL_DEPTH_TEST)
 

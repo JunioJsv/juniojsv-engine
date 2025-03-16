@@ -2,8 +2,8 @@ package juniojsv.engine.features.gui
 
 import imgui.ImGui
 import imgui.flag.ImGuiWindowFlags
-import juniojsv.engine.Flags
-import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.Config
+import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.Light
 import org.joml.Vector3f
 
@@ -23,7 +23,7 @@ class MainLayout : IImGuiLayout {
         listeners.add(listener)
     }
 
-    override fun setup(context: WindowContext) {
+    override fun setup(context: IWindowContext) {
         context.render.ambientLight?.let {
             val color = it.color
             ambientColor[0] = color.x
@@ -32,7 +32,7 @@ class MainLayout : IImGuiLayout {
         }
     }
 
-    override fun render(context: WindowContext) {
+    override fun render(context: IWindowContext) {
         ImGui.begin(
             "Scene Settings",
             ImGuiWindowFlags.NoResize or ImGuiWindowFlags.AlwaysAutoResize
@@ -58,8 +58,8 @@ class MainLayout : IImGuiLayout {
         ImGui.separator()
         ImGui.spacing()
 
-        if (ImGui.checkbox("Show Debug Objects", Flags.debug)) {
-            Flags.debug = !Flags.debug
+        if (ImGui.checkbox("Show Debug Objects", Config.isDebug)) {
+            Config.isDebug = !Config.isDebug
         }
 
         ImGui.text("Ambient Color")

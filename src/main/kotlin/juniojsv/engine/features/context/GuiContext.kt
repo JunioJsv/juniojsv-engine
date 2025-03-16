@@ -6,15 +6,19 @@ import juniojsv.engine.features.gui.IImGuiLayout
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW
 
-class GuiContext(private val window: Window) {
-    var layout: IImGuiLayout? = null
+interface IGuiContext {
+    var layout: IImGuiLayout?
+}
 
-    fun onPostRender(context: WindowContext) {
-        window.getImGuiGlfw().newFrame()
+class GuiContext(private val window: Window) : IGuiContext {
+    override var layout: IImGuiLayout? = null
+
+    fun onPostRender() {
+        window.imGuiGlfw.newFrame()
         ImGui.newFrame()
-        layout?.render(context)
+        layout?.render(window.context)
         ImGui.render()
-        window.getImGuiGl3().renderDrawData(ImGui.getDrawData())
+        window.imGuiGl3.renderDrawData(ImGui.getDrawData())
 
         if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
             val defaultGlfwContext = GLFW.glfwGetCurrentContext()

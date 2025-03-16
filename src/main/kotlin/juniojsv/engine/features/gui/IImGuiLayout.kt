@@ -1,8 +1,9 @@
 package juniojsv.engine.features.gui
 
-import juniojsv.engine.features.context.WindowContext
+import juniojsv.engine.features.context.IWindowContext
+import juniojsv.engine.features.entity.IRender
 
-interface IImGuiLayout {
-    fun setup(context: WindowContext)
-    fun render(context: WindowContext)
+interface IImGuiLayout : IRender {
+    fun setup(context: IWindowContext)
+    override fun render(context: IWindowContext)
 }
