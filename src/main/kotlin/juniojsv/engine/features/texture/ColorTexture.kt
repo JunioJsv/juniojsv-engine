@@ -9,7 +9,7 @@ import org.lwjgl.system.MemoryUtil
 
 class ColorTexture(width: Int, height: Int, color: Vector3f? = null) : Texture() {
     init {
-        val type = getTextureType()
+        val type = getType()
         GL32.glBindTexture(type, id)
         val pixels = color?.let {
             val buffer = MemoryUtil.memAlloc(width * height * 4)
@@ -43,11 +43,11 @@ class ColorTexture(width: Int, height: Int, color: Vector3f? = null) : Texture()
         GL32.glBindTexture(type, 0)
     }
 
-    override fun getTextureBindType(): Int {
+    override fun getBindType(): Int {
         return GL30.GL_TEXTURE_BINDING_2D
     }
 
-    override fun getTextureType(): Int {
+    override fun getType(): Int {
         return GL11.GL_TEXTURE_2D
     }
 }

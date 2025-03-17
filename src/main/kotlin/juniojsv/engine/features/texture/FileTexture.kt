@@ -9,7 +9,7 @@ class FileTexture(file: String) : Texture() {
     val fileName = Path.of(file).fileName.toString()
 
     init {
-        val type = getTextureType()
+        val type = getType()
         GL11.glBindTexture(type, id)
 
         val texture = getRawTexture(Resource.get(file))
@@ -45,11 +45,11 @@ class FileTexture(file: String) : Texture() {
         )
     }
 
-    override fun getTextureBindType(): Int {
+    override fun getBindType(): Int {
         return GL30.GL_TEXTURE_BINDING_2D
     }
 
-    override fun getTextureType(): Int {
+    override fun getType(): Int {
         return GL11.GL_TEXTURE_2D
     }
 }

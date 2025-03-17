@@ -48,7 +48,7 @@ data class SingleBeing(
             putUniform("texture_scale", being.textureScale)
             putUniform("has_texture", if (being.texture != null) 1 else 0)
         }
-        being.texture?.bind() ?: emptyList<Texture>().bind()
+        being.texture?.bind() ?: emptySet<Texture>().bind()
         mesh.bind()
         GL11.glDrawElements(
             GL11.GL_TRIANGLES,

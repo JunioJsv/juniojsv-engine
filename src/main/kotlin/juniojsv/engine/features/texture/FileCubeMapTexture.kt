@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL30
 class FileCubeMapTexture(files: Array<String>) : Texture() {
 
     init {
-        val type = getTextureType()
+        val type = getType()
         GL11.glBindTexture(type, id)
         files.forEachIndexed { index, file ->
             val texture = getRawTexture(Resource.get(file))
@@ -37,11 +37,11 @@ class FileCubeMapTexture(files: Array<String>) : Texture() {
         GL11.glBindTexture(type, 0)
     }
 
-    override fun getTextureBindType(): Int {
+    override fun getBindType(): Int {
         return GL30.GL_TEXTURE_BINDING_CUBE_MAP
     }
 
-    override fun getTextureType(): Int {
+    override fun getType(): Int {
         return GL30.GL_TEXTURE_CUBE_MAP
     }
 }

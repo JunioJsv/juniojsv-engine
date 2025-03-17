@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL32
 
 class DepthTexture(width: Int, height: Int) : Texture() {
     init {
-        val type = getTextureType()
+        val type = getType()
         GL32.glBindTexture(type, id)
         GL32.glTexImage2D(
             type,
@@ -25,11 +25,11 @@ class DepthTexture(width: Int, height: Int) : Texture() {
         GL32.glBindTexture(type, 0)
     }
 
-    override fun getTextureBindType(): Int {
+    override fun getBindType(): Int {
         return GL30.GL_TEXTURE_BINDING_2D
     }
 
-    override fun getTextureType(): Int {
+    override fun getType(): Int {
         return GL11.GL_TEXTURE_2D
     }
 }

@@ -23,6 +23,7 @@ open class ShadersProgram {
     }
 
     fun putUniform(name: String, value: Any) = Companion.putUniform(id, name, value)
+
     fun bind() = Companion.bind(id)
 
     private fun setup(vertex: Shader, fragment: Shader) {
@@ -55,7 +56,9 @@ open class ShadersProgram {
         }
 
         fun putUniform(id: Int, name: String, value: Any) {
+            if (id == 0) return
             GL20.glGetUniformLocation(id, name).also { location ->
+                if (location == -1) return
                 when (value) {
                     is Int ->
                         GL20.glUniform1i(location, value)
@@ -87,9 +90,9 @@ open class ShadersProgram {
             }
         }
 
-        fun bind(id: Int?) {
-            @Suppress("NAME_SHADOWING")
-            val id = id ?: 0
+        fun putUniform(name: String, value: Any) = putUniform(getCurrentShaderProgramId(), name, value)
+
+        fun bind(id: Int) {
             if (id == getCurrentShaderProgramId()) return
             GL20.glUseProgram(id)
         }

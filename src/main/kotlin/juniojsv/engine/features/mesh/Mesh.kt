@@ -122,9 +122,7 @@ class Mesh(
     }
 
     companion object {
-        fun bind(vao: Int?) {
-            @Suppress("NAME_SHADOWING")
-            val vao = vao ?: 0
+        fun bind(vao: Int) {
             val currentVao = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
             if (vao == currentVao) return
             GL30.glBindVertexArray(vao)
