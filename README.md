@@ -10,4 +10,4 @@ My OpenGL engine write with Kotlin
 - Frustum Culling
 - ImGui integration
 
-[<p align="center"><img alt="juniojsv.engine" src="https://github.com/JunioJsv/juniojsv_bucket/blob/main/juniojsv.engine%202025-03-02%2023-06-38%20(1).gif?raw=true"/></p>](http://www.youtube.com/watch?v=az-pS03nu-U "")
+[<p align="center"><img alt="juniojsv.engine" src="https://github.com/JunioJsv/juniojsv-bucket/blob/main/juniojsv.engine%202025-03-02%2023-06-38%20(1).gif?raw=true"/></p>](http://www.youtube.com/watch?v=az-pS03nu-U "")
