@@ -43,7 +43,7 @@ class Camera(
     fun move(movements: Set<CameraMovement>) {
         if (movements.isEmpty()) return
         val delta = window.context.time.deltaInSeconds
-        val speed = (Scale.METER.length(500f) * delta).toFloat()
+        val speed = (Scale.METER.length(100f) * delta).toFloat()
 
         val forward = forward()
         val right = right()

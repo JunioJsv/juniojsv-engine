@@ -18,6 +18,7 @@ class MainLayout : IImGuiLayout {
     private val resolutionScale = floatArrayOf(1f)
     private val ambientColor = floatArrayOf(0f, 0f, 0f)
     private val listeners = mutableSetOf<MainLayoutListener>()
+    private val physicsSpeed = floatArrayOf(0f)
 
     fun addListener(listener: MainLayoutListener) {
         listeners.add(listener)
@@ -30,12 +31,12 @@ class MainLayout : IImGuiLayout {
             ambientColor[1] = color.y
             ambientColor[2] = color.z
         }
+        physicsSpeed[0] = context.physics.speed
     }
 
     override fun render(context: IWindowContext) {
         ImGui.begin(
-            "Scene Settings",
-            ImGuiWindowFlags.NoResize or ImGuiWindowFlags.AlwaysAutoResize
+            "Scene Settings", ImGuiWindowFlags.NoResize or ImGuiWindowFlags.AlwaysAutoResize
         )
 
         ImGui.text("Number of Objects to Generate")
@@ -52,6 +53,11 @@ class MainLayout : IImGuiLayout {
             listeners.forEach {
                 it.onGenerateObjects(objectsCount.first(), instanced)
             }
+        }
+
+        ImGui.text("Physics Speed")
+        if (ImGui.sliderFloat("Speed", physicsSpeed, 0f, 10f)) {
+            context.physics.speed = physicsSpeed.first()
         }
 
         ImGui.spacing()

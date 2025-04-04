@@ -1,15 +1,36 @@
 package juniojsv.engine.features.utils
 
+import com.bulletphysics.collision.shapes.BoxShape
+import com.bulletphysics.collision.shapes.CollisionShape
+import juniojsv.engine.extensions.toVecmath
+import juniojsv.engine.features.entity.Transform
 import juniojsv.engine.features.entity.debugger.DebugRectangle
 import juniojsv.engine.features.entity.debugger.IDebugBeing
 import org.joml.Vector3f
 
-data class BoundaryRectangle(val width: Float, val height: Float, val depth: Float) : IBoundaryShape {
-    override fun isInsideFrustum(frustum: Frustum, position: Vector3f, scale: Vector3f): Boolean {
-        return frustum.isRectangleInside(position, width * scale.x, height * scale.y, depth * scale.z)
+data class BoundaryRectangle(val extents: Vector3f) : IBoundaryShape {
+
+    override fun isInsideFrustum(frustum: Frustum, transform: Transform): Boolean {
+        val scale = Vector3f(extents).mul(transform.scale)
+
+        if (transform.hasRotation()) return frustum.isRectangleInside(
+            transform.position, scale, transform.rotation
+        )
+
+        return frustum.isRectangleInside(transform.position, scale)
     }
 
-    override fun getDebugBeing(position: Vector3f, scale: Vector3f): IDebugBeing {
-        return DebugRectangle(position, width * scale.x, height * scale.y, depth * scale.z)
+    override fun getDebugBeing(transform: Transform): IDebugBeing {
+        return DebugRectangle(transform.copy(scale = Vector3f(extents).apply {
+            mul(transform.scale)
+            div(2f)
+        }))
+    }
+
+    override fun getCollisionShape(scale: Vector3f): CollisionShape {
+        return BoxShape(Vector3f(extents).apply {
+            mul(scale)
+            div(2f)
+        }.toVecmath())
     }
 }

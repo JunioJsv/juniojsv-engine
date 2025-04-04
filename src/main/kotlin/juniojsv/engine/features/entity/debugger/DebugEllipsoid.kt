@@ -1,5 +1,5 @@
 package juniojsv.engine.features.entity.debugger
 
-import org.joml.Vector3f
+import juniojsv.engine.features.entity.Transform
 
-data class DebugEllipsoid(val position: Vector3f, val radius: Vector3f) : IDebugBeing
+data class DebugEllipsoid(val transform: Transform) : IDebugBeing

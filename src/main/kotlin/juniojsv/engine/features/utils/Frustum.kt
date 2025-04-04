@@ -1,8 +1,6 @@
 package juniojsv.engine.features.utils
 
-import org.joml.Matrix4f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.sqrt
 
 class Frustum {
@@ -35,21 +33,60 @@ class Frustum {
         }
     }
 
-    fun isRectangleInside(position: Vector3f, width: Float, height: Float, depth: Float): Boolean {
+    fun isRectangleInside(position: Vector3f, extents: Vector3f): Boolean {
+        val halfExtents = Vector3f(extents).div(2f)
         for (plane in planes) {
-            val pX = if (plane.x > 0) width / 2f else -width / 2f
-            val pY = if (plane.y > 0) height / 2f else -height / 2f
-            val pZ = if (plane.z > 0) depth / 2f else -depth / 2f
-            val distance = plane.x * (position.x + pX) +
-                    plane.y * (position.y + pY) +
-                    plane.z * (position.z + pZ) +
-                    plane.w
-            if (distance < 0) {
-                return false
-            } else {
-                continue
-            }
+
+            val support = Vector3f(
+                if (plane.x > 0) halfExtents.x else -halfExtents.x,
+                if (plane.y > 0) halfExtents.y else -halfExtents.y,
+                if (plane.z > 0) halfExtents.z else -halfExtents.z
+            ).add(position)
+
+            val distance = Vector4f(plane).dot(Vector4f(support, 1f))
+
+            if (distance < 0) return false
         }
+        return true
+    }
+
+    fun isRectangleInside(position: Vector3f, extents: Vector3f, rotation: Vector3f): Boolean {
+        val halfExtents = Vector3f(extents).div(2f)
+
+        val rotationMatrix = Matrix3f()
+            .rotationX(Math.toRadians(rotation.x.toDouble()).toFloat())
+            .rotateY(Math.toRadians(rotation.y.toDouble()).toFloat())
+            .rotateZ(Math.toRadians(rotation.z.toDouble()).toFloat())
+
+        val localVertices = arrayOf(
+            Vector3f(-halfExtents.x, -halfExtents.y, -halfExtents.z),
+            Vector3f(halfExtents.x, -halfExtents.y, -halfExtents.z),
+            Vector3f(-halfExtents.x, halfExtents.y, -halfExtents.z),
+            Vector3f(halfExtents.x, halfExtents.y, -halfExtents.z),
+            Vector3f(-halfExtents.x, -halfExtents.y, halfExtents.z),
+            Vector3f(halfExtents.x, -halfExtents.y, halfExtents.z),
+            Vector3f(-halfExtents.x, halfExtents.y, halfExtents.z),
+            Vector3f(halfExtents.x, halfExtents.y, halfExtents.z)
+        )
+
+        val worldVertices = localVertices.map { v ->
+            rotationMatrix.transform(Vector3f(v)).add(position)
+        }
+
+        for (plane in planes) {
+            var allOutside = true
+
+            for (vertex in worldVertices) {
+                val distance = Vector4f(plane).dot(Vector4f(vertex, 1f))
+                if (distance >= 0) {
+                    allOutside = false
+                    break
+                }
+            }
+
+            if (allOutside) return false
+        }
+
         return true
     }
 
@@ -61,7 +98,7 @@ class Frustum {
         return true
     }
 
-    fun iseEllipsoidInside(position: Vector3f, radius: Vector3f): Boolean {
+    fun isEllipsoidInside(position: Vector3f, radius: Vector3f): Boolean {
         for (plane in planes) {
             // Calculate the distance from the sphere's center to the plane
             val centerDistance = plane.x * position.x + plane.y * position.y + plane.z * position.z + plane.w
@@ -75,6 +112,34 @@ class Frustum {
             )
 
             //If the closest point is outside the frustum, the entire ellipsoid is outside.
+            if (centerDistance + maxDistanceAlongNormal < 0) {
+                return false
+            }
+        }
+        return true
+    }
+
+    fun isEllipsoidInside(position: Vector3f, radius: Vector3f, rotation: Vector3f): Boolean {
+        val rotationMatrix = Matrix3f()
+            .rotationX(Math.toRadians(rotation.x.toDouble()).toFloat())
+            .rotateY(Math.toRadians(rotation.y.toDouble()).toFloat())
+            .rotateZ(Math.toRadians(rotation.z.toDouble()).toFloat())
+
+        for (plane in planes) {
+            val planeNormal = Vector3f(plane.x, plane.y, plane.z)
+
+            val localNormal = rotationMatrix.transpose().transform(Vector3f(planeNormal)).normalize()
+
+            val scaledNormal = Vector3f(
+                localNormal.x * radius.x,
+                localNormal.y * radius.y,
+                localNormal.z * radius.z
+            )
+
+            val maxDistanceAlongNormal = scaledNormal.length()
+
+            val centerDistance = planeNormal.dot(position) + plane.w
+
             if (centerDistance + maxDistanceAlongNormal < 0) {
                 return false
             }

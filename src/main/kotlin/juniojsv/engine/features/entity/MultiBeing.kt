@@ -17,14 +17,19 @@ class MultiBeing(
     private val mesh: Mesh,
     private val shader: ShadersProgram,
     private val isDebuggable: Boolean = true,
-    private val isFrustumCullingEnabled: Boolean = true
+    private val isFrustumCullingEnabled: Boolean = true,
+    private val isPhysicsEnabled: Boolean = true
 ) : IRender {
-
+    private var didSetup = false
+    private val boundary = mesh.boundary
     private lateinit var beings: List<BaseBeing>
     private lateinit var textures: Set<Texture>
     private var transformationsVbo by Delegates.notNull<Int>()
     private var texturesIndexesVbo by Delegates.notNull<Int>()
     private var texturesScaleVbo by Delegates.notNull<Int>()
+    private lateinit var context: IWindowContext
+
+    private val disposeCallbacks = mutableListOf<() -> Unit>()
 
     private val canDebug: Boolean
         get() = isDebuggable && Config.isDebug
@@ -33,14 +38,29 @@ class MultiBeing(
         mesh: Mesh,
         shader: ShadersProgram,
         beings: List<BaseBeing>,
-        isDebuggable: Boolean = true
-    ) : this(mesh, shader, isDebuggable) {
+        isDebuggable: Boolean = true,
+        isFrustumCullingEnabled: Boolean = true,
+        isPhysicsEnabled: Boolean = true
+    ) : this(mesh, shader, isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled) {
         update(beings)
     }
 
     fun update(beings: List<BaseBeing>) {
         this.beings = beings
         textures = this.beings.mapNotNull { it.texture }.toSet()
+        didSetup = false
+    }
+
+    private fun setup(context: IWindowContext) {
+        didSetup = true
+        this.context = context
+        disposeCallbacks.forEach { it.invoke() }
+        disposeCallbacks.clear()
+        if (isPhysicsEnabled && boundary != null)
+            for (being in beings) {
+                being.createRigidBody(context, boundary)
+                disposeCallbacks.add { being.disposeRigidBody(context) }
+            }
     }
 
     init {
@@ -128,7 +148,7 @@ class MultiBeing(
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, transformationsVbo)
         val transformationsBuffer = MemoryUtil.memAllocFloat(beings.size * 16)
         for (being in beings) {
-            val transformationMatrix = being.transformation()
+            val transformationMatrix = being.transform.transformation()
             val transformationArray = FloatArray(16)
             transformationMatrix.get(transformationArray)
             transformationsBuffer.put(transformationArray)
@@ -139,17 +159,16 @@ class MultiBeing(
     }
 
     override fun render(context: IWindowContext) {
+        if (!didSetup) setup(context)
+
         val light = context.render.ambientLight
         val frustum = context.camera.frustum
         val camera = context.camera.instance
-        val boundary = mesh.boundary
 
         val beings = if (!isFrustumCullingEnabled || boundary == null) beings else beings.filter {
-            val position = it.transformedPosition()
-            val scale = it.scale
-            val isInsideFrustum = boundary.isInsideFrustum(frustum, position, scale)
+            val isInsideFrustum = boundary.isInsideFrustum(frustum, it.transform)
             if (canDebug && isInsideFrustum)
-                context.render.debugBeings.add(boundary.getDebugBeing(position, scale))
+                context.render.debugBeings.add(boundary.getDebugBeing(it.transform))
             isInsideFrustum
         }
 
@@ -176,6 +195,7 @@ class MultiBeing(
         GL30.glDeleteBuffers(transformationsVbo)
         GL30.glDeleteBuffers(texturesIndexesVbo)
         GL30.glDeleteBuffers(texturesScaleVbo)
+        disposeCallbacks.forEach { it.invoke() }
     }
 
 }

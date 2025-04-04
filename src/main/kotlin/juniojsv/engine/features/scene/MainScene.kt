@@ -17,9 +17,7 @@ class MainScene : IScene, MainLayoutListener {
     val layout = MainLayout()
     private val light = Light(
         Vector3f(
-            -Scale.KILOMETER.length(100f),
-            Scale.KILOMETER.length(20.7f),
-            0f
+            -Scale.KILOMETER.length(100f), Scale.KILOMETER.length(20.7f), 0f
         )
     )
     private val objects = mutableListOf<IRender>()
@@ -51,14 +49,12 @@ class MainScene : IScene, MainLayoutListener {
         }
         textures.add(TextureFactory.createTexture(Textures.TEST))
         floor = SingleBeing(
-            QuadMesh.create(),
-            ShaderProgramFactory.create(ShaderPrograms.DEFAULT),
-            BaseBeing(
-                textures.random(),
-                Vector3f(0f, -Scale.METER.length(5f), 0f),
-                scale = Vector3f(Scale.KILOMETER.length(10f)),
-                rotation = Vector3f(-90f, 0f, 0f),
-                textureScale = 20f
+            CubeMesh.create(), ShaderProgramFactory.create(ShaderPrograms.DEFAULT), BaseBeing(
+                Transform(
+                    Vector3f(0f, Scale.KILOMETER.length(1.8f), 0f),
+                    scale = Vector3f(Scale.KILOMETER.length(1f)),
+                    rotation = Vector3f(-7f, 0f, 0f)
+                ), textures.random(), textureScale = 20f, mass = 0f
             )
         )
     }
@@ -74,20 +70,19 @@ class MainScene : IScene, MainLayoutListener {
         objects.forEach { it.dispose() }
         objects.clear()
         val random = Random(System.currentTimeMillis())
-        val offset = Scale.KILOMETER.length(10f).roundToInt()
-        val maxSize = Scale.METER.length(70f)
+        val offset = Scale.KILOMETER.length(.5f).roundToInt()
+        val maxSize = Scale.METER.length(1f)
 
         meshes.forEach { mesh ->
             val beings = List(count / meshes.size) {
                 BaseBeing(
-                    textures.random(),
-                    Vector3f(
-                        (random.nextInt(offset) - offset / 2).toFloat(),
-                        (random.nextInt(offset) + maxSize),
-                        (random.nextInt(offset) - offset / 2).toFloat()
-                    ),
-                    scale = Vector3f(maxSize * random.nextFloat().coerceAtLeast(0.1f)),
-                    textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f)
+                    Transform(
+                        Vector3f(
+                            (random.nextInt(offset) - offset / 2).toFloat(),
+                            (random.nextInt(offset) + maxSize) + Scale.KILOMETER.length(3f),
+                            (random.nextInt(offset) - offset / 2).toFloat()
+                        ), scale = Vector3f(maxSize * random.nextFloat().coerceAtLeast(0.1f))
+                    ), textures.random(), textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f), mass = 10f
                 )
             }
 

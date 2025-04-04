@@ -14,15 +14,11 @@ class Debugger : IRender {
     private val debugShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED_DEBUG)
 
     private val rectangles = MultiBeing(
-        CubeMesh.create(),
-        debugShaderProgram,
-        isDebuggable = false
+        CubeMesh.create(), debugShaderProgram, isDebuggable = false, isPhysicsEnabled = false
     )
 
     private val ellipsoids = MultiBeing(
-        SphereMesh(.5f).create(),
-        debugShaderProgram,
-        isDebuggable = false
+        SphereMesh(.5f).create(), debugShaderProgram, isDebuggable = false, isPhysicsEnabled = false
     )
 
     override fun render(context: IWindowContext) {
@@ -36,14 +32,8 @@ class Debugger : IRender {
             val beings = debugBeings[DebugRectangle::class.java]?.map {
                 it as DebugRectangle
                 BaseBeing(
-                    debugColorTexture,
-                    position = it.position,
-                    scale = Vector3f().apply {
-                        val halfWidth = it.width / 2
-                        val halfHeight = it.height / 2
-                        val halfDepth = it.depth / 2
-                        set(halfWidth, halfHeight, halfDepth)
-                    }
+                    it.transform,
+                    debugColorTexture
                 )
             } ?: return@apply
             update(beings)
@@ -54,9 +44,8 @@ class Debugger : IRender {
             val beings = debugBeings[DebugEllipsoid::class.java]?.map {
                 it as DebugEllipsoid
                 BaseBeing(
-                    debugColorTexture,
-                    position = it.position,
-                    scale = it.radius
+                    it.transform,
+                    debugColorTexture
                 )
             } ?: return@apply
             update(beings)

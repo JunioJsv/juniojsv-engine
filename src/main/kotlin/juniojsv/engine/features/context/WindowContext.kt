@@ -8,6 +8,7 @@ interface IWindowContext {
     val camera: ICameraContext
     val gui: IGuiContext
     val render: IRenderContext
+    val physics: IPhysicsContext
 }
 
 class WindowContext(private val window: Window) : IWindowContext {
@@ -15,12 +16,13 @@ class WindowContext(private val window: Window) : IWindowContext {
     override val camera = CameraContext(window)
     override val gui = GuiContext(window)
     override val render = RenderContext()
-
+    override val physics = PhysicsContext(window)
 
     fun onPreRender() {
         time.onPreRender()
         camera.onPreRender()
         render.onPreRender()
+        physics.onPreRender()
     }
 
     fun onPostRender() {

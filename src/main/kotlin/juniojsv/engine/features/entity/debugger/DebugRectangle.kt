@@ -1,7 +1,5 @@
 package juniojsv.engine.features.entity.debugger
 
-import org.joml.Vector3f
+import juniojsv.engine.features.entity.Transform
 
-data class DebugRectangle(
-    val position: Vector3f, val width: Float, val height: Float, val depth: Float
-) : IDebugBeing
+data class DebugRectangle(val transform: Transform) : IDebugBeing
