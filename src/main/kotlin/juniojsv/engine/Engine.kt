@@ -1,20 +1,15 @@
 package juniojsv.engine
 
 import imgui.ImGui
-import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.entity.Camera
-import juniojsv.engine.features.entity.SingleBeing
 import juniojsv.engine.features.entity.debugger.Debugger
 import juniojsv.engine.features.gui.MainLayoutListener
 import juniojsv.engine.features.scene.IScene
 import juniojsv.engine.features.scene.MainScene
-import juniojsv.engine.features.utils.FrameBuffer
 import juniojsv.engine.features.utils.KeyboardHandler
-import juniojsv.engine.features.utils.factories.QuadMesh
-import juniojsv.engine.features.utils.factories.ShaderProgramFactory
-import juniojsv.engine.features.utils.factories.ShaderPrograms
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
+import juniojsv.engine.features.window.WindowFrameBuffers
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 
@@ -28,16 +23,15 @@ class Engine(resolution: Resolution) : Window(resolution) {
     private val movements = mutableSetOf<Camera.CameraMovement>()
 
     private lateinit var scene: IScene
-    private lateinit var fbo: FrameBuffer
-    private lateinit var screen: SingleBeing
     private lateinit var debugger: Debugger
+    private lateinit var buffers: WindowFrameBuffers
 
     override fun onCreate() {
-        onSetupScreen()
+        buffers = WindowFrameBuffers(this)
         scene = MainScene().apply {
             layout.addListener(object : MainLayoutListener {
-                override fun onChangeResolutionScale(scale: Float) {
-                    fbo.resize(resolution.withResolutionScale(scale))
+                override fun didResolutionScaleChanged(scale: Float) {
+                    buffers.refresh()
                 }
             })
         }
@@ -49,17 +43,16 @@ class Engine(resolution: Resolution) : Window(resolution) {
         GL11.glEnable(GL11.GL_CULL_FACE)
         GL11.glCullFace(GL11.GL_BACK)
         GL11.glClearColor(0f, 0f, 0f, 1f)
+//        MultiBeing.shader = ShaderProgramFactory.create(ShaderPrograms.TEST_INSTANCED)
+//        SingleBeing.shader = ShaderProgramFactory.create(ShaderPrograms.TEST)
     }
 
     override fun onRender() {
-        fbo.bind()
-        scene.render(context)
-        if (Config.isDebug)
-            debugger.render(context)
-        fbo.unbind()
-
-        screen.render(context)
-
+        buffers.render { context ->
+            scene.render(context)
+            if (Config.isDebug)
+                debugger.render(context)
+        }
         keyboard.pump(context)
         camera.move(movements)
         movements.clear()
@@ -93,26 +86,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
 
     override fun onResize(width: Int, height: Int) {
         super.onResize(width, height)
-        val resolutionScale = context.render.resolutionScale
-        fbo.resize(resolution.withResolutionScale(resolutionScale))
-    }
-
-    private fun onSetupScreen() {
-        val resolutionScale = context.render.resolutionScale
-        fbo = FrameBuffer(
-            this,
-            resolution.withResolutionScale(resolutionScale),
-            depth = true,
-            color = true
-        )
-        screen = SingleBeing(
-            QuadMesh.create(),
-            ShaderProgramFactory.create(ShaderPrograms.SCREEN),
-            BaseBeing(texture = fbo.colorTexture),
-            isFrustumCullingEnabled = false,
-            isDebuggable = false,
-            isPhysicsEnabled = false
-        )
+        buffers.refresh()
     }
 
     private fun onSetupKeyBoard() {

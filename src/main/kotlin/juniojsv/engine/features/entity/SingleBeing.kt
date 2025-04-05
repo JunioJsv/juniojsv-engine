@@ -16,7 +16,8 @@ data class SingleBeing(
     val being: BaseBeing = BaseBeing(),
     private val isDebuggable: Boolean = true,
     private val isFrustumCullingEnabled: Boolean = true,
-    private val isPhysicsEnabled: Boolean = true
+    private val isPhysicsEnabled: Boolean = true,
+    private val isShaderOverridable: Boolean = true
 ) : IRender {
     private var didSetup = false
     private val canDebug: Boolean
@@ -45,6 +46,7 @@ data class SingleBeing(
         val frustum = context.camera.frustum
         val camera = context.camera.instance
         val boundary = mesh.boundary
+        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
 
         if (isFrustumCullingEnabled && boundary != null) {
             val isInsideFrustum = boundary.isInsideFrustum(frustum, being.transform)
@@ -69,5 +71,9 @@ data class SingleBeing(
         GL11.glDrawElements(
             GL11.GL_TRIANGLES, mesh.getIndicesCount(), GL11.GL_UNSIGNED_INT, 0
         )
+    }
+
+    companion object {
+        var shader: ShadersProgram? = null
     }
 }

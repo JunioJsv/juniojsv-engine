@@ -14,11 +14,19 @@ class Debugger : IRender {
     private val debugShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED_DEBUG)
 
     private val rectangles = MultiBeing(
-        CubeMesh.create(), debugShaderProgram, isDebuggable = false, isPhysicsEnabled = false
+        CubeMesh.create(),
+        debugShaderProgram,
+        isDebuggable = false,
+        isPhysicsEnabled = false,
+        isShaderOverridable = false
     )
 
     private val ellipsoids = MultiBeing(
-        SphereMesh(.5f).create(), debugShaderProgram, isDebuggable = false, isPhysicsEnabled = false
+        SphereMesh(.5f).create(),
+        debugShaderProgram,
+        isDebuggable = false,
+        isPhysicsEnabled = false,
+        isShaderOverridable = false
     )
 
     override fun render(context: IWindowContext) {

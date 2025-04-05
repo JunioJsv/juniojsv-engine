@@ -8,8 +8,10 @@ enum class ShaderPrograms(val vertex: String, val fragment: String) {
     DEFAULT("shaders/default.vert", "shaders/default.frag"),
     DEFAULT_INSTANCED("shaders/default_instanced.vert", "shaders/default_instanced.frag"),
     DEFAULT_INSTANCED_DEBUG("shaders/default_instanced.vert", "shaders/default_instanced_debug.frag"),
-    SCREEN("shaders/screen.vert", "shaders/screen.frag"),
-    SKYBOX("shaders/skybox.vert", "shaders/skybox.frag")
+    WINDOW("shaders/window.vert", "shaders/window.frag"),
+    SKYBOX("shaders/skybox.vert", "shaders/skybox.frag"),
+    TEST("shaders/default.vert", "shaders/test.frag"),
+    TEST_INSTANCED("shaders/default_instanced.vert", "shaders/test.frag")
 }
 
 object ShaderProgramFactory {

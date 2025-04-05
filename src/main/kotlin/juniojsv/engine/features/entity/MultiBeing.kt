@@ -18,7 +18,8 @@ class MultiBeing(
     private val shader: ShadersProgram,
     private val isDebuggable: Boolean = true,
     private val isFrustumCullingEnabled: Boolean = true,
-    private val isPhysicsEnabled: Boolean = true
+    private val isPhysicsEnabled: Boolean = true,
+    private val isShaderOverridable: Boolean = true
 ) : IRender {
     private var didSetup = false
     private val boundary = mesh.boundary
@@ -40,8 +41,9 @@ class MultiBeing(
         beings: List<BaseBeing>,
         isDebuggable: Boolean = true,
         isFrustumCullingEnabled: Boolean = true,
-        isPhysicsEnabled: Boolean = true
-    ) : this(mesh, shader, isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled) {
+        isPhysicsEnabled: Boolean = true,
+        isShaderOverridable: Boolean = true
+    ) : this(mesh, shader, isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable) {
         update(beings)
     }
 
@@ -164,6 +166,7 @@ class MultiBeing(
         val light = context.render.ambientLight
         val frustum = context.camera.frustum
         val camera = context.camera.instance
+        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
 
         val beings = if (!isFrustumCullingEnabled || boundary == null) beings else beings.filter {
             val isInsideFrustum = boundary.isInsideFrustum(frustum, it.transform)
@@ -198,4 +201,7 @@ class MultiBeing(
         disposeCallbacks.forEach { it.invoke() }
     }
 
+    companion object {
+        var shader: ShadersProgram? = null
+    }
 }

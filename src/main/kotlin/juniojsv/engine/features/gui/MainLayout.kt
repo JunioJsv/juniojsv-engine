@@ -9,7 +9,7 @@ import org.joml.Vector3f
 
 interface MainLayoutListener {
     fun onGenerateObjects(count: Int, instanced: Boolean = false) {}
-    fun onChangeResolutionScale(scale: Float) {}
+    fun didResolutionScaleChanged(scale: Float) {}
 }
 
 class MainLayout : IImGuiLayout {
@@ -79,7 +79,7 @@ class MainLayout : IImGuiLayout {
         if (ImGui.sliderFloat("Scale", resolutionScale, 0.1f, 1f)) {
             context.render.resolutionScale = resolutionScale.first()
             listeners.forEach {
-                it.onChangeResolutionScale(resolutionScale.first())
+                it.didResolutionScaleChanged(resolutionScale.first())
             }
         }
 
