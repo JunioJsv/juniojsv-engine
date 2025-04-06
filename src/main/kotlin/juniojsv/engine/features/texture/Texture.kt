@@ -17,7 +17,8 @@ data class RawTexture(val pixels: IntBuffer, val width: Int, val height: Int) : 
 }
 
 abstract class Texture {
-    val id: Int = GL11.glGenTextures()
+    var id: Int = GL11.glGenTextures()
+        internal set
 
     abstract fun getBindType(): Int
 

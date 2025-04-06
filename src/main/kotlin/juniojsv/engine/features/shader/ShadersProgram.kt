@@ -1,9 +1,13 @@
 package juniojsv.engine.features.shader
 
+import juniojsv.engine.extensions.toBuffer
+import juniojsv.engine.features.texture.Texture
+import juniojsv.engine.features.texture.TextureUnits
 import org.joml.Matrix4f
+import org.joml.Vector2f
 import org.joml.Vector3f
-import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20
+import org.lwjgl.system.MemoryUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -66,24 +70,33 @@ open class ShadersProgram {
                     is Float ->
                         GL20.glUniform1f(location, value)
 
-                    is Vector3f ->
-                        BufferUtils.createFloatBuffer(3).also { vec3 ->
-                            value.get(vec3)
-                            GL20.glUniform3fv(location, vec3)
-                        }
+                    is Vector3f -> {
+                        val buffer = floatArrayOf(value.x, value.y, value.z).toBuffer()
+                        GL20.glUniform3fv(location, buffer)
+                        MemoryUtil.memFree(buffer)
+                    }
 
-                    is Matrix4f ->
-                        BufferUtils.createFloatBuffer(16).also { matrix4f ->
-                            value.get(matrix4f)
-                            GL20.glUniformMatrix4fv(
-                                location,
-                                false,
-                                matrix4f
-                            )
-                        }
+                    is Vector2f -> {
+                        val buffer = floatArrayOf(value.x, value.y).toBuffer()
+                        GL20.glUniform2fv(location, buffer)
+                        MemoryUtil.memFree(buffer)
+                    }
+
+                    is Matrix4f -> {
+                        val buffer = value.toBuffer()
+                        GL20.glUniformMatrix4fv(
+                            location,
+                            false,
+                            buffer
+                        )
+                        MemoryUtil.memFree(buffer)
+                    }
 
                     is IntArray ->
                         GL20.glUniform1iv(location, value)
+
+                    is Texture ->
+                        TextureUnits.bind(value, name)
 
                     else -> logger.error("Uniform($value) type don't implemented")
                 }

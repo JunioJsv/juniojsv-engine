@@ -48,11 +48,15 @@ class Engine(resolution: Resolution) : Window(resolution) {
     }
 
     override fun onRender() {
-        buffers.render { context ->
-            scene.render(context)
-            if (Config.isDebug)
-                debugger.render(context)
-        }
+        buffers.render(
+            onRenderScene = {
+                scene.render(context)
+            },
+            onRenderOverlay = {
+                if (Config.isDebug)
+                    debugger.render(context)
+            }
+        )
         keyboard.pump(context)
         camera.move(movements)
         movements.clear()

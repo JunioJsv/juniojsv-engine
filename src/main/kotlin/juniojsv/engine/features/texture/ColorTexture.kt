@@ -7,7 +7,7 @@ import org.lwjgl.opengl.GL32
 import org.lwjgl.system.MemoryUtil
 
 
-class ColorTexture(width: Int, height: Int, color: Vector3f? = null) : Texture() {
+class ColorTexture(width: Int, height: Int, color: Vector3f? = null, internalFormat: Int = GL30.GL_RGBA) : Texture() {
     init {
         val type = getType()
         GL32.glBindTexture(type, id)
@@ -27,7 +27,7 @@ class ColorTexture(width: Int, height: Int, color: Vector3f? = null) : Texture()
         GL32.glTexImage2D(
             type,
             0,
-            GL30.GL_RGBA,
+            internalFormat,
             width,
             height,
             0,

@@ -71,7 +71,7 @@ class MainScene : IScene, MainLayoutListener {
         objects.clear()
         val random = Random(System.currentTimeMillis())
         val offset = Scale.KILOMETER.length(.5f).roundToInt()
-        val maxSize = Scale.METER.length(1f)
+        val maxSize = Scale.METER.length(3f)
 
         meshes.forEach { mesh ->
             val beings = List(count / meshes.size) {
@@ -81,8 +81,12 @@ class MainScene : IScene, MainLayoutListener {
                             (random.nextInt(offset) - offset / 2).toFloat(),
                             (random.nextInt(offset) + maxSize) + Scale.KILOMETER.length(3f),
                             (random.nextInt(offset) - offset / 2).toFloat()
-                        ), scale = Vector3f(maxSize * random.nextFloat().coerceAtLeast(0.1f))
-                    ), textures.random(), textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f), mass = 10f
+                        ),
+                        scale = Vector3f(maxSize * random.nextFloat().coerceAtLeast(0.5f))
+                    ),
+                    textures.random(),
+                    textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f),
+                    mass = 1f
                 )
             }
 

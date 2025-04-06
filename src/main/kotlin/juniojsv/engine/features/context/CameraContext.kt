@@ -9,16 +9,24 @@ import org.joml.Vector3f
 interface ICameraContext {
     val instance: Camera
     val projection: Matrix4f
+    val previousProjection: Matrix4f
     val view: Matrix4f
+    val previousView: Matrix4f
     val frustum: Frustum
 }
 
 class CameraContext(window: Window) : ICameraContext {
     private val camera = Camera(Vector3f(), window)
-    override lateinit var projection: Matrix4f
+    override var projection: Matrix4f = instance.view()
         private set
-    override lateinit var view: Matrix4f
+    override var previousProjection: Matrix4f = projection
         private set
+
+    override var view: Matrix4f = instance.view()
+        private set
+    override var previousView: Matrix4f = view
+        private set
+
     override var frustum = Frustum()
         private set
 
@@ -26,10 +34,15 @@ class CameraContext(window: Window) : ICameraContext {
         get() = camera
 
     fun onPreRender() {
-        projection = camera.projection()
-        view = camera.view()
+        projection = instance.projection()
+        view = instance.view()
         val projectionView = Matrix4f()
         projection.mul(view, projectionView)
         frustum.update(projectionView)
+    }
+
+    fun onPostRender() {
+        previousProjection = projection
+        previousView = view
     }
 }

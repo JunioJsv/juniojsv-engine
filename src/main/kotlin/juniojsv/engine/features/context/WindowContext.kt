@@ -27,6 +27,7 @@ class WindowContext(private val window: Window) : IWindowContext {
 
     fun onPostRender() {
         gui.onPostRender()
+        camera.onPostRender()
         GLFW.glfwSwapBuffers(window.id)
         GLFW.glfwPollEvents()
     }

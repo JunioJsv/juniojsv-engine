@@ -1,6 +1,5 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.Config
 import juniojsv.engine.extensions.toBuffer
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.mesh.Mesh
@@ -16,12 +15,11 @@ import kotlin.properties.Delegates
 class MultiBeing(
     private val mesh: Mesh,
     private val shader: ShadersProgram,
-    private val isDebuggable: Boolean = true,
+    isDebuggable: Boolean = true,
     private val isFrustumCullingEnabled: Boolean = true,
     private val isPhysicsEnabled: Boolean = true,
     private val isShaderOverridable: Boolean = true
-) : IRender {
-    private var didSetup = false
+) : BeingRender(isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable) {
     private val boundary = mesh.boundary
     private lateinit var beings: List<BaseBeing>
     private lateinit var textures: Set<Texture>
@@ -31,9 +29,6 @@ class MultiBeing(
     private lateinit var context: IWindowContext
 
     private val disposeCallbacks = mutableListOf<() -> Unit>()
-
-    private val canDebug: Boolean
-        get() = isDebuggable && Config.isDebug
 
     constructor(
         mesh: Mesh,
@@ -53,8 +48,8 @@ class MultiBeing(
         didSetup = false
     }
 
-    private fun setup(context: IWindowContext) {
-        didSetup = true
+    override fun setup(context: IWindowContext) {
+        super.setup(context)
         this.context = context
         disposeCallbacks.forEach { it.invoke() }
         disposeCallbacks.clear()
@@ -161,7 +156,7 @@ class MultiBeing(
     }
 
     override fun render(context: IWindowContext) {
-        if (!didSetup) setup(context)
+        super.render(context)
 
         val light = context.render.ambientLight
         val frustum = context.camera.frustum
@@ -183,12 +178,16 @@ class MultiBeing(
             bind()
             putUniform("camera_projection", context.camera.projection)
             putUniform("camera_view", context.camera.view)
+            putUniform("previous_camera_projection", context.camera.previousProjection)
+            putUniform("previous_camera_view", context.camera.previousView)
             putUniform("camera_position", camera.position)
             putUniform("light_position", light?.position ?: Vector3f(0f))
             putUniform("light_color", light?.color ?: Vector3f(0f))
             putUniform("time", context.time.elapsedInSeconds.toFloat())
+
+            textures.bind()
+            putUniforms(this)
         }
-        textures.bind()
         mesh.bind()
         GL33.glDrawElementsInstanced(GL33.GL_TRIANGLES, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, beings.size)
     }

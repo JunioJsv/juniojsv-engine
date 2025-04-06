@@ -16,6 +16,7 @@ class MainLayout : IImGuiLayout {
     private var instanced = false
     private val objectsCount = intArrayOf(0)
     private val resolutionScale = floatArrayOf(1f)
+    private val motionBlur = floatArrayOf(.5f)
     private val ambientColor = floatArrayOf(0f, 0f, 0f)
     private val listeners = mutableSetOf<MainLayoutListener>()
     private val physicsSpeed = floatArrayOf(0f)
@@ -32,6 +33,7 @@ class MainLayout : IImGuiLayout {
             ambientColor[2] = color.z
         }
         physicsSpeed[0] = context.physics.speed
+        motionBlur[0] = context.render.motionBlur
     }
 
     override fun render(context: IWindowContext) {
@@ -81,6 +83,11 @@ class MainLayout : IImGuiLayout {
             listeners.forEach {
                 it.didResolutionScaleChanged(resolutionScale.first())
             }
+        }
+
+        ImGui.text("Motion Blur")
+        if (ImGui.sliderFloat("Strength", motionBlur, 0f, .9f)) {
+            context.render.motionBlur = motionBlur.first()
         }
 
         ImGui.end()

@@ -13,7 +13,8 @@ class SkyBox(
     private val mesh: Mesh,
     val texture: FileCubeMapTexture,
     private val shader: ShadersProgram,
-    var scale: Float = Scale.KILOMETER.length(1f)
+    var scale: Float = Scale.KILOMETER.length(1f),
+    private val isShaderOverridable: Boolean = true
 ) : IRender {
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
@@ -21,12 +22,16 @@ class SkyBox(
         val light = context.render.ambientLight
         GL30.glDisable(GL30.GL_DEPTH_TEST)
 
+        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
+
         shader.apply {
             bind()
             putUniform("light_color", light?.color ?: Vector3f(0f))
             putUniform("transformation", transformation())
             putUniform("camera_projection", context.camera.projection)
             putUniform("camera_view", context.camera.view)
+            putUniform("previous_camera_projection", context.camera.previousProjection)
+            putUniform("previous_camera_view", context.camera.previousView)
             putUniform("time", context.time.elapsedInSeconds.toFloat())
         }
         texture.bind()
@@ -36,4 +41,7 @@ class SkyBox(
         GL30.glEnable(GL30.GL_DEPTH_TEST)
     }
 
+    companion object {
+        var shader: ShadersProgram? = null
+    }
 }

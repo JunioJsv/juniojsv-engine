@@ -11,7 +11,9 @@ enum class ShaderPrograms(val vertex: String, val fragment: String) {
     WINDOW("shaders/window.vert", "shaders/window.frag"),
     SKYBOX("shaders/skybox.vert", "shaders/skybox.frag"),
     TEST("shaders/default.vert", "shaders/test.frag"),
-    TEST_INSTANCED("shaders/default_instanced.vert", "shaders/test.frag")
+    TEST_INSTANCED("shaders/default_instanced.vert", "shaders/test.frag"),
+    VELOCITY("shaders/velocity.vert", "shaders/velocity.frag"),
+    VELOCITY_INSTANCED("shaders/velocity_instanced.vert", "shaders/velocity.frag")
 }
 
 object ShaderProgramFactory {

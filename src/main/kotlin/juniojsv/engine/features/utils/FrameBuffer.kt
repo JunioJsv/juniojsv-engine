@@ -2,6 +2,7 @@ package juniojsv.engine.features.utils
 
 import juniojsv.engine.features.texture.ColorTexture
 import juniojsv.engine.features.texture.DepthTexture
+import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
 import org.lwjgl.opengl.GL11
@@ -12,45 +13,85 @@ import kotlin.properties.Delegates
 class FrameBuffer(
     private val window: Window,
     private var resolution: Resolution,
-    private val depth: Boolean = false,
-    private val color: Boolean = false
+    attachments: Set<Int> = setOf(GL32.GL_COLOR_ATTACHMENT0, GL32.GL_DEPTH_ATTACHMENT),
+    private val colorInternalFormat: Int = GL30.GL_RGBA
 ) {
     private var fbo by Delegates.notNull<Int>()
-    var depthTexture: DepthTexture? = null
-    var colorTexture: ColorTexture? = null
+
+    private val hasColorAttachment = attachments.contains(GL32.GL_COLOR_ATTACHMENT0)
+    private val hasDepthAttachment = attachments.contains(GL32.GL_DEPTH_ATTACHMENT)
+
+    private val textures = mutableMapOf<Int, Texture>()
 
     init {
         create()
+    }
+
+    fun getDepthTexture(): DepthTexture {
+        return textures.getOrPut(GL32.GL_DEPTH_ATTACHMENT) {
+            DepthTexture(resolution.width, resolution.height)
+        } as DepthTexture
+    }
+
+    fun getColorTexture(): ColorTexture {
+        return textures.getOrPut(GL32.GL_COLOR_ATTACHMENT0) {
+            ColorTexture(
+                resolution.width,
+                resolution.height,
+                internalFormat = colorInternalFormat
+            )
+        } as ColorTexture
+    }
+
+    fun copy(source: FrameBuffer) {
+        GL32.glBindFramebuffer(GL32.GL_READ_FRAMEBUFFER, source.fbo)
+        GL32.glBindFramebuffer(GL32.GL_DRAW_FRAMEBUFFER, fbo)
+        if (source.hasColorAttachment)
+            GL32.glBlitFramebuffer(
+                0, 0, source.resolution.width, source.resolution.height,
+                0, 0, resolution.width, resolution.height,
+                GL32.GL_COLOR_BUFFER_BIT, GL32.GL_LINEAR
+            )
+        if (source.hasDepthAttachment)
+            GL32.glBlitFramebuffer(
+                0, 0, source.resolution.width, source.resolution.height,
+                0, 0, resolution.width, resolution.height,
+                GL32.GL_DEPTH_BUFFER_BIT, GL32.GL_NEAREST
+            )
+        GL32.glBindFramebuffer(GL32.GL_FRAMEBUFFER, 0)
     }
 
     private fun create() {
         fbo = GL32.glGenFramebuffers()
         GL32.glBindFramebuffer(GL32.GL_FRAMEBUFFER, fbo)
 
-        if (depth) {
-            depthTexture = DepthTexture(resolution.width, resolution.height)
+        if (hasDepthAttachment) {
+            val texture = getDepthTexture()
             GL32.glFramebufferTexture2D(
                 GL32.GL_FRAMEBUFFER,
                 GL32.GL_DEPTH_ATTACHMENT,
                 GL32.GL_TEXTURE_2D,
-                depthTexture!!.id,
+                texture.id,
                 0
             )
+
+            if (!hasColorAttachment) {
+                GL32.glDrawBuffers(GL32.GL_NONE)
+                GL32.glReadBuffer(GL32.GL_NONE)
+            }
         }
-        if (depth && !color) {
-            GL32.glDrawBuffers(GL32.GL_NONE)
-            GL32.glReadBuffer(GL32.GL_NONE)
-        }
-        if (color) {
-            colorTexture = ColorTexture(resolution.width, resolution.height)
+
+        if (hasColorAttachment) {
+            val texture = getColorTexture()
             GL32.glFramebufferTexture2D(
                 GL32.GL_FRAMEBUFFER,
                 GL30.GL_COLOR_ATTACHMENT0,
                 GL32.GL_TEXTURE_2D,
-                colorTexture!!.id,
+                texture.id,
                 0
             )
-            if (!depth) {
+
+            if (!hasDepthAttachment) {
                 val attachments = intArrayOf(GL30.GL_COLOR_ATTACHMENT0)
                 GL30.glDrawBuffers(attachments)
             }
@@ -66,9 +107,9 @@ class FrameBuffer(
     fun bind() {
         GL32.glBindFramebuffer(GL32.GL_FRAMEBUFFER, fbo)
         GL32.glViewport(0, 0, resolution.width, resolution.height)
-        if (depth)
+        if (hasDepthAttachment)
             GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
-        if (color)
+        if (hasColorAttachment)
             GL30.glClear(GL11.GL_COLOR_BUFFER_BIT)
     }
 
@@ -80,10 +121,8 @@ class FrameBuffer(
 
     fun dispose() {
         GL32.glDeleteFramebuffers(fbo)
-        depthTexture?.dispose()
-        colorTexture?.dispose()
-        depthTexture = null
-        colorTexture = null
+        textures.values.forEach { it.dispose() }
+        textures.clear()
     }
 
     fun resize(resolution: Resolution) {
