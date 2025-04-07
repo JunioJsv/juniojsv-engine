@@ -1,13 +1,13 @@
 #version 330
 
-in vec3 out_vertex_position;
+in vec3 vPosition;
 
-uniform samplerCube in_skybox;
-uniform vec3 light_color;
-uniform float time;
+uniform samplerCube uSkyBox;
+uniform vec3 uLightColor;
+uniform float uTime;
 
 void main() {
-    vec4 skybox = texture(in_skybox, out_vertex_position);
+    vec4 skybox = texture(uSkyBox, vPosition);
     //    float x = out_vertex_position.x;
     //    float y = out_vertex_position.y;
     //    float z = out_vertex_position.z;
@@ -19,5 +19,5 @@ void main() {
     //        gl_FragColor = vec4(light_color, 1);
     //        return;
     //    }
-    gl_FragColor = vec4(vec3(skybox) * light_color, 1);
+    gl_FragColor = vec4(vec3(skybox) * uLightColor, 1);
 }

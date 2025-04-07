@@ -70,11 +70,12 @@ class MainScene : IScene, MainLayoutListener {
         objects.forEach { it.dispose() }
         objects.clear()
         val random = Random(System.currentTimeMillis())
-        val offset = Scale.KILOMETER.length(.5f).roundToInt()
-        val maxSize = Scale.METER.length(3f)
+        val offset = Scale.KILOMETER.length(.3f).roundToInt()
+        val maxSize = Scale.METER.length(2f)
 
         meshes.forEach { mesh ->
             val beings = List(count / meshes.size) {
+                val size = maxSize * random.nextFloat().coerceAtLeast(0.5f)
                 BaseBeing(
                     Transform(
                         Vector3f(
@@ -82,11 +83,11 @@ class MainScene : IScene, MainLayoutListener {
                             (random.nextInt(offset) + maxSize) + Scale.KILOMETER.length(3f),
                             (random.nextInt(offset) - offset / 2).toFloat()
                         ),
-                        scale = Vector3f(maxSize * random.nextFloat().coerceAtLeast(0.5f))
+                        scale = Vector3f(size)
                     ),
                     textures.random(),
                     textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f),
-                    mass = 1f
+                    mass = 10f * size
                 )
             }
 

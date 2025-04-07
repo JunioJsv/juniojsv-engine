@@ -19,20 +19,23 @@ class SkyBox(
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
     override fun render(context: IWindowContext) {
+        if (isDisabled) return
         val light = context.render.ambientLight
+        val transformation = transformation()
         GL30.glDisable(GL30.GL_DEPTH_TEST)
 
         val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
 
         shader.apply {
             bind()
-            putUniform("light_color", light?.color ?: Vector3f(0f))
-            putUniform("transformation", transformation())
-            putUniform("camera_projection", context.camera.projection)
-            putUniform("camera_view", context.camera.view)
-            putUniform("previous_camera_projection", context.camera.previousProjection)
-            putUniform("previous_camera_view", context.camera.previousView)
-            putUniform("time", context.time.elapsedInSeconds.toFloat())
+            putUniform("uLightColor", light?.color ?: Vector3f(0f))
+            putUniform("uModel", transformation)
+            putUniform("uPreviousModel", transformation)
+            putUniform("uProjection", context.camera.projection)
+            putUniform("uView", context.camera.view)
+            putUniform("uPreviousProjection", context.camera.previousProjection)
+            putUniform("uPreviousView", context.camera.previousView)
+            putUniform("uTime", context.time.elapsedInSeconds.toFloat())
         }
         texture.bind()
         mesh.bind()
@@ -43,5 +46,6 @@ class SkyBox(
 
     companion object {
         var shader: ShadersProgram? = null
+        var isDisabled = false
     }
 }

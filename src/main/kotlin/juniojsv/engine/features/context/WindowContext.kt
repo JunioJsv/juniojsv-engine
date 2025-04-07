@@ -3,12 +3,20 @@ package juniojsv.engine.features.context
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW
 
+interface IWindowContextListener {
+    fun onPreRender(context: IWindowContext) {}
+    fun onPostRender(context: IWindowContext) {}
+}
+
 interface IWindowContext {
     val time: ITimeContext
     val camera: ICameraContext
     val gui: IGuiContext
     val render: IRenderContext
     val physics: IPhysicsContext
+
+    fun addListener(listener: IWindowContextListener)
+    fun removeListener(listener: IWindowContextListener)
 }
 
 class WindowContext(private val window: Window) : IWindowContext {
@@ -18,16 +26,28 @@ class WindowContext(private val window: Window) : IWindowContext {
     override val render = RenderContext()
     override val physics = PhysicsContext(window)
 
+    private val listeners = mutableSetOf<IWindowContextListener>()
+
+    override fun addListener(listener: IWindowContextListener) {
+        listeners.add(listener)
+    }
+
+    override fun removeListener(listener: IWindowContextListener) {
+        listeners.remove(listener)
+    }
+
     fun onPreRender() {
         time.onPreRender()
         camera.onPreRender()
         render.onPreRender()
         physics.onPreRender()
+        listeners.forEach { it.onPreRender(this) }
     }
 
     fun onPostRender() {
         gui.onPostRender()
         camera.onPostRender()
+        listeners.forEach { it.onPostRender(this) }
         GLFW.glfwSwapBuffers(window.id)
         GLFW.glfwPollEvents()
     }

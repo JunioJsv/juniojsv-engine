@@ -43,7 +43,7 @@ open class ShadersProgram {
         val linked = GL20.glGetProgrami(id, GL20.GL_LINK_STATUS)
         if (linked == GL20.GL_FALSE) {
             val log = GL20.glGetProgramInfoLog(id)
-            logger.error("Error linking shader program:\n$log")
+            logger.error("Error linking shader program\nvert: ${vertex.file}\nfrag: ${fragment.file}\n\n$log")
         }
 
         GL20.glValidateProgram(id)
@@ -51,9 +51,9 @@ open class ShadersProgram {
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(ShadersProgram::class.java)
-        const val VERTEX_POSITION = "vertex_position"
-        const val UV_COORDINATE = "uv_coordinates"
-        const val VERTEX_NORMAL = "vertex_normal"
+        const val VERTEX_POSITION = "aPosition"
+        const val UV_COORDINATE = "aUV"
+        const val VERTEX_NORMAL = "aNormal"
 
         fun getCurrentShaderProgramId(): Int {
             return GL20.glGetInteger(GL20.GL_CURRENT_PROGRAM)

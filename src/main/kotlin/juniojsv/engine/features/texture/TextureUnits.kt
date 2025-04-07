@@ -105,7 +105,7 @@ class TextureUnits {
          * @return The number of textures that were bound.
          * @throws NoSuchElementException if there are not enough texture units to bind all textures.
          */
-        fun bind(textures: Set<Texture>, uniform: String = "textures"): Int {
+        fun bind(textures: Set<Texture>, uniform: String = "uTextures"): Int {
             if (textures.isEmpty()) {
                 unbindAll()
             }

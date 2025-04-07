@@ -1,13 +1,13 @@
 #version 330
 
-smooth in vec4 out_current_clip_position;
-smooth in vec4 out_previous_clip_position;
+smooth in vec4 vClipPosition;
+smooth in vec4 vPreviousClipPosition;
 
-out vec2 velocity;
+out vec2 oVelocity;
 
 void main() {
-    vec2 current_ndc = (out_current_clip_position.xy / out_current_clip_position.w) * .5 + .5;
-    vec2 previous_ndc = (out_previous_clip_position.xy / out_previous_clip_position.w) * .5 + .5;
+    vec2 currentNdc = vClipPosition.xy / vClipPosition.w;
+    vec2 previousNdc = vPreviousClipPosition.xy / vPreviousClipPosition.w;
 
-    velocity = current_ndc - previous_ndc;
+    oVelocity = currentNdc - previousNdc;
 }

@@ -1,6 +1,7 @@
 package juniojsv.engine.features.entity
 
 import juniojsv.engine.features.context.IWindowContext
+import juniojsv.engine.features.context.IWindowContextListener
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
@@ -17,12 +18,16 @@ class SingleBeing(
     private val isFrustumCullingEnabled: Boolean = true,
     private val isPhysicsEnabled: Boolean = true,
     private val isShaderOverridable: Boolean = true
-) : BeingRender(isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable) {
+) : BeingRender(isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable),
+    IWindowContextListener {
     private lateinit var context: IWindowContext
+
+    private val lastTransform = Transform().apply { set(being.transform) }
 
     override fun setup(context: IWindowContext) {
         super.setup(context)
         this.context = context
+        context.addListener(this)
         val boundary = mesh.boundary
         if (isPhysicsEnabled && boundary != null) {
             being.createRigidBody(context, boundary)
@@ -45,17 +50,17 @@ class SingleBeing(
         }
         shader.apply {
             bind()
-            putUniform("camera_projection", context.camera.projection)
-            putUniform("camera_view", context.camera.view)
-            putUniform("previous_camera_projection", context.camera.previousProjection)
-            putUniform("previous_camera_view", context.camera.previousView)
-            putUniform("camera_position", camera.position)
-            putUniform("transformation", transformation)
-            putUniform("light_position", light?.position ?: Vector3f(0f))
-            putUniform("light_color", light?.color ?: Vector3f(0f))
-            putUniform("time", context.time.elapsedInSeconds.toFloat())
-            putUniform("texture_scale", being.textureScale)
-            putUniform("has_texture", if (being.texture != null) 1 else 0)
+            putUniform("uProjection", context.camera.projection)
+            putUniform("uView", context.camera.view)
+            putUniform("uPreviousProjection", context.camera.previousProjection)
+            putUniform("uPreviousView", context.camera.previousView)
+            putUniform("uCameraPosition", camera.position)
+            putUniform("uModel", transformation)
+            putUniform("uPreviousModel", lastTransform.transformation())
+            putUniform("uLightPosition", light?.position ?: Vector3f(0f))
+            putUniform("uLightColor", light?.color ?: Vector3f(0f))
+            putUniform("uTime", context.time.elapsedInSeconds.toFloat())
+            putUniform("uTextureScale", being.textureScale)
 
             being.texture?.bind() ?: emptySet<Texture>().bind()
             putUniforms(this)
@@ -66,9 +71,14 @@ class SingleBeing(
         )
     }
 
+    override fun onPostRender(context: IWindowContext) {
+        lastTransform.set(being.transform)
+    }
+
     override fun dispose() {
         super.dispose()
         being.disposeRigidBody(context)
+        context.removeListener(this)
     }
 
     companion object {

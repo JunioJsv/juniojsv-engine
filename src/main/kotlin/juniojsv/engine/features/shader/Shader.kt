@@ -16,7 +16,7 @@ enum class ShaderType {
     FRAGMENT
 }
 
-class Shader(private val file: String, val type: ShaderType) {
+class Shader(val file: String, val type: ShaderType) {
     var id: Int by Delegates.notNull()
 
     companion object {

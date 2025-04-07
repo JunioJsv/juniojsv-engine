@@ -27,11 +27,11 @@ class PhysicsContext(private val window: Window) : IPhysicsContext {
     }
 
     fun onPreRender() {
-        val deltaTime = window.context.time.deltaInSeconds
-        world.stepSimulation(deltaTime.toFloat() * speed, 5)
+        val deltaTime = window.context.time.deltaInSeconds.toFloat()
+        world.stepSimulation(deltaTime * speed, 1)
         world.collisionObjectArray.forEach {
             val being = it.userPointer as? BaseBeing?
-            being?.updateTransform()
+            being?.applyRigidBodyTransform()
         }
     }
 }
