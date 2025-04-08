@@ -2,16 +2,16 @@ package juniojsv.engine.features.context
 
 import imgui.ImGui
 import imgui.flag.ImGuiConfigFlags
-import juniojsv.engine.features.gui.IImGuiLayout
+import juniojsv.engine.features.gui.ImGuiLayout
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW
 
 interface IGuiContext {
-    var layout: IImGuiLayout?
+    var layout: ImGuiLayout?
 }
 
 class GuiContext(private val window: Window) : IGuiContext {
-    override var layout: IImGuiLayout? = null
+    override var layout: ImGuiLayout? = null
 
     fun onPostRender() {
         window.imGuiGlfw.newFrame()

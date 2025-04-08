@@ -15,7 +15,7 @@ class SkyBox(
     private val shader: ShadersProgram,
     var scale: Float = Scale.KILOMETER.length(1f),
     private val isShaderOverridable: Boolean = true
-) : IRender {
+) : Render() {
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
     private fun getAmbientLightColor(): Vector3f = texture.faceWithMaxPixelLuminance.value.color
@@ -46,6 +46,7 @@ class SkyBox(
     fun getAmbientLight() = Light(getMaxPixelLuminancePosition(), getAmbientLightColor())
 
     override fun render(context: IWindowContext) {
+        super.render(context)
         if (isDisabled) return
         val transformation = transformation()
         GL30.glDisable(GL30.GL_DEPTH_TEST)

@@ -31,7 +31,7 @@ class PhysicsContext(private val window: Window) : IPhysicsContext {
         world.stepSimulation(deltaTime * speed, 5, 1 / 60f)
         world.collisionObjectArray.forEach {
             val being = it.userPointer as? BaseBeing?
-            being?.applyRigidBodyTransform()
+            being?.applyCollisionObjectTransform()
         }
     }
 }

@@ -1,9 +1,10 @@
-package juniojsv.engine.features.entity
+package juniojsv.engine.features.utils
 
 import com.bulletphysics.collision.dispatch.CollisionObject
 import juniojsv.engine.extensions.toJoml
-import juniojsv.engine.features.utils.Scale
+import juniojsv.engine.extensions.toVecmath
 import org.joml.Matrix4f
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import javax.vecmath.Quat4f
 import com.bulletphysics.linearmath.Transform as BulletTransform
@@ -23,6 +24,20 @@ data class Transform(
         position.set(source.position)
         rotation.set(source.rotation)
         scale.set(source.scale)
+    }
+
+    fun toBulletTransform(): BulletTransform {
+        val transform = BulletTransform().apply {
+            setIdentity()
+            origin.set(position.x, position.y, position.z)
+            val quaternion = Quaternionf().rotateXYZ(
+                Math.toRadians(rotation.x.toDouble()).toFloat(),
+                Math.toRadians(rotation.y.toDouble()).toFloat(),
+                Math.toRadians(rotation.z.toDouble()).toFloat()
+            )
+            setRotation(quaternion.toVecmath())
+        }
+        return transform
     }
 
     fun set(source: CollisionObject) {

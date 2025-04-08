@@ -20,17 +20,14 @@ class MultiBeing(
     private val isFrustumCullingEnabled: Boolean = true,
     private val isPhysicsEnabled: Boolean = true,
     private val isShaderOverridable: Boolean = true
-) : BeingRender(isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable), IWindowContextListener {
+) : BeingRender(isDebuggable), IWindowContextListener {
     private val boundary = mesh.boundary
-    private lateinit var beings: List<BaseBeing>
+    private val beings = mutableListOf<BaseBeing>()
     private lateinit var textures: Set<Texture>
     private var transformationsVbo by Delegates.notNull<Int>()
     private var previousTransformationsVbo by Delegates.notNull<Int>()
     private var texturesIndexesVbo by Delegates.notNull<Int>()
     private var texturesScaleVbo by Delegates.notNull<Int>()
-    private lateinit var context: IWindowContext
-
-    private val disposeCallbacks = mutableListOf<() -> Unit>()
 
     constructor(
         mesh: Mesh,
@@ -45,22 +42,18 @@ class MultiBeing(
     }
 
     fun update(beings: List<BaseBeing>) {
-        this.beings = beings
+        if (beings.isNotEmpty()) disposeBeings()
+        this.beings.addAll(beings)
         textures = this.beings.mapNotNull { it.texture }.toSet()
         didSetup = false
     }
 
     override fun setup(context: IWindowContext) {
         super.setup(context)
-        this.context = context
         context.addListener(this)
-        disposeCallbacks.forEach { it.invoke() }
-        disposeCallbacks.clear()
-        if (isPhysicsEnabled && boundary != null)
-            for (being in beings) {
-                being.createRigidBody(context, boundary)
-                disposeCallbacks.add { being.disposeRigidBody(context) }
-            }
+        if (isPhysicsEnabled && boundary != null) for (being in beings) {
+            being.setAsRigidBody(context, boundary)
+        }
     }
 
     init {
@@ -217,7 +210,7 @@ class MultiBeing(
         val camera = context.camera.instance
         val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
 
-        var beings = this.beings
+        var beings: List<BaseBeing> = this.beings
         if (isFrustumCullingEnabled && boundary != null) {
             beings = beings.filter { being ->
                 boundary.isInsideFrustum(frustum, being.transform).also { isInsideFrustum ->
@@ -253,13 +246,18 @@ class MultiBeing(
         beings.forEach { it.transform.setAsPrevious() }
     }
 
+    private fun disposeBeings() {
+        beings.forEach { it.dispose(context) }
+        beings.clear()
+    }
+
     override fun dispose() {
         super.dispose()
         GL30.glDeleteBuffers(transformationsVbo)
         GL30.glDeleteBuffers(texturesIndexesVbo)
         GL30.glDeleteBuffers(texturesScaleVbo)
         context.removeListener(this)
-        disposeCallbacks.forEach { it.invoke() }
+        disposeBeings()
     }
 
     companion object {

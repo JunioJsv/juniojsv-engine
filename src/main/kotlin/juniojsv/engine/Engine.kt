@@ -1,12 +1,13 @@
 package juniojsv.engine
 
 import imgui.ImGui
-import juniojsv.engine.features.entity.Camera
 import juniojsv.engine.features.entity.debugger.Debugger
 import juniojsv.engine.features.gui.MainLayoutListener
-import juniojsv.engine.features.scene.IScene
 import juniojsv.engine.features.scene.MainScene
+import juniojsv.engine.features.scene.Scene
+import juniojsv.engine.features.utils.Debounce
 import juniojsv.engine.features.utils.KeyboardHandler
+import juniojsv.engine.features.utils.MovementDirection
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
 import juniojsv.engine.features.window.WindowFrameBuffers
@@ -18,13 +19,15 @@ class Engine(resolution: Resolution) : Window(resolution) {
 
     private val keyboard = KeyboardHandler()
 
-    private lateinit var camera: Camera
     private var isCameraEnabled = false
-    private val movements = mutableSetOf<Camera.CameraMovement>()
+    private val movements = mutableSetOf<MovementDirection>()
 
-    private lateinit var scene: IScene
+    private lateinit var scene: Scene
     private lateinit var debugger: Debugger
     private lateinit var buffers: WindowFrameBuffers
+
+    private val camera
+        get() = context.camera.instance
 
     override fun onCreate() {
         buffers = WindowFrameBuffers(this)
@@ -35,9 +38,7 @@ class Engine(resolution: Resolution) : Window(resolution) {
                 }
             })
         }
-        scene.setup(context)
         onSetupKeyBoard()
-        camera = context.camera.instance
         debugger = Debugger()
         GL11.glEnable(GL11.GL_DEPTH_TEST)
         GL11.glEnable(GL11.GL_CULL_FACE)
@@ -94,33 +95,43 @@ class Engine(resolution: Resolution) : Window(resolution) {
     }
 
     private fun onSetupKeyBoard() {
+        val closeWindow = Debounce {
+            GLFW.glfwSetWindowShouldClose(id, true)
+        }
+        val nextCamera = Debounce {
+            if (isCameraEnabled)
+                context.camera.next()
+        }
         with(keyboard) {
             setKeyAction(GLFW.GLFW_KEY_ESCAPE) {
-                GLFW.glfwSetWindowShouldClose(id, true)
+                closeWindow.invoke()
             }
             setKeyAction(GLFW.GLFW_KEY_W) {
                 if (isCameraEnabled)
-                    movements.add(Camera.CameraMovement.FORWARD)
+                    movements.add(MovementDirection.FORWARD)
             }
             setKeyAction(GLFW.GLFW_KEY_A) {
                 if (isCameraEnabled)
-                    movements.add(Camera.CameraMovement.LEFT)
+                    movements.add(MovementDirection.LEFT)
             }
             setKeyAction(GLFW.GLFW_KEY_S) {
                 if (isCameraEnabled)
-                    movements.add(Camera.CameraMovement.BACKWARD)
+                    movements.add(MovementDirection.BACKWARD)
             }
             setKeyAction(GLFW.GLFW_KEY_D) {
                 if (isCameraEnabled)
-                    movements.add(Camera.CameraMovement.RIGHT)
+                    movements.add(MovementDirection.RIGHT)
             }
             setKeyAction(GLFW.GLFW_KEY_SPACE) {
                 if (isCameraEnabled)
-                    movements.add(Camera.CameraMovement.UP)
+                    movements.add(MovementDirection.UP)
             }
             setKeyAction(GLFW.GLFW_KEY_LEFT_SHIFT) {
                 if (isCameraEnabled)
-                    movements.add(Camera.CameraMovement.DOWN)
+                    movements.add(MovementDirection.DOWN)
+            }
+            setKeyAction(GLFW.GLFW_KEY_C) {
+                nextCamera.invoke()
             }
         }
     }

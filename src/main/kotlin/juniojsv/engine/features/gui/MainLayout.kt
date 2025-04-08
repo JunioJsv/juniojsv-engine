@@ -18,21 +18,23 @@ interface MainLayoutCallbacks {
     fun onGenerateObjects(count: Int, instanced: Boolean = false)
 }
 
-class MainLayout(private val callbacks: MainLayoutCallbacks) : IImGuiLayout {
+class MainLayout(private val callbacks: MainLayoutCallbacks) : ImGuiLayout() {
     private var instanced = false
     private val objectsCount = intArrayOf(0)
     private val resolutionScale = floatArrayOf(1f)
     private val motionBlur = floatArrayOf(.5f)
     private val ambientColor = floatArrayOf(0f, 0f, 0f)
-    private val listeners = mutableSetOf<MainLayoutListener>()
     private val physicsSpeed = floatArrayOf(0f)
     private val skyboxIndex = intArrayOf(0)
+    private val listeners = mutableSetOf<MainLayoutListener>()
 
     fun addListener(listener: MainLayoutListener) {
         listeners.add(listener)
     }
 
     override fun setup(context: IWindowContext) {
+        super.setup(context)
+
         context.render.ambientLight?.let {
             val color = it.color
             ambientColor[0] = color.x
@@ -41,9 +43,12 @@ class MainLayout(private val callbacks: MainLayoutCallbacks) : IImGuiLayout {
         }
         physicsSpeed[0] = context.physics.speed
         motionBlur[0] = context.render.motionBlur
+        resolutionScale[0] = context.render.resolutionScale
     }
 
     override fun render(context: IWindowContext) {
+        super.render(context)
+
         ImGui.begin(
             "Scene Settings", ImGuiWindowFlags.NoResize or ImGuiWindowFlags.AlwaysAutoResize
         )
@@ -58,6 +63,7 @@ class MainLayout(private val callbacks: MainLayoutCallbacks) : IImGuiLayout {
                     if (ImGui.selectable(skyboxNames[i], skyboxIndex.first() == i)) {
                         skyboxIndex[0] = i
                         callbacks.setSkybox(context, skyboxIndex.first())
+                        didSetup = false
                     }
                 }
                 ImGui.endCombo()

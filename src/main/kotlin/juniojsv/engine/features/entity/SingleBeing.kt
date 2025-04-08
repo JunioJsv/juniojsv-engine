@@ -10,7 +10,7 @@ import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
 
-class SingleBeing(
+open class SingleBeing(
     private val mesh: Mesh,
     private val shader: ShadersProgram,
     private val being: BaseBeing = BaseBeing(),
@@ -18,17 +18,14 @@ class SingleBeing(
     private val isFrustumCullingEnabled: Boolean = true,
     private val isPhysicsEnabled: Boolean = true,
     private val isShaderOverridable: Boolean = true
-) : BeingRender(isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable),
-    IWindowContextListener {
-    private lateinit var context: IWindowContext
+) : BeingRender(isDebuggable), IWindowContextListener {
 
     override fun setup(context: IWindowContext) {
         super.setup(context)
-        this.context = context
         context.addListener(this)
         val boundary = mesh.boundary
         if (isPhysicsEnabled && boundary != null) {
-            being.createRigidBody(context, boundary)
+            being.setAsRigidBody(context, boundary)
         }
     }
 
@@ -75,7 +72,7 @@ class SingleBeing(
 
     override fun dispose() {
         super.dispose()
-        being.disposeRigidBody(context)
+        being.dispose(context)
         context.removeListener(this)
     }
 

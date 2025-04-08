@@ -13,10 +13,42 @@ interface ICameraContext {
     val view: Matrix4f
     val previousView: Matrix4f
     val frustum: Frustum
+    fun setAsCurrent(name: String)
+    fun getOrPut(name: String, defaultValue: (windows: Window) -> Camera): Camera
+    fun remove(name: String)
+    fun next()
 }
 
-class CameraContext(window: Window) : ICameraContext {
-    private val camera = Camera(Vector3f(), window)
+class CameraContext(private val window: Window) : ICameraContext {
+    private val defaultCamera = Camera(Vector3f(), window)
+    private var camera = "main"
+    private val cameras = mutableMapOf(
+        camera to defaultCamera
+    )
+
+
+    override fun setAsCurrent(name: String) {
+        camera = name
+    }
+
+    override fun next() {
+        val keys = cameras.keys.toList()
+        val currentCameraIndex = keys.indexOf(camera)
+        val nextCameraIndex = (currentCameraIndex + 1) % keys.size
+        camera = keys[nextCameraIndex]
+    }
+
+    override fun remove(name: String) {
+        cameras.remove(name)
+    }
+
+    override fun getOrPut(name: String, defaultValue: (windows: Window) -> Camera): Camera {
+        return cameras.getOrPut(name) { defaultValue(window) }
+    }
+
+    override val instance: Camera
+        get() = cameras.getOrDefault(camera, defaultCamera)
+
     override var projection: Matrix4f = instance.view()
         private set
     override var previousProjection: Matrix4f = projection
@@ -29,9 +61,6 @@ class CameraContext(window: Window) : ICameraContext {
 
     override var frustum = Frustum()
         private set
-
-    override val instance: Camera
-        get() = camera
 
     fun onPreRender() {
         projection = instance.projection()

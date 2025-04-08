@@ -3,12 +3,11 @@ package juniojsv.engine.features.utils
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import juniojsv.engine.extensions.toVecmath
-import juniojsv.engine.features.entity.Transform
 import juniojsv.engine.features.entity.debugger.DebugRectangle
 import juniojsv.engine.features.entity.debugger.IDebugBeing
 import org.joml.Vector3f
 
-data class BoundaryRectangle(val extents: Vector3f) : IBoundaryShape {
+class BoundaryRectangle(val extents: Vector3f) : IBoundaryShape {
 
     override fun isInsideFrustum(frustum: Frustum, transform: Transform): Boolean {
         val scale = Vector3f(extents).mul(transform.scale)

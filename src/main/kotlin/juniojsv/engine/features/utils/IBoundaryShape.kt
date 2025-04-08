@@ -1,7 +1,6 @@
 package juniojsv.engine.features.utils
 
 import com.bulletphysics.collision.shapes.CollisionShape
-import juniojsv.engine.features.entity.Transform
 import juniojsv.engine.features.entity.debugger.IDebugBeing
 import org.joml.Vector3f
 

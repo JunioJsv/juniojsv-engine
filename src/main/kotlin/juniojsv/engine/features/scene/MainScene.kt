@@ -6,17 +6,18 @@ import juniojsv.engine.features.gui.MainLayout
 import juniojsv.engine.features.gui.MainLayoutCallbacks
 import juniojsv.engine.features.texture.FileTexture
 import juniojsv.engine.features.utils.Scale
+import juniojsv.engine.features.utils.Transform
 import juniojsv.engine.features.utils.factories.*
 import org.joml.Vector3f
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-class MainScene : IScene, MainLayoutCallbacks {
+class MainScene : Scene(), MainLayoutCallbacks {
     private lateinit var skybox: SkyBox
     private val textures = mutableListOf<FileTexture>()
     val layout = MainLayout(this)
-    private val objects = mutableListOf<IRender>()
-    private lateinit var floor: IRender
+    private val objects = mutableListOf<Render>()
+    private lateinit var floor: Render
     private val defaultInstancedShadersProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED)
     private val defaultShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT)
     private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
@@ -26,10 +27,16 @@ class MainScene : IScene, MainLayoutCallbacks {
         TextureFactory.createCubeMapTexture(Textures.DESERT_SKYBOX)
     )
 
+    private val player = Player(
+        Transform(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
+    )
+
     override fun setup(context: IWindowContext) {
-        context.camera.instance.position.add(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
-        layout.setup(context)
+        super.setup(context)
+
         context.gui.layout = layout
+        context.camera.instance.position.add(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
+        context.camera.setAsCurrent(player.cameraName)
 
         skybox = SkyBox(
             SkyboxMesh.create(),
@@ -57,16 +64,19 @@ class MainScene : IScene, MainLayoutCallbacks {
                     rotation = Vector3f(-7f, 0f, 0f)
                 ),
                 TextureFactory.createTexture(Textures.METAL_07),
-                textureScale = 20f,
+                textureScale = 1000f,
                 mass = 0f
             )
         )
     }
 
     override fun render(context: IWindowContext) {
+        super.render(context)
+
         skybox.render(context)
         floor.render(context)
         objects.forEach { it.render(context) }
+        player.render(context)
     }
 
     override fun onGenerateObjects(count: Int, instanced: Boolean) {

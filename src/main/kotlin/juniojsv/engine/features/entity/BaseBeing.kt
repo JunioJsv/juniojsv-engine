@@ -1,58 +1,60 @@
 package juniojsv.engine.features.entity
 
+import com.bulletphysics.collision.dispatch.CollisionObject
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo
 import com.bulletphysics.linearmath.DefaultMotionState
-import com.bulletphysics.linearmath.Transform
-import juniojsv.engine.extensions.toVecmath
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.utils.IBoundaryShape
-import org.joml.Quaternionf
-import juniojsv.engine.features.entity.Transform as EntityTransform
+import juniojsv.engine.features.utils.Transform as EntityTransform
 
 class BaseBeing(
     val transform: EntityTransform = EntityTransform(),
     val texture: Texture? = null,
     val textureScale: Float = 1f,
-    val mass: Float = 10f
+    val mass: Float = 10f,
+    val restitution: Float = .3f,
+    val friction: Float = .5f,
+    val linearDamping: Float = 0f,
+    val angularDamping: Float = .5f,
+    val angularFactor: Float = 1f
 ) {
-    private var body: RigidBody? = null
+    var collisionObject: CollisionObject? = null
+        private set
 
-    fun applyRigidBodyTransform() = body?.also { transform.set(it) }
+    fun applyCollisionObjectTransform() = collisionObject?.also { transform.set(it) }
 
-    fun createRigidBody(context: IWindowContext, boundary: IBoundaryShape) {
-        val position = transform.position
+    fun setAsRigidBody(context: IWindowContext, boundary: IBoundaryShape) {
+        dispose(context)
         val scale = transform.scale
-        val rotation = transform.rotation
         val shape = boundary.getCollisionShape(scale)
         val inertia = javax.vecmath.Vector3f()
         if (mass > 0f) shape.calculateLocalInertia(mass, inertia)
-        val transform = Transform().apply {
-            setIdentity()
-            origin.set(position.x, position.y, position.z)
-            val quaternion = Quaternionf().rotateXYZ(
-                Math.toRadians(rotation.x.toDouble()).toFloat(),
-                Math.toRadians(rotation.y.toDouble()).toFloat(),
-                Math.toRadians(rotation.z.toDouble()).toFloat()
-            )
-            setRotation(quaternion.toVecmath())
-        }
+        val transform = transform.toBulletTransform()
         val config = RigidBodyConstructionInfo(mass, DefaultMotionState(transform), shape, inertia)
         config.additionalDamping = true
-        val body = RigidBody(config)
-        body.userPointer = this
-        body.restitution = .3f
+        config.restitution = restitution
+        config.friction = friction
+        config.linearDamping = linearDamping
+        config.angularDamping = angularDamping
+
+        val body = RigidBody(config).also { it.userPointer = this }
+        body.angularFactor = angularFactor
 
         context.physics.world.addRigidBody(body)
-        this.body = body
+        collisionObject = body
     }
 
-    fun disposeRigidBody(context: IWindowContext) {
-        body.let {
+    fun dispose(context: IWindowContext) {
+        collisionObject.let {
             if (it == null) return
-            body = null
-            context.physics.world.removeRigidBody(it)
+            collisionObject = null
+            if (it is RigidBody) {
+                context.physics.world.removeRigidBody(it)
+            } else {
+                context.physics.world.removeCollisionObject(it)
+            }
         }
     }
 }

@@ -60,7 +60,7 @@ data class RawTexture internal constructor(val pixels: IntBuffer, val width: Int
 
 abstract class Texture {
     var id: Int = GL11.glGenTextures()
-        internal set
+        protected set
 
     abstract fun getBindType(): Int
 

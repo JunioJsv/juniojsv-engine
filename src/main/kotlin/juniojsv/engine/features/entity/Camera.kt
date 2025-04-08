@@ -1,5 +1,7 @@
 package juniojsv.engine.features.entity
 
+import juniojsv.engine.features.utils.IMovable
+import juniojsv.engine.features.utils.MovementDirection
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.window.Window
 import org.joml.Math.toRadians
@@ -11,16 +13,14 @@ import kotlin.math.sin
 class Camera(
     val position: Vector3f,
     private val window: Window
-) {
+) : IMovable {
     var fov = 75f
     var near = Scale.CENTIMETER.length(1f)
     var far = Scale.KILOMETER.length(100f)
 
     val rotation: Vector3f = Vector3f(0f)
 
-    enum class CameraMovement {
-        FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN
-    }
+    var parent: Any? = null
 
     fun yaw() = toRadians(rotation.x.toDouble()).toFloat()
 
@@ -40,7 +40,13 @@ class Camera(
 
     fun up() = Vector3f(0f, 1f, 0f)
 
-    fun move(movements: Set<CameraMovement>) {
+    override fun move(movements: Set<MovementDirection>) {
+        val parent = this.parent
+        if (parent is IMovable) {
+            parent.move(movements)
+            return
+        }
+
         if (movements.isEmpty()) return
         val delta = window.context.time.deltaInSeconds
         val speed = (Scale.METER.length(100f) * delta).toFloat()
@@ -49,23 +55,21 @@ class Camera(
         val right = right()
         val up = up()
 
-        var direction = Vector3f()
+        val direction = Vector3f()
 
         for (movement in movements) {
-            direction.add(
-                when (movement) {
-                    CameraMovement.FORWARD -> forward
-                    CameraMovement.BACKWARD -> forward.negate()
-                    CameraMovement.RIGHT -> right
-                    CameraMovement.LEFT -> right.negate()
-                    CameraMovement.UP -> up
-                    CameraMovement.DOWN -> up.negate()
-                }
-            )
+            when (movement) {
+                MovementDirection.FORWARD -> direction.add(forward)
+                MovementDirection.BACKWARD -> direction.sub(forward)
+                MovementDirection.RIGHT -> direction.add(right)
+                MovementDirection.LEFT -> direction.sub(right)
+                MovementDirection.UP -> direction.add(up)
+                MovementDirection.DOWN -> direction.sub(up)
+            }
         }
 
         if (direction.length() > 0f) {
-            direction = direction.normalize().mul(speed)
+            direction.normalize().mul(speed)
             position.add(direction)
         }
     }
