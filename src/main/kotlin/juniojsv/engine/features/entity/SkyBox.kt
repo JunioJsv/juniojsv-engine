@@ -11,16 +11,42 @@ import org.lwjgl.opengl.GL30
 
 class SkyBox(
     private val mesh: Mesh,
-    val texture: FileCubeMapTexture,
+    var texture: FileCubeMapTexture,
     private val shader: ShadersProgram,
     var scale: Float = Scale.KILOMETER.length(1f),
     private val isShaderOverridable: Boolean = true
 ) : IRender {
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
+    private fun getAmbientLightColor(): Vector3f = texture.faceWithMaxPixelLuminance.value.color
+
+    private fun getMaxPixelLuminancePosition(): Vector3f {
+        val faceWithMaxPixelLuminance = texture.faceWithMaxPixelLuminance
+        val face = faceWithMaxPixelLuminance.index
+        val (x, y) = faceWithMaxPixelLuminance.value.x to faceWithMaxPixelLuminance.value.y
+        val (width, height) = texture.width to texture.height
+
+        val uv = Vector3f(
+            (x + 0.5f) / width * 2f - 1f,
+            (y + 0.5f) / height * 2f - 1f,
+            1f
+        )
+
+        return when (face) {
+            0 -> Vector3f(1f, -uv.y, -uv.x)
+            1 -> Vector3f(-1f, -uv.y, uv.x)
+            2 -> Vector3f(uv.x, 1f, uv.y)
+            3 -> Vector3f(uv.x, -1f, -uv.y)
+            4 -> Vector3f(uv.x, -uv.y, 1f)
+            5 -> Vector3f(-uv.x, -uv.y, -1f)
+            else -> Vector3f(0f)
+        }.mul(scale)
+    }
+
+    fun getAmbientLight() = Light(getMaxPixelLuminancePosition(), getAmbientLightColor())
+
     override fun render(context: IWindowContext) {
         if (isDisabled) return
-        val light = context.render.ambientLight
         val transformation = transformation()
         GL30.glDisable(GL30.GL_DEPTH_TEST)
 
@@ -28,7 +54,6 @@ class SkyBox(
 
         shader.apply {
             bind()
-            putUniform("uLightColor", light?.color ?: Vector3f(0f))
             putUniform("uModel", transformation)
             putUniform("uPreviousModel", transformation)
             putUniform("uProjection", context.camera.projection)

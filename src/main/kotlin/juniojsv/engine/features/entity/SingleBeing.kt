@@ -22,8 +22,6 @@ class SingleBeing(
     IWindowContextListener {
     private lateinit var context: IWindowContext
 
-    private val lastTransform = Transform().apply { set(being.transform) }
-
     override fun setup(context: IWindowContext) {
         super.setup(context)
         this.context = context
@@ -56,7 +54,7 @@ class SingleBeing(
             putUniform("uPreviousView", context.camera.previousView)
             putUniform("uCameraPosition", camera.position)
             putUniform("uModel", transformation)
-            putUniform("uPreviousModel", lastTransform.transformation())
+            putUniform("uPreviousModel", being.transform.previous.transformation())
             putUniform("uLightPosition", light?.position ?: Vector3f(0f))
             putUniform("uLightColor", light?.color ?: Vector3f(0f))
             putUniform("uTime", context.time.elapsedInSeconds.toFloat())
@@ -72,7 +70,7 @@ class SingleBeing(
     }
 
     override fun onPostRender(context: IWindowContext) {
-        lastTransform.set(being.transform)
+        being.transform.setAsPrevious()
     }
 
     override fun dispose() {

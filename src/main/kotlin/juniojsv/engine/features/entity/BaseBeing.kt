@@ -42,14 +42,17 @@ class BaseBeing(
         config.additionalDamping = true
         val body = RigidBody(config)
         body.userPointer = this
+        body.restitution = .3f
 
         context.physics.world.addRigidBody(body)
         this.body = body
     }
 
     fun disposeRigidBody(context: IWindowContext) {
-        val body = this.body
-        this.body = null
-        context.physics.world.removeRigidBody(body)
+        body.let {
+            if (it == null) return
+            body = null
+            context.physics.world.removeRigidBody(it)
+        }
     }
 }

@@ -13,11 +13,10 @@ data class Transform(
     val rotation: Vector3f = Vector3f(0f),
     val scale: Vector3f = Vector3f(Scale.METER.length(1f))
 ) {
+    val previous by lazy { Transform().also { it.set(this) } }
 
-    fun interpolate(to: Transform, factor: Float) {
-        position.lerp(to.position, factor)
-        rotation.lerp(to.rotation, factor)
-        scale.lerp(to.scale, factor)
+    fun setAsPrevious() {
+        previous.set(this)
     }
 
     fun set(source: Transform) {

@@ -3,7 +3,6 @@
 in vec3 vPosition;
 
 uniform samplerCube uSkyBox;
-uniform vec3 uLightColor;
 uniform float uTime;
 
 void main() {
@@ -19,5 +18,5 @@ void main() {
     //        gl_FragColor = vec4(light_color, 1);
     //        return;
     //    }
-    gl_FragColor = vec4(vec3(skybox) * uLightColor, 1);
+    gl_FragColor = vec4(vec3(skybox), 1);
 }

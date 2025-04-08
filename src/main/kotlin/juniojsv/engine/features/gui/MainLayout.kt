@@ -1,6 +1,7 @@
 package juniojsv.engine.features.gui
 
 import imgui.ImGui
+import imgui.flag.ImGuiComboFlags
 import imgui.flag.ImGuiWindowFlags
 import juniojsv.engine.Config
 import juniojsv.engine.features.context.IWindowContext
@@ -8,11 +9,16 @@ import juniojsv.engine.features.entity.Light
 import org.joml.Vector3f
 
 interface MainLayoutListener {
-    fun onGenerateObjects(count: Int, instanced: Boolean = false) {}
     fun didResolutionScaleChanged(scale: Float) {}
 }
 
-class MainLayout : IImGuiLayout {
+interface MainLayoutCallbacks {
+    fun getSkyboxCount(): Int
+    fun setSkybox(context: IWindowContext, index: Int)
+    fun onGenerateObjects(count: Int, instanced: Boolean = false)
+}
+
+class MainLayout(private val callbacks: MainLayoutCallbacks) : IImGuiLayout {
     private var instanced = false
     private val objectsCount = intArrayOf(0)
     private val resolutionScale = floatArrayOf(1f)
@@ -20,6 +26,7 @@ class MainLayout : IImGuiLayout {
     private val ambientColor = floatArrayOf(0f, 0f, 0f)
     private val listeners = mutableSetOf<MainLayoutListener>()
     private val physicsSpeed = floatArrayOf(0f)
+    private val skyboxIndex = intArrayOf(0)
 
     fun addListener(listener: MainLayoutListener) {
         listeners.add(listener)
@@ -41,24 +48,36 @@ class MainLayout : IImGuiLayout {
             "Scene Settings", ImGuiWindowFlags.NoResize or ImGuiWindowFlags.AlwaysAutoResize
         )
 
+        ImGui.text("Select Skybox")
+        val skyboxCount = callbacks.getSkyboxCount()
+        if (skyboxCount > 0) {
+            val skyboxNames = (0 until skyboxCount).map { "Skybox ${it + 1}" }.toTypedArray()
+            val currentSkyboxName = skyboxNames.getOrNull(skyboxIndex.first()) ?: ""
+            if (ImGui.beginCombo("Skybox", currentSkyboxName, ImGuiComboFlags.NoArrowButton)) {
+                for (i in skyboxNames.indices) {
+                    if (ImGui.selectable(skyboxNames[i], skyboxIndex.first() == i)) {
+                        skyboxIndex[0] = i
+                        callbacks.setSkybox(context, skyboxIndex.first())
+                    }
+                }
+                ImGui.endCombo()
+            }
+        }
+
         ImGui.text("Number of Objects to Generate")
         ImGui.sliderInt("Objects", objectsCount, 1, 1024 * 5)
 
         if (ImGui.checkbox("Instanced", instanced)) {
             instanced = !instanced
-            listeners.forEach {
-                it.onGenerateObjects(objectsCount.first(), instanced)
-            }
+            callbacks.onGenerateObjects(objectsCount.first(), instanced)
         }
 
         if (ImGui.button("Generate Objects")) {
-            listeners.forEach {
-                it.onGenerateObjects(objectsCount.first(), instanced)
-            }
+            callbacks.onGenerateObjects(objectsCount.first(), instanced)
         }
 
         ImGui.text("Physics Speed")
-        if (ImGui.sliderFloat("Speed", physicsSpeed, 0f, 10f)) {
+        if (ImGui.sliderFloat("Speed", physicsSpeed, 0f, 3f)) {
             context.physics.speed = physicsSpeed.first()
         }
 

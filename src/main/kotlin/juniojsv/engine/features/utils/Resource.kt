@@ -7,7 +7,7 @@ class Resource {
         fun get(file: String): InputStream {
             val stream = Resource::class.java.classLoader.getResourceAsStream(file)
 
-            return stream ?: throw Exception("Can't find the resource")
+            return stream ?: throw Exception("Can't find the resource $file")
         }
     }
 }

@@ -3,7 +3,7 @@ package juniojsv.engine.features.scene
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.*
 import juniojsv.engine.features.gui.MainLayout
-import juniojsv.engine.features.gui.MainLayoutListener
+import juniojsv.engine.features.gui.MainLayoutCallbacks
 import juniojsv.engine.features.texture.FileTexture
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.factories.*
@@ -11,33 +11,34 @@ import org.joml.Vector3f
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-class MainScene : IScene, MainLayoutListener {
-    private var sky: IRender? = null
+class MainScene : IScene, MainLayoutCallbacks {
+    private lateinit var skybox: SkyBox
     private val textures = mutableListOf<FileTexture>()
-    val layout = MainLayout()
-    private val light = Light(
-        Vector3f(
-            -Scale.KILOMETER.length(100f), Scale.KILOMETER.length(20.7f), 0f
-        )
-    )
+    val layout = MainLayout(this)
     private val objects = mutableListOf<IRender>()
     private lateinit var floor: IRender
     private val defaultInstancedShadersProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED)
     private val defaultShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT)
     private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
+    private val skyboxes = arrayOf(
+        TextureFactory.createCubeMapTexture(Textures.SUNSET_BAY_SKYBOX),
+        TextureFactory.createCubeMapTexture(Textures.VERY_BIG_MOUNTAINS_SKYBOX),
+        TextureFactory.createCubeMapTexture(Textures.DESERT_SKYBOX)
+    )
 
     override fun setup(context: IWindowContext) {
         context.camera.instance.position.add(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
-        context.render.ambientLight = light
         layout.setup(context)
-        layout.addListener(this)
         context.gui.layout = layout
-        sky = SkyBox(
+
+        skybox = SkyBox(
             SkyboxMesh.create(),
-            TextureFactory.createCubeMapTexture(Textures.SKYBOX),
+            skyboxes.first(),
             ShaderProgramFactory.create(ShaderPrograms.SKYBOX),
             Scale.KILOMETER.length(100f)
         )
+        setSkyboxAsAmbientLight(context)
+
         for (i in 1 until 16) {
             val random = Random.nextInt(1, 21)
             val texture = Textures.valueOf(
@@ -54,13 +55,16 @@ class MainScene : IScene, MainLayoutListener {
                     Vector3f(0f, Scale.KILOMETER.length(1.8f), 0f),
                     scale = Vector3f(Scale.KILOMETER.length(1f)),
                     rotation = Vector3f(-7f, 0f, 0f)
-                ), textures.random(), textureScale = 20f, mass = 0f
+                ),
+                TextureFactory.createTexture(Textures.METAL_07),
+                textureScale = 20f,
+                mass = 0f
             )
         )
     }
 
     override fun render(context: IWindowContext) {
-        sky?.render(context)
+        skybox.render(context)
         floor.render(context)
         objects.forEach { it.render(context) }
     }
@@ -99,5 +103,19 @@ class MainScene : IScene, MainLayoutListener {
                 objects.addAll(beings.map { SingleBeing(mesh, defaultShaderProgram, it) })
             }
         }
+    }
+
+    private fun setSkyboxAsAmbientLight(context: IWindowContext) {
+        val light = skybox.getAmbientLight()
+        context.render.ambientLight = light
+    }
+
+    override fun getSkyboxCount(): Int {
+        return skyboxes.size
+    }
+
+    override fun setSkybox(context: IWindowContext, index: Int) {
+        skybox.texture = skyboxes[index]
+        setSkyboxAsAmbientLight(context)
     }
 }

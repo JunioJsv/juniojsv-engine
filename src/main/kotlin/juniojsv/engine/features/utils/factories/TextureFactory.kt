@@ -26,7 +26,7 @@ enum class Textures(val path: Any) {
     METAL_19("textures/metal/Metal_19-256x256.png"),
     METAL_20("textures/metal/Metal_20-256x256.png"),
     TEST("textures/uv.jpeg"),
-    SKYBOX(
+    SUNSET_BAY_SKYBOX(
         arrayOf(
             "textures/sunset_bay_skybox/SunsetBay_E.png",
             "textures/sunset_bay_skybox/SunsetBay_W.png",
@@ -34,6 +34,26 @@ enum class Textures(val path: Any) {
             "textures/sunset_bay_skybox/SunsetBay_D.png",
             "textures/sunset_bay_skybox/SunsetBay_N.png",
             "textures/sunset_bay_skybox/SunsetBay_S.png"
+        )
+    ),
+    VERY_BIG_MOUNTAINS_SKYBOX(
+        arrayOf(
+            "textures/very_big_mountains_skybox/VeryBigMountainsV2_E.png",
+            "textures/very_big_mountains_skybox/VeryBigMountainsV2_W.png",
+            "textures/very_big_mountains_skybox/VeryBigMountainsV2_U.png",
+            "textures/very_big_mountains_skybox/VeryBigMountainsV2_D.png",
+            "textures/very_big_mountains_skybox/VeryBigMountainsV2_N.png",
+            "textures/very_big_mountains_skybox/VeryBigMountainsV2_S.png"
+        )
+    ),
+    DESERT_SKYBOX(
+        arrayOf(
+            "textures/desert_skybox/SkyboxDesert_E.png",
+            "textures/desert_skybox/SkyboxDesert_W.png",
+            "textures/desert_skybox/SkyboxDesert_U.png",
+            "textures/desert_skybox/SkyboxDesert_D.png",
+            "textures/desert_skybox/SkyboxDesert_N.png",
+            "textures/desert_skybox/SkyboxDesert_S.png"
         )
     )
 }

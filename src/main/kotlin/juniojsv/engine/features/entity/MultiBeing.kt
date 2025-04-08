@@ -32,8 +32,6 @@ class MultiBeing(
 
     private val disposeCallbacks = mutableListOf<() -> Unit>()
 
-    private var lastTransforms by Delegates.notNull<Array<Transform>>()
-
     constructor(
         mesh: Mesh,
         shader: ShadersProgram,
@@ -49,7 +47,6 @@ class MultiBeing(
     fun update(beings: List<BaseBeing>) {
         this.beings = beings
         textures = this.beings.mapNotNull { it.texture }.toSet()
-        lastTransforms = Array(beings.size) { Transform().apply { set(beings[it].transform) } }
         didSetup = false
     }
 
@@ -145,9 +142,9 @@ class MultiBeing(
         GL30.glBindVertexArray(0)
     }
 
-    private fun updateVbos(indexes: List<Int>, beings: List<BaseBeing>) {
+    private fun updateVbos(beings: List<BaseBeing>) {
         updateTransformationsVbo(beings)
-        updatePreviousTransformationsVbo(indexes)
+        updatePreviousTransformationsVbo(beings)
         updateTexturesIndexesVbo(beings)
         updateTexturesScaleVbo(beings)
         GL30.glBindVertexArray(0)
@@ -197,13 +194,12 @@ class MultiBeing(
         MemoryUtil.memFree(transformationsBuffer)
     }
 
-    private fun updatePreviousTransformationsVbo(indexes: List<Int>) {
+    private fun updatePreviousTransformationsVbo(beings: List<BaseBeing>) {
         GL30.glBindVertexArray(mesh.vao)
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, previousTransformationsVbo)
         val transformationsBuffer = MemoryUtil.memAllocFloat(beings.size * 16)
-        for (index in indexes) {
-            val transform = lastTransforms[index]
-            val transformationMatrix = transform.transformation()
+        for (being in beings) {
+            val transformationMatrix = being.transform.previous.transformation()
             val transformationArray = FloatArray(16)
             transformationMatrix.get(transformationArray)
             transformationsBuffer.put(transformationArray)
@@ -221,10 +217,9 @@ class MultiBeing(
         val camera = context.camera.instance
         val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
 
-        var visibleBeings = beings.withIndex()
+        var beings = this.beings
         if (isFrustumCullingEnabled && boundary != null) {
-            visibleBeings = visibleBeings.filter {
-                val being = it.value
+            beings = beings.filter { being ->
                 boundary.isInsideFrustum(frustum, being.transform).also { isInsideFrustum ->
                     if (canDebug && isInsideFrustum)
                         context.render.debugBeings.add(boundary.getDebugBeing(being.transform))
@@ -232,17 +227,9 @@ class MultiBeing(
             }
         }
 
-        val beings = mutableListOf<BaseBeing>()
-        val indexes = mutableListOf<Int>()
-
-        for (being in visibleBeings) {
-            indexes.add(being.index)
-            beings.add(being.value)
-        }
-
         if (beings.isEmpty()) return
 
-        updateVbos(indexes, beings)
+        updateVbos(beings)
 
         shader.apply {
             bind()
@@ -263,9 +250,7 @@ class MultiBeing(
     }
 
     override fun onPostRender(context: IWindowContext) {
-        for ((index, being) in beings.withIndex()) {
-            lastTransforms[index].set(being.transform)
-        }
+        beings.forEach { it.transform.setAsPrevious() }
     }
 
     override fun dispose() {

@@ -4,8 +4,14 @@ import juniojsv.engine.features.utils.Resource
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
+import kotlin.properties.Delegates
 
 class FileCubeMapTexture(files: Array<String>) : Texture() {
+    var width by Delegates.notNull<Int>()
+    var height by Delegates.notNull<Int>()
+
+    lateinit var faceWithMaxPixelLuminance: IndexedValue<PixelLuminance>
+        private set
 
     init {
         val type = getType()
@@ -17,6 +23,19 @@ class FileCubeMapTexture(files: Array<String>) : Texture() {
                 0, GL11.GL_RGBA, texture.width, texture.height, 0,
                 GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, texture.pixels
             )
+
+            val (width, height) = texture.width to texture.height
+
+            // Verify only 1000 pixels per face
+            val maxPixelLuminance = texture.getMaxPixelLuminance((width * height) / 1000)
+            if (index == 0) {
+                this.width = texture.width
+                this.height = texture.height
+                faceWithMaxPixelLuminance = IndexedValue(index, maxPixelLuminance)
+            } else if (maxPixelLuminance.luminance > faceWithMaxPixelLuminance.value.luminance) {
+                faceWithMaxPixelLuminance = IndexedValue(index, maxPixelLuminance)
+            }
+
             texture.dispose()
         }
         GL11.glTexParameteri(
