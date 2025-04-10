@@ -1,4 +1,4 @@
-package juniojsv.engine.features.gui
+package juniojsv.engine.example.scenes.main
 
 import imgui.ImGui
 import imgui.flag.ImGuiComboFlags
@@ -6,6 +6,7 @@ import imgui.flag.ImGuiWindowFlags
 import juniojsv.engine.Config
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.Light
+import juniojsv.engine.features.gui.ImGuiLayout
 import org.joml.Vector3f
 
 interface MainLayoutListener {

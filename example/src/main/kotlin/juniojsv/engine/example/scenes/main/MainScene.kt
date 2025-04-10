@@ -1,9 +1,9 @@
-package juniojsv.engine.features.scene
+package juniojsv.engine.example.scenes.main
 
+import juniojsv.engine.example.Resources
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.*
-import juniojsv.engine.features.gui.MainLayout
-import juniojsv.engine.features.gui.MainLayoutCallbacks
+import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.texture.FileTexture
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.Transform
@@ -21,11 +21,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
     private val defaultInstancedShadersProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED)
     private val defaultShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT)
     private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
-    private val skyboxes = arrayOf(
-        TextureFactory.createCubeMapTexture(Textures.SUNSET_BAY_SKYBOX),
-        TextureFactory.createCubeMapTexture(Textures.VERY_BIG_MOUNTAINS_SKYBOX),
-        TextureFactory.createCubeMapTexture(Textures.DESERT_SKYBOX)
-    )
+    private val skyboxes = Resources.skyboxes.map { TextureFactory.createCubeMapTexture(it.key) }
 
     private val player = Player(
         Transform(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
@@ -48,14 +44,14 @@ class MainScene : Scene(), MainLayoutCallbacks {
 
         for (i in 1 until 16) {
             val random = Random.nextInt(1, 21)
-            val texture = Textures.valueOf(
+            val texture = TextureFactory.createTexture(
                 "METAL_#".replace(
                     "#", "$random".padStart(2, '0')
                 )
             )
-            textures.add(TextureFactory.createTexture(texture))
+            textures.add(texture)
         }
-        textures.add(TextureFactory.createTexture(Textures.TEST))
+        textures.add(TextureFactory.createTexture("TEST"))
         floor = SingleBeing(
             CubeMesh.create(), ShaderProgramFactory.create(ShaderPrograms.DEFAULT), BaseBeing(
                 Transform(
@@ -63,7 +59,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
                     scale = Vector3f(Scale.KILOMETER.length(1f)),
                     rotation = Vector3f(-7f, 0f, 0f)
                 ),
-                TextureFactory.createTexture(Textures.METAL_07),
+                TextureFactory.createTexture("METAL_07"),
                 textureScale = 1000f,
                 mass = 0f
             )

@@ -11,7 +11,14 @@ import juniojsv.engine.features.utils.factories.ShaderProgramFactory
 import juniojsv.engine.features.utils.factories.ShaderPrograms
 import org.lwjgl.opengl.GL30
 
+
 class WindowFrameBuffers(val window: Window) {
+
+    interface IRenderCallbacks {
+        fun onRenderScene()
+        fun onRenderOverlay()
+    }
+
     val context get() = window.context
 
     private fun resolutionWithScale() = window.resolution.withResolutionScale(window.context.render.resolutionScale)
@@ -48,20 +55,17 @@ class WindowFrameBuffers(val window: Window) {
     private val velocityInstancedShader = ShaderProgramFactory.create(ShaderPrograms.VELOCITY_INSTANCED)
     private val velocityShader = ShaderProgramFactory.create(ShaderPrograms.VELOCITY)
 
-    fun render(
-        onRenderScene: () -> Unit,
-        onRenderOverlay: () -> Unit
-    ) {
+    fun render(callbacks: IRenderCallbacks) {
         scene.bind()
-        onRenderScene()
-        onRenderOverlay()
+        callbacks.onRenderScene()
+        callbacks.onRenderOverlay()
         scene.unbind()
 
         velocity.bind()
         MultiBeing.shader = velocityInstancedShader
         SingleBeing.shader = velocityShader
         SkyBox.shader = velocityShader
-        onRenderScene()
+        callbacks.onRenderScene()
         MultiBeing.shader = null
         SingleBeing.shader = null
         SkyBox.shader = null

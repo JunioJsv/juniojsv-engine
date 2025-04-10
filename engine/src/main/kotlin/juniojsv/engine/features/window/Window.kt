@@ -96,6 +96,10 @@ abstract class Window(resolution: Resolution) {
         imGuiGl3.init(glslVersion)
 
         onCreate()
+        GL11.glEnable(GL11.GL_DEPTH_TEST)
+        GL11.glEnable(GL11.GL_CULL_FACE)
+        GL11.glCullFace(GL11.GL_BACK)
+        GL11.glClearColor(0f, 0f, 0f, 1f)
     }
 
     private fun dispose() {

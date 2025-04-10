@@ -1,9 +1,10 @@
-package juniojsv.engine
+package juniojsv.engine.example
 
 import imgui.ImGui
+import juniojsv.engine.Config
+import juniojsv.engine.example.scenes.main.MainLayoutListener
+import juniojsv.engine.example.scenes.main.MainScene
 import juniojsv.engine.features.entity.debugger.Debugger
-import juniojsv.engine.features.gui.MainLayoutListener
-import juniojsv.engine.features.scene.MainScene
 import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.utils.Debounce
 import juniojsv.engine.features.utils.KeyboardHandler
@@ -12,10 +13,9 @@ import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
 import juniojsv.engine.features.window.WindowFrameBuffers
 import org.lwjgl.glfw.GLFW
-import org.lwjgl.opengl.GL11
 
-class Engine(resolution: Resolution) : Window(resolution) {
-    override val title: String = "juniojsv.engine"
+class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRenderCallbacks {
+    override val title: String = "Example"
 
     private val keyboard = KeyboardHandler()
 
@@ -38,26 +38,21 @@ class Engine(resolution: Resolution) : Window(resolution) {
                 }
             })
         }
-        onSetupKeyBoard()
         debugger = Debugger()
-        GL11.glEnable(GL11.GL_DEPTH_TEST)
-        GL11.glEnable(GL11.GL_CULL_FACE)
-        GL11.glCullFace(GL11.GL_BACK)
-        GL11.glClearColor(0f, 0f, 0f, 1f)
-//        MultiBeing.shader = ShaderProgramFactory.create(ShaderPrograms.TEST_INSTANCED)
-//        SingleBeing.shader = ShaderProgramFactory.create(ShaderPrograms.TEST)
+        onSetupKeyBoard()
+    }
+
+    override fun onRenderScene() {
+        scene.render(context)
+    }
+
+    override fun onRenderOverlay() {
+        if (Config.isDebug)
+            debugger.render(context)
     }
 
     override fun onRender() {
-        buffers.render(
-            onRenderScene = {
-                scene.render(context)
-            },
-            onRenderOverlay = {
-                if (Config.isDebug)
-                    debugger.render(context)
-            }
-        )
+        buffers.render(this)
         keyboard.pump(context)
         camera.move(movements)
         movements.clear()
