@@ -7,6 +7,7 @@ import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.texture.Texture.Companion.bind
+import juniojsv.engine.features.utils.factories.ShadersProgramFactory
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33

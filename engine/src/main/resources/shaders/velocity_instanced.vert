@@ -13,7 +13,6 @@ uniform mat4 uPreviousProjection;
 smooth out vec4 vClipPosition;
 smooth out vec4 vPreviousClipPosition;
 
-
 void main() {
     vec4 worldPosition = aModel * vec4(aPosition, 1.);
     vec4 previousWorldPosition = aPreviousModel * vec4(aPosition, 1.);

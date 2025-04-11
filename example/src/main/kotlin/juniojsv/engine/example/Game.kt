@@ -30,6 +30,7 @@ class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRen
         get() = context.camera.instance
 
     override fun onCreate() {
+        Resources.registry()
         buffers = WindowFrameBuffers(this)
         scene = MainScene().apply {
             layout.addListener(object : MainLayoutListener {

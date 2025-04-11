@@ -1,8 +1,10 @@
 package juniojsv.engine.features.utils.factories
 
+import juniojsv.engine.features.texture.ColorTexture
 import juniojsv.engine.features.texture.FileCubeMapTexture
 import juniojsv.engine.features.texture.FileTexture
 import juniojsv.engine.features.texture.Texture
+import org.joml.Vector3f
 
 object TextureFactory {
     private val paths = mutableMapOf<String, Any>()
@@ -29,7 +31,9 @@ object TextureFactory {
         else -> throw IllegalArgumentException("Invalid texture type for '$texture', expected Array<String>")
     }
 
-    fun registerTexture(texture: String, path: Any) {
+    fun createColorTexture(color: Vector3f, width: Int = 1, height: Int = 1) = ColorTexture(width, height, color)
+
+    fun registry(texture: String, path: Any) {
         if (path !is String && (path is Array<*> && !path.isArrayOf<String>())) {
             throw IllegalArgumentException("Path for '$texture' must be a String or an Array<String>")
         }
@@ -37,9 +41,9 @@ object TextureFactory {
         textures.remove(texture)
     }
 
-    fun registerTextures(textures: Map<String, Any>) {
+    fun registry(textures: Map<String, Any>) {
         for (texture in textures) {
-            registerTexture(texture.key, texture.value)
+            registry(texture.key, texture.value)
         }
     }
 }

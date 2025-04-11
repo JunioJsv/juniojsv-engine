@@ -7,8 +7,7 @@ import juniojsv.engine.features.entity.SkyBox
 import juniojsv.engine.features.texture.CopyFrameBufferTexture
 import juniojsv.engine.features.utils.FrameBuffer
 import juniojsv.engine.features.utils.factories.QuadMesh
-import juniojsv.engine.features.utils.factories.ShaderProgramFactory
-import juniojsv.engine.features.utils.factories.ShaderPrograms
+import juniojsv.engine.features.utils.factories.ShadersProgramFactory
 import org.lwjgl.opengl.GL30
 
 
@@ -34,7 +33,7 @@ class WindowFrameBuffers(val window: Window) {
 
     private val viewport = SingleBeing(
         QuadMesh.create(),
-        ShaderProgramFactory.create(ShaderPrograms.WINDOW),
+        ShadersProgramFactory.create("WINDOW"),
         BaseBeing(),
         isFrustumCullingEnabled = false,
         isDebuggable = false,
@@ -52,8 +51,8 @@ class WindowFrameBuffers(val window: Window) {
         lastFrame.resize(resolution)
     }
 
-    private val velocityInstancedShader = ShaderProgramFactory.create(ShaderPrograms.VELOCITY_INSTANCED)
-    private val velocityShader = ShaderProgramFactory.create(ShaderPrograms.VELOCITY)
+    private val velocityInstancedShader = ShadersProgramFactory.create("VELOCITY_INSTANCED")
+    private val velocityShader = ShadersProgramFactory.create("VELOCITY")
 
     fun render(callbacks: IRenderCallbacks) {
         scene.bind()

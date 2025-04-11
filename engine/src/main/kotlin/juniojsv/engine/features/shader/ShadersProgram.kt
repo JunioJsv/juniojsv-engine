@@ -3,6 +3,7 @@ package juniojsv.engine.features.shader
 import juniojsv.engine.extensions.toBuffer
 import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.texture.TextureUnits
+import juniojsv.engine.features.utils.IDisposable
 import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
@@ -11,49 +12,34 @@ import org.lwjgl.system.MemoryUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-open class ShadersProgram {
+data class Shaders(
+    val vertex: VertexShader,
+    val fragment: FragmentShader
+) {
+    val ids = listOf(vertex.id, fragment.id)
+
+    override fun toString(): String {
+        return """Shaders(
+            |   vertex=$vertex,
+            |   fragment=$fragment
+            |)""".trimMargin()
+    }
+}
+
+class ShadersProgram : IDisposable {
     val id: Int
 
-    constructor(vararg shaders: Shader) {
+    constructor(shaders: Shaders) {
         id = GL20.glCreateProgram()
-        setup(
-            shaders.first { it.type == ShaderType.VERTEX },
-            shaders.first { it.type == ShaderType.FRAGMENT }
-        )
+        setup(shaders)
     }
 
     constructor(id: Int) {
         this.id = id
     }
 
-    fun putUniform(name: String, value: Any) = Companion.putUniform(id, name, value)
-
-    fun bind() = Companion.bind(id)
-
-    private fun setup(vertex: Shader, fragment: Shader) {
-        // Todo(verify this)
-        GL20.glBindAttribLocation(id, 0, VERTEX_POSITION)
-        GL20.glBindAttribLocation(id, 1, UV_COORDINATE)
-        GL20.glBindAttribLocation(id, 2, VERTEX_NORMAL)
-
-        GL20.glAttachShader(id, vertex.id)
-        GL20.glAttachShader(id, fragment.id)
-        GL20.glLinkProgram(id)
-
-        val linked = GL20.glGetProgrami(id, GL20.GL_LINK_STATUS)
-        if (linked == GL20.GL_FALSE) {
-            val log = GL20.glGetProgramInfoLog(id)
-            logger.error("Error linking shader program\nvert: ${vertex.file}\nfrag: ${fragment.file}\n\n$log")
-        }
-
-        GL20.glValidateProgram(id)
-    }
-
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(ShadersProgram::class.java)
-        const val VERTEX_POSITION = "aPosition"
-        const val UV_COORDINATE = "aUV"
-        const val VERTEX_NORMAL = "aNormal"
 
         fun getCurrentShaderProgramId(): Int {
             return GL20.glGetInteger(GL20.GL_CURRENT_PROGRAM)
@@ -109,5 +95,33 @@ open class ShadersProgram {
             if (id == getCurrentShaderProgramId()) return
             GL20.glUseProgram(id)
         }
+    }
+
+
+    fun putUniform(name: String, value: Any) = Companion.putUniform(id, name, value)
+
+    fun bind() = Companion.bind(id)
+
+    private fun setup(shaders: Shaders) {
+        shaders.ids.forEach { GL20.glAttachShader(id, it) }
+        GL20.glLinkProgram(id)
+
+        val linked = GL20.glGetProgrami(id, GL20.GL_LINK_STATUS)
+        if (linked == GL20.GL_FALSE) {
+            val log = GL20.glGetProgramInfoLog(id)
+            logger.error(
+                """Error linking Shader Program:
+                |   $shaders
+                |   $log
+            """.trimMargin()
+            )
+        }
+
+        GL20.glValidateProgram(id)
+    }
+
+    override fun dispose() {
+        super.dispose()
+        GL20.glDeleteProgram(id)
     }
 }

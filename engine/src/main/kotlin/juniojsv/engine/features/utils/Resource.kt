@@ -9,5 +9,12 @@ class Resource {
 
             return stream ?: throw Exception("Can't find the resource $file")
         }
+
+        fun text(file: String): String {
+            val reader = get(file).bufferedReader()
+            val text = reader.readText()
+            reader.close()
+            return text
+        }
     }
 }

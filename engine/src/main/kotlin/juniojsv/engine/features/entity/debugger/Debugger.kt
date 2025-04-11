@@ -4,18 +4,21 @@ import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.entity.MultiBeing
 import juniojsv.engine.features.entity.Render
-import juniojsv.engine.features.utils.factories.*
+import juniojsv.engine.features.utils.factories.CubeMesh
+import juniojsv.engine.features.utils.factories.ShadersProgramFactory
+import juniojsv.engine.features.utils.factories.SphereMesh
+import juniojsv.engine.features.utils.factories.TextureFactory
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 
 class Debugger : Render() {
-    private val debugColorTexture = ColorTextureFactory.create(Vector3f(1f, 1f, 0f))
-    private val debugShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED_DEBUG)
+    private val texture = TextureFactory.createColorTexture(Vector3f(1f, 1f, 0f))
+    private val shadersProgram = ShadersProgramFactory.create("DEFAULT_INSTANCED_DEBUG")
 
     private val rectangles = MultiBeing(
         CubeMesh.create(),
-        debugShaderProgram,
+        shadersProgram,
         isDebuggable = false,
         isPhysicsEnabled = false,
         isShaderOverridable = false
@@ -23,7 +26,7 @@ class Debugger : Render() {
 
     private val ellipsoids = MultiBeing(
         SphereMesh(.5f).create(),
-        debugShaderProgram,
+        shadersProgram,
         isDebuggable = false,
         isPhysicsEnabled = false,
         isShaderOverridable = false
@@ -43,7 +46,7 @@ class Debugger : Render() {
                 it as DebugRectangle
                 BaseBeing(
                     it.transform,
-                    debugColorTexture
+                    texture
                 )
             } ?: return@apply
             update(beings)
@@ -55,7 +58,7 @@ class Debugger : Render() {
                 it as DebugEllipsoid
                 BaseBeing(
                     it.transform,
-                    debugColorTexture
+                    texture
                 )
             } ?: return@apply
             update(beings)

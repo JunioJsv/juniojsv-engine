@@ -1,5 +1,7 @@
 package juniojsv.engine.example
 
+import juniojsv.engine.features.shader.FragmentShader
+import juniojsv.engine.features.utils.factories.ShadersProgramFactory
 import juniojsv.engine.features.utils.factories.TextureFactory
 
 object Resources {
@@ -54,7 +56,14 @@ object Resources {
         )
     )
 
-    init {
-        TextureFactory.registerTextures(textures + skyboxes)
+    val shaders = mapOf(
+        "TEST" to ShadersProgramFactory
+            .getShaders("DEFAULT")
+            .copy(fragment = FragmentShader("shaders/test.frag"))
+    )
+
+    fun registry() {
+        TextureFactory.registry(textures + skyboxes)
+        ShadersProgramFactory.registry(shaders)
     }
 }

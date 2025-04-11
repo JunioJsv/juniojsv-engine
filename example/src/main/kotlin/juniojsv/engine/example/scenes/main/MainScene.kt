@@ -18,8 +18,8 @@ class MainScene : Scene(), MainLayoutCallbacks {
     val layout = MainLayout(this)
     private val objects = mutableListOf<Render>()
     private lateinit var floor: Render
-    private val defaultInstancedShadersProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT_INSTANCED)
-    private val defaultShaderProgram = ShaderProgramFactory.create(ShaderPrograms.DEFAULT)
+    private val defaultShadersProgram = ShadersProgramFactory.createDefault()
+    private val defaultShaderProgramInstanced = ShadersProgramFactory.createDefaultInstanced()
     private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
     private val skyboxes = Resources.skyboxes.map { TextureFactory.createCubeMapTexture(it.key) }
 
@@ -37,8 +37,8 @@ class MainScene : Scene(), MainLayoutCallbacks {
         skybox = SkyBox(
             SkyboxMesh.create(),
             skyboxes.first(),
-            ShaderProgramFactory.create(ShaderPrograms.SKYBOX),
-            Scale.KILOMETER.length(100f)
+            ShadersProgramFactory.create("SKYBOX"),
+            scale = Scale.KILOMETER.length(100f)
         )
         setSkyboxAsAmbientLight(context)
 
@@ -53,7 +53,9 @@ class MainScene : Scene(), MainLayoutCallbacks {
         }
         textures.add(TextureFactory.createTexture("TEST"))
         floor = SingleBeing(
-            CubeMesh.create(), ShaderProgramFactory.create(ShaderPrograms.DEFAULT), BaseBeing(
+            CubeMesh.create(),
+            defaultShadersProgram,
+            BaseBeing(
                 Transform(
                     Vector3f(0f, Scale.KILOMETER.length(1.8f), 0f),
                     scale = Vector3f(Scale.KILOMETER.length(1f)),
@@ -103,10 +105,10 @@ class MainScene : Scene(), MainLayoutCallbacks {
 
             if (instanced) {
                 objects.add(
-                    MultiBeing(mesh, defaultInstancedShadersProgram, beings)
+                    MultiBeing(mesh, defaultShaderProgramInstanced, beings)
                 )
             } else {
-                objects.addAll(beings.map { SingleBeing(mesh, defaultShaderProgram, it) })
+                objects.addAll(beings.map { SingleBeing(mesh, defaultShadersProgram, it) })
             }
         }
     }
