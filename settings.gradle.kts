@@ -1,6 +1,8 @@
 pluginManagement {
+    val kotlinVersion = "2.1.20"
     plugins {
-        kotlin("jvm") version "1.3.61"
+        kotlin("jvm") version kotlinVersion
+        kotlin("plugin.serialization") version  kotlinVersion
     }
 }
 rootProject.name = "juniojsv-engine"

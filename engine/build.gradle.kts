@@ -1,5 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization")
 }
 
 version = "1.2.0"
@@ -27,12 +30,6 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.9")
 
     implementation("cz.advel.jbullet:jbullet:20101010-1")
-}
 
-tasks.compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-tasks.compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 }

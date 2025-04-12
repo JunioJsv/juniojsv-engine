@@ -1,7 +1,7 @@
 package juniojsv.engine.features.shader
 
 import juniojsv.engine.features.utils.IDisposable
-import juniojsv.engine.features.utils.Resource
+import juniojsv.engine.features.utils.Resources
 import org.lwjgl.opengl.GL32
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,7 +21,7 @@ sealed class Shader(val file: String, val type: Int) : IDisposable {
     }
 
     private fun compile() {
-        val source = Resource.text(file)
+        val source = Resources.text(file)
 
         GL32.glShaderSource(id, source)
         GL32.glCompileShader(id)

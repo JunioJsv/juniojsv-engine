@@ -1,6 +1,6 @@
 package juniojsv.engine.features.texture
 
-import juniojsv.engine.features.utils.Resource
+import juniojsv.engine.features.utils.Resources
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import java.nio.file.Path
@@ -12,7 +12,7 @@ class FileTexture(file: String) : Texture() {
         val type = getType()
         GL11.glBindTexture(type, id)
 
-        val texture = getRawTexture(Resource.get(file))
+        val texture = getRawTexture(Resources.get(file))
 
         GL11.glTexImage2D(
             type,

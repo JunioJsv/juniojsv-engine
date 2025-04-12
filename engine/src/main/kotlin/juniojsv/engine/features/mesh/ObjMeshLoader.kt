@@ -3,7 +3,7 @@ package juniojsv.engine.features.mesh
 import de.javagl.obj.ObjData
 import de.javagl.obj.ObjReader
 import de.javagl.obj.ObjUtils
-import juniojsv.engine.features.utils.Resource
+import juniojsv.engine.features.utils.Resources
 import java.util.concurrent.Executors
 
 private data class RawObjMesh(
@@ -17,7 +17,7 @@ class ObjMeshLoader : IMeshLoader {
     override fun get(file: String): Mesh {
         if (!file.endsWith(".obj")) throw Exception("This file not is a WaveFront.")
         val (vertices, uv, normals, indices) = Executors.newSingleThreadExecutor().submit<RawObjMesh> {
-            val raw = ObjUtils.convertToRenderable(ObjReader.read(Resource.get(file)))
+            val raw = ObjUtils.convertToRenderable(ObjReader.read(Resources.get(file)))
 
             RawObjMesh(
                 ObjData.getVerticesArray(raw),

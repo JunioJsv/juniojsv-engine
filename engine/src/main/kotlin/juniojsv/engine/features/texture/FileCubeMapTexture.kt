@@ -1,6 +1,6 @@
 package juniojsv.engine.features.texture
 
-import juniojsv.engine.features.utils.Resource
+import juniojsv.engine.features.utils.Resources
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
@@ -17,7 +17,7 @@ class FileCubeMapTexture(files: Array<String>) : Texture() {
         val type = getType()
         GL11.glBindTexture(type, id)
         files.forEachIndexed { index, file ->
-            val texture = getRawTexture(Resource.get(file))
+            val texture = getRawTexture(Resources.get(file))
             GL11.glTexImage2D(
                 GL20.GL_TEXTURE_CUBE_MAP_POSITIVE_X + index,
                 0, GL11.GL_RGBA, texture.width, texture.height, 0,

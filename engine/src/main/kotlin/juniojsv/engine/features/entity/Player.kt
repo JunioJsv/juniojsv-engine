@@ -100,8 +100,8 @@ class Player(
     private val being = BaseBeing(
         transform,
         restitution = 0f,
-        friction = 2.9f,
-        linearDamping = .2f,
+        friction = 1.5f,
+        linearDamping = .6f,
         angularDamping = 1f,
         angularFactor = 0f,
         mass = 1f
@@ -140,11 +140,12 @@ class Player(
                 MovementDirection.RIGHT -> direction.add(right)
                 MovementDirection.LEFT -> direction.sub(right)
                 MovementDirection.UP -> controller.jump()
-                else -> Vector3f()
+                else -> {}
             }
         }
 
-        if (direction.length() > 0f) {
+        if (direction.lengthSquared() > 0f) {
+            direction.normalize()
             controller.move(direction.toVecmath())
         }
     }

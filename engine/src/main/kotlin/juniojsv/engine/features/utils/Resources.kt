@@ -2,10 +2,10 @@ package juniojsv.engine.features.utils
 
 import java.io.InputStream
 
-class Resource {
+class Resources {
     companion object {
         fun get(file: String): InputStream {
-            val stream = Resource::class.java.classLoader.getResourceAsStream(file)
+            val stream = Resources::class.java.classLoader.getResourceAsStream(file)
 
             return stream ?: throw Exception("Can't find the resource $file")
         }

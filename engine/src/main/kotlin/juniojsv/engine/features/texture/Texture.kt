@@ -12,7 +12,7 @@ import javax.imageio.ImageIO
 
 data class PixelLuminance(val x: Int, val y: Int, val luminance: Double, val color: Vector3f)
 
-data class RawTexture internal constructor(val pixels: IntBuffer, val width: Int, val height: Int) : IDisposable {
+class RawTexture internal constructor(val pixels: IntBuffer, val width: Int, val height: Int) : IDisposable {
     override fun dispose() {
         super.dispose()
         MemoryUtil.memFree(pixels)
