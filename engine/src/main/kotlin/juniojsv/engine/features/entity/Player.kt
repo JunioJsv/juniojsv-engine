@@ -101,7 +101,7 @@ class Player(
         transform,
         restitution = 0f,
         friction = 1.5f,
-        linearDamping = .6f,
+        linearDamping = 0f,
         angularDamping = 1f,
         angularFactor = 0f,
         mass = 1f

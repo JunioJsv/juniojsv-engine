@@ -9,6 +9,7 @@ import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.utils.Debounce
 import juniojsv.engine.features.utils.KeyboardHandler
 import juniojsv.engine.features.utils.MovementDirection
+import juniojsv.engine.features.utils.Resources
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
 import juniojsv.engine.features.window.WindowFrameBuffers

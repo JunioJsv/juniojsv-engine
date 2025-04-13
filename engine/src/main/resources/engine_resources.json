@@ -1,0 +1,32 @@
+{
+  "shaders": {
+    "DEFAULT": {
+      "vertex": "shaders/default.vert",
+      "fragment": "shaders/default.frag"
+    },
+    "DEFAULT_INSTANCED": {
+      "vertex": "shaders/default_instanced.vert",
+      "fragment": "shaders/default_instanced.frag"
+    },
+    "DEFAULT_INSTANCED_DEBUG": {
+      "vertex": "shaders/default_instanced.vert",
+      "fragment": "shaders/default_instanced_debug.frag"
+    },
+    "WINDOW": {
+      "vertex": "shaders/window.vert",
+      "fragment": "shaders/window.frag"
+    },
+    "SKYBOX": {
+      "vertex": "shaders/skybox.vert",
+      "fragment": "shaders/skybox.frag"
+    },
+    "VELOCITY": {
+      "vertex": "shaders/velocity.vert",
+      "fragment": "shaders/velocity.frag"
+    },
+    "VELOCITY_INSTANCED": {
+      "vertex": "shaders/velocity_instanced.vert",
+      "fragment": "shaders/velocity.frag"
+    }
+  }
+}

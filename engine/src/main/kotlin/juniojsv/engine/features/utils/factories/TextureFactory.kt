@@ -6,6 +6,10 @@ import juniojsv.engine.features.texture.FileTexture
 import juniojsv.engine.features.texture.Texture
 import org.joml.Vector3f
 
+fun Array<*>.isCubeMap(): Boolean {
+    return this.isArrayOf<String>() && this.size == 6
+}
+
 object TextureFactory {
     private val paths = mutableMapOf<String, Any>()
 
@@ -13,12 +17,23 @@ object TextureFactory {
 
     fun create(texture: String): Texture {
         return textures.getOrPut(texture) {
-            when (val path = paths[texture]) {
-                is String -> FileTexture(path)
-                is Array<*> -> FileCubeMapTexture(path.filterIsInstance<String>().toTypedArray())
-                else -> throw IllegalArgumentException("Invalid texture path for $texture")
+            val path = paths[texture]
+
+            if (path is String) {
+                return FileTexture(path)
+            } else if (path is Array<*> && path.isCubeMap()) {
+                return FileCubeMapTexture((path as Array<String>))
             }
+
+            throw IllegalArgumentException("Invalid texture path for $texture")
         }
+    }
+
+    fun getCubeMaps(): List<FileCubeMapTexture> {
+        return paths.filter {
+            val path = it.value
+            path is Array<*> && path.isCubeMap()
+        }.map { createCubeMapTexture(it.key) }
     }
 
     fun createTexture(texture: String): FileTexture = when (paths[texture]) {

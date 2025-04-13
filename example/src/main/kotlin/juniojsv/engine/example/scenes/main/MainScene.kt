@@ -1,6 +1,5 @@
 package juniojsv.engine.example.scenes.main
 
-import juniojsv.engine.example.Resources
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.*
 import juniojsv.engine.features.scene.Scene
@@ -21,7 +20,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
     private val defaultShadersProgram = ShadersProgramFactory.createDefault()
     private val defaultShaderProgramInstanced = ShadersProgramFactory.createDefaultInstanced()
     private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
-    private val skyboxes = Resources.skyboxes.map { TextureFactory.createCubeMapTexture(it.key) }
+    private val cubemaps = TextureFactory.getCubeMaps()
 
     private val player = Player(
         Transform(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
@@ -36,7 +35,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
 
         skybox = SkyBox(
             SkyboxMesh.create(),
-            skyboxes.first(),
+            cubemaps.first(),
             ShadersProgramFactory.create("SKYBOX"),
             scale = Scale.KILOMETER.length(100f)
         )
@@ -119,11 +118,11 @@ class MainScene : Scene(), MainLayoutCallbacks {
     }
 
     override fun getSkyboxCount(): Int {
-        return skyboxes.size
+        return cubemaps.size
     }
 
     override fun setSkybox(context: IWindowContext, index: Int) {
-        skybox.texture = skyboxes[index]
+        skybox.texture = cubemaps[index]
         setSkyboxAsAmbientLight(context)
     }
 }
