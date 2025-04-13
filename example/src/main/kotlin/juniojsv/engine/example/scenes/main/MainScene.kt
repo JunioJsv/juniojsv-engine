@@ -98,7 +98,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
                     ),
                     textures.random(),
                     textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f),
-                    mass = 10f * size
+                    mass = 100f * size
                 )
             }
 

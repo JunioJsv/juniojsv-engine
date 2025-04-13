@@ -5,89 +5,102 @@ import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.dynamics.ActionInterface
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.IDebugDraw
-import juniojsv.engine.extensions.toVecmath
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.utils.*
 import org.joml.Vector3f
 import com.bulletphysics.linearmath.Transform as BulletTransform
 import javax.vecmath.Vector3f as VecmathVector3f
 
-class PlayerController(private val body: RigidBody) : ActionInterface() {
-    private val acceleration = Scale.METER.length(1f)
-    private val maxVelocity = Scale.METER.length(10f)
+class PlayerController(being: BaseBeing) : ActionInterface() {
+    private val body = being.collisionObject as? RigidBody ?: error("Player requires a RigidBody")
+    private val acceleration = Scale.METER.length(50f)
+    private val maxVelocity = Scale.METER.length(5f)
+    private val jumpVelocity = Scale.METER.length(5f)
+    private val airControlFactor = 0.2f
+    private val mass = being.mass
 
     private val linearVelocity = VecmathVector3f()
-    private val gravity = VecmathVector3f()
     private val transform = BulletTransform()
+    private val impulseAccumulator = VecmathVector3f()
+    private var needsJump = false
 
-    private val impulse = VecmathVector3f()
-    private var needJump = false
+    init {
+        body.setSleepingThresholds(0f, 0f)
+        body.activationState = RigidBody.DISABLE_DEACTIVATION
+    }
 
     override fun updateAction(world: CollisionWorld, deltaTimeStep: Float) {
+        if (!body.isActive) return
         body.getWorldTransform(transform)
-        body.getGravity(gravity)
         body.getLinearVelocity(linearVelocity)
 
         val isOnGround = isOnGround(world)
 
+        val effectiveImpulse = VecmathVector3f(impulseAccumulator)
+
         if (!isOnGround) {
-            val airControlFactor = .3f
-            impulse.x *= airControlFactor
-            impulse.y *= airControlFactor
-            impulse.z *= airControlFactor
+            effectiveImpulse.x *= airControlFactor
+            effectiveImpulse.z *= airControlFactor
         }
 
-        body.applyCentralImpulse(impulse.apply { y = 0f })
+        body.applyCentralImpulse(VecmathVector3f(effectiveImpulse.x, 0f, effectiveImpulse.z))
 
-        if (isOnGround && needJump) {
-            val jumpForce = (-1 * gravity.y) * .5f
-            val jumpImpulse = VecmathVector3f(0f, jumpForce, 0f)
-            body.applyCentralImpulse(jumpImpulse)
+        if (isOnGround && needsJump) {
+            val currentVerticalVelocity = linearVelocity.y
+            val requiredImpulseY = (jumpVelocity - currentVerticalVelocity) * mass
+            if (requiredImpulseY > 0) {
+                body.applyCentralImpulse(VecmathVector3f(0f, requiredImpulseY, 0f))
+            }
         }
 
         body.getLinearVelocity(linearVelocity)
-        linearVelocity.x = linearVelocity.x.coerceIn(-maxVelocity, maxVelocity)
-        linearVelocity.z = linearVelocity.z.coerceIn(-maxVelocity, maxVelocity)
+
+        val horizontalVelocity = VecmathVector3f(linearVelocity.x, 0f, linearVelocity.z)
+        if (horizontalVelocity.lengthSquared() > maxVelocity * maxVelocity) {
+            horizontalVelocity.normalize()
+            horizontalVelocity.scale(maxVelocity)
+            linearVelocity.x = horizontalVelocity.x
+            linearVelocity.z = horizontalVelocity.z
+        }
+
         body.setLinearVelocity(linearVelocity)
 
-        impulse.scale(0f)
-        needJump = false
-    }
-
-    private fun isOnGround(world: CollisionWorld): Boolean {
-        val shape = body.collisionShape as ConvexShape? ?: return false
-
-        val from = BulletTransform()
-        val to = BulletTransform()
-
-        body.getWorldTransform(from)
-        to.set(from)
-
-        to.origin.y -= Scale.CENTIMETER.length(10f)
-
-        val callback = CollisionWorld.ClosestConvexResultCallback(
-            from.origin,
-            to.origin
-        )
-
-        world.convexSweepTest(shape, from, to, callback)
-
-        return callback.hasHit() && callback.hitNormalWorld.y > 0.5f
-    }
-
-    private fun activate() {
-        if (!body.isActive) body.activate()
-    }
-
-    fun jump() {
-        needJump = true
-        activate()
+        impulseAccumulator.scale(0f)
+        needsJump = false
     }
 
     override fun debugDraw(debugDrawer: IDebugDraw?) {}
 
-    fun move(direction: VecmathVector3f) {
-        impulse.set(VecmathVector3f(direction).apply { scale(acceleration) })
+    private fun isOnGround(world: CollisionWorld): Boolean {
+        val shape = body.collisionShape as? ConvexShape ?: return false
+
+        val from = BulletTransform()
+        val to = BulletTransform()
+        body.getWorldTransform(from)
+        to.set(from)
+
+        val checkDistance = Scale.CENTIMETER.length(10f)
+        to.origin.y -= checkDistance
+
+        val callback = CollisionWorld.ClosestConvexResultCallback(from.origin, to.origin)
+        world.convexSweepTest(shape, from, to, callback)
+
+        return callback.hasHit() && callback.hitNormalWorld.y > 0.7f
+    }
+
+    private fun activate() {
+        if (!body.isActive) body.activate(true)
+    }
+
+    fun jump() {
+        needsJump = true
+        activate()
+    }
+
+    fun addMovementInput(direction: VecmathVector3f) {
+        val impulse = VecmathVector3f(direction)
+        impulse.scale(acceleration * mass)
+        impulseAccumulator.add(impulse)
         activate()
     }
 }
@@ -100,58 +113,75 @@ class Player(
     private val being = BaseBeing(
         transform,
         restitution = 0f,
-        friction = 1.5f,
-        linearDamping = 0f,
-        angularDamping = 1f,
+        friction = 1.0f,
+        linearDamping = 0.1f,
+        angularDamping = 1.0f,
         angularFactor = 0f,
-        mass = 1f
+        mass = 80f
     )
-    private lateinit var camera: Camera
-    val cameraName = toString()
+
+    lateinit var camera: Camera
+        private set
+
+    val cameraName = "player_camera_${this.hashCode()}" // Unique name
 
     private lateinit var controller: PlayerController
 
+    // Reusable objects to avoid allocations
+    private val directionJOML = Vector3f()
+    private val directionVecmath = VecmathVector3f()
+
     override fun setup(context: IWindowContext) {
         super.setup(context)
+
         camera = context.camera.getOrPut(cameraName) { window ->
-            Camera(being.transform.position, window).also { camera ->
-                camera.parent = this
+            Camera(being.transform.position, window).also { cam ->
+                cam.parent = this
             }
         }
+
         being.setAsRigidBody(context, boundary)
-        val body = being.collisionObject as? RigidBody ?: return
-        controller = PlayerController(body)
+        controller = PlayerController(being)
         context.physics.world.addAction(controller)
     }
 
+    /**
+     * Translates user input intentions (movements) into physics actions.
+     * Called by the input handling system.
+     */
     override fun move(movements: Set<MovementDirection>) {
-        if (!didSetup) return
-        if (movements.isEmpty()) return
+        if (!didSetup || movements.isEmpty()) return
 
-        val forward = camera.forward()
-        val right = camera.right()
+        val forward = camera.forward().apply { y = 0f }.normalize()
+        val right = camera.right().apply { y = 0f }.normalize()
 
-        val direction = Vector3f()
+        directionJOML.zero()
 
         for (movement in movements) {
             when (movement) {
-                MovementDirection.FORWARD -> direction.add(forward)
-                MovementDirection.BACKWARD -> direction.sub(forward)
-                MovementDirection.RIGHT -> direction.add(right)
-                MovementDirection.LEFT -> direction.sub(right)
+                MovementDirection.FORWARD -> directionJOML.add(forward)
+                MovementDirection.BACKWARD -> directionJOML.sub(forward)
+                MovementDirection.RIGHT -> directionJOML.add(right)
+                MovementDirection.LEFT -> directionJOML.sub(right)
                 MovementDirection.UP -> controller.jump()
-                else -> {}
+                MovementDirection.DOWN -> {}
             }
         }
 
-        if (direction.lengthSquared() > 0f) {
-            direction.normalize()
-            controller.move(direction.toVecmath())
+        if (directionJOML.lengthSquared() > 0.001f) {
+            directionJOML.normalize()
+            directionVecmath.set(directionJOML.x, directionJOML.y, directionJOML.z)
+            controller.addMovementInput(directionVecmath)
         }
     }
 
+
     override fun dispose() {
         super.dispose()
+        if (didSetup) {
+            context.physics.world.removeAction(controller)
+        }
         being.dispose(context)
+        context.camera.remove(cameraName)
     }
 }
