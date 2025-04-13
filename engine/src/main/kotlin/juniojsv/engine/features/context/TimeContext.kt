@@ -1,6 +1,6 @@
 package juniojsv.engine.features.context
 
-import org.lwjgl.glfw.GLFW
+import juniojsv.engine.features.utils.FrameTimer
 
 interface ITimeContext {
     val deltaInSeconds: Double
@@ -8,16 +8,15 @@ interface ITimeContext {
 }
 
 class TimeContext : ITimeContext {
-    private var lastRenderElapsedInSeconds = elapsedInSeconds
-    override var deltaInSeconds = 0.0
-        private set
+    private val timer = FrameTimer()
 
+    override val deltaInSeconds: Double
+        get() = timer.deltaTime
     override val elapsedInSeconds: Double
-        get() = GLFW.glfwGetTime()
+        get() = System.nanoTime() / 1_000_000_000.0
+
 
     fun onPreRender() {
-        val elapsedInSeconds = this.elapsedInSeconds
-        deltaInSeconds = elapsedInSeconds - lastRenderElapsedInSeconds
-        lastRenderElapsedInSeconds = elapsedInSeconds
+        timer.update()
     }
 }

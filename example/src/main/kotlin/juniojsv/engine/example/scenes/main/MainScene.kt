@@ -22,12 +22,30 @@ class MainScene : Scene(), MainLayoutCallbacks {
     private val meshes = arrayOf(CubeMesh.create(), SphereMesh(.5f).create())
     private val cubemaps = TextureFactory.getCubeMaps()
 
-    private val player = Player(
-        Transform(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
-    )
+    private lateinit var player: Player
 
     override fun setup(context: IWindowContext) {
         super.setup(context)
+
+        floor = SingleBeing(
+            CubeMesh.create(),
+            defaultShadersProgram,
+            BaseBeing(
+                Transform(
+                    Vector3f(0f, Scale.KILOMETER.length(1.8f), 0f),
+                    scale = Vector3f(Scale.KILOMETER.length(1f)),
+                    rotation = Vector3f(-7f, 0f, 0f)
+                ),
+                TextureFactory.createTexture("METAL_07"),
+                textureScale = 500f,
+                mass = 0f
+            ).also {
+                val y = Vector3f(it.transform.position).add(it.transform.scale).y
+                player = Player(
+                    Transform(Vector3f(0f, y + Scale.METER.length(10f), 0f))
+                )
+            }
+        )
 
         context.gui.layout = layout
         context.camera.instance.position.add(Vector3f(0f, Scale.KILOMETER.length(3f), 0f))
@@ -51,20 +69,6 @@ class MainScene : Scene(), MainLayoutCallbacks {
             textures.add(texture)
         }
         textures.add(TextureFactory.createTexture("TEST"))
-        floor = SingleBeing(
-            CubeMesh.create(),
-            defaultShadersProgram,
-            BaseBeing(
-                Transform(
-                    Vector3f(0f, Scale.KILOMETER.length(1.8f), 0f),
-                    scale = Vector3f(Scale.KILOMETER.length(1f)),
-                    rotation = Vector3f(-7f, 0f, 0f)
-                ),
-                TextureFactory.createTexture("METAL_07"),
-                textureScale = 1000f,
-                mass = 0f
-            )
-        )
     }
 
     override fun render(context: IWindowContext) {

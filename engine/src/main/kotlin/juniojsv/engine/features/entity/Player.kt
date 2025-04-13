@@ -142,7 +142,7 @@ class Player(
 
         being.setAsRigidBody(context, boundary)
         controller = PlayerController(being)
-        context.physics.world.addAction(controller)
+        context.physics.addController(controller)
     }
 
     /**
@@ -179,7 +179,7 @@ class Player(
     override fun dispose() {
         super.dispose()
         if (didSetup) {
-            context.physics.world.removeAction(controller)
+            context.physics.removeController(controller)
         }
         being.dispose(context)
         context.camera.remove(cameraName)

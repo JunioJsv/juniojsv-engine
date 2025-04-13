@@ -61,6 +61,7 @@ abstract class Window(resolution: Resolution) {
 
     private fun setup() {
         GLFW.glfwMakeContextCurrent(id)
+        GLFW.glfwSwapInterval(if (Config.isVsyncEnabled) 1 else 0)
         GL.createCapabilities()
         if (GL.getCapabilities().GL_ARB_debug_output) {
             GL11.glEnable(GL43.GL_DEBUG_OUTPUT)
@@ -103,6 +104,7 @@ abstract class Window(resolution: Resolution) {
     }
 
     private fun dispose() {
+        context.dispose()
         imGuiGl3.dispose()
         imGuiGlfw.dispose()
         ImGui.destroyContext()

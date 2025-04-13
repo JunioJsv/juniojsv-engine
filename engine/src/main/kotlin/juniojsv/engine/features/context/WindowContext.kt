@@ -1,5 +1,6 @@
 package juniojsv.engine.features.context
 
+import juniojsv.engine.features.utils.IDisposable
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW
 
@@ -8,7 +9,7 @@ interface IWindowContextListener {
     fun onPostRender(context: IWindowContext) {}
 }
 
-interface IWindowContext {
+interface IWindowContext : IDisposable {
     val time: ITimeContext
     val camera: ICameraContext
     val gui: IGuiContext
@@ -24,7 +25,11 @@ class WindowContext(private val window: Window) : IWindowContext {
     override val camera = CameraContext(window)
     override val gui = GuiContext(window)
     override val render = RenderContext()
-    override val physics = PhysicsContext(window)
+    override val physics = PhysicsContext()
+
+    init {
+        physics.start()
+    }
 
     private val listeners = mutableSetOf<IWindowContextListener>()
 
@@ -40,7 +45,6 @@ class WindowContext(private val window: Window) : IWindowContext {
         time.onPreRender()
         camera.onPreRender()
         render.onPreRender()
-        physics.onPreRender()
         listeners.forEach { it.onPreRender(this) }
     }
 
@@ -50,5 +54,9 @@ class WindowContext(private val window: Window) : IWindowContext {
         listeners.forEach { it.onPostRender(this) }
         GLFW.glfwSwapBuffers(window.id)
         GLFW.glfwPollEvents()
+    }
+
+    override fun dispose() {
+        physics.stop()
     }
 }

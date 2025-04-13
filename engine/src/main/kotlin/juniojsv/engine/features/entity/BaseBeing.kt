@@ -42,7 +42,7 @@ class BaseBeing(
         val body = RigidBody(config).also { it.userPointer = this }
         body.angularFactor = angularFactor
 
-        context.physics.world.addRigidBody(body)
+        context.physics.addCollisionObject(body)
         collisionObject = body
     }
 
@@ -50,11 +50,7 @@ class BaseBeing(
         collisionObject.let {
             if (it == null) return
             collisionObject = null
-            if (it is RigidBody) {
-                context.physics.world.removeRigidBody(it)
-            } else {
-                context.physics.world.removeCollisionObject(it)
-            }
+            context.physics.removeCollisionObject(it)
         }
     }
 }
