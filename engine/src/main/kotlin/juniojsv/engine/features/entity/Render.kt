@@ -4,7 +4,7 @@ import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.utils.IDisposable
 
 abstract class Render : IDisposable {
-    protected lateinit var context: IWindowContext
+    lateinit var context: IWindowContext
         private set
 
     var didSetup: Boolean = false

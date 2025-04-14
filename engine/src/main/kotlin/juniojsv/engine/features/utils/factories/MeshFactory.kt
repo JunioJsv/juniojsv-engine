@@ -1,8 +1,8 @@
 package juniojsv.engine.features.utils.factories
 
 import juniojsv.engine.features.mesh.Mesh
+import juniojsv.engine.features.utils.BoundaryBox
 import juniojsv.engine.features.utils.BoundaryEllipsoid
-import juniojsv.engine.features.utils.BoundaryRectangle
 import juniojsv.engine.features.utils.Scale
 import org.joml.Vector3f
 import kotlin.math.cos
@@ -114,7 +114,7 @@ object CubeMesh {
             16, 17, 18, 16, 18, 19,
             20, 21, 22, 20, 22, 23
         ),
-        boundary = BoundaryRectangle(Vector3f(2f))
+        boundary = BoundaryBox(Vector3f(2f))
     )
 }
 
@@ -241,6 +241,6 @@ object QuadMesh {
             0, 1, 2,
             0, 2, 3
         ),
-        boundary = BoundaryRectangle(Vector3f(2f, 0f, 2f))
+        boundary = BoundaryBox(Vector3f(2f, 0f, 2f))
     )
 }

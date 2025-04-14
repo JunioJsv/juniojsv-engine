@@ -9,40 +9,46 @@ import juniojsv.engine.features.texture.Texture.Companion.bind
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL30
 
 open class SingleBeing(
-    private val mesh: Mesh,
+    mesh: Mesh,
     private val shader: ShadersProgram,
     private val being: BaseBeing = BaseBeing(),
-    isDebuggable: Boolean = true,
+    private val isDebuggable: Boolean = true,
     private val isFrustumCullingEnabled: Boolean = true,
     private val isPhysicsEnabled: Boolean = true,
-    private val isShaderOverridable: Boolean = true
-) : BeingRender(isDebuggable), IWindowContextListener {
+    private val isShaderOverridable: Boolean = true,
+    private val glMode: Int = GL30.GL_TRIANGLES,
+    var isEnabled: Boolean = true,
+) : BeingRender(mesh, isDebuggable), IWindowContextListener {
+    private val boundary = mesh.boundary
 
     override fun setup(context: IWindowContext) {
         super.setup(context)
         context.addListener(this)
-        val boundary = mesh.boundary
-        if (isPhysicsEnabled && boundary != null) {
-            being.setAsRigidBody(context, boundary)
+        if (boundary != null) {
+            if (isPhysicsEnabled) being.createRigidBody(this)
+            if (isDebuggable) being.createDebugger(this)
         }
     }
 
     override fun render(context: IWindowContext) {
         super.render(context)
-        val transformation: Matrix4f = being.transform.transformation()
-        val light = context.render.ambientLight
-        val frustum = context.camera.frustum
-        val camera = context.camera.instance
-        val boundary = mesh.boundary
-        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
+
+        if (!isEnabled || !being.isEnabled) return
 
         if (isFrustumCullingEnabled && boundary != null) {
-            val isInsideFrustum = boundary.isInsideFrustum(frustum, being.transform)
+            val isInsideFrustum = being.isInsideFrustum(this)
+            being.debugger?.being?.isEnabled = isInsideFrustum
             if (!isInsideFrustum) return
-            if (canDebug) context.render.debugBeings.add(boundary.getDebugBeing(being.transform))
         }
+
+        val transformation: Matrix4f = being.transform.transformation()
+        val light = context.render.ambientLight
+        val camera = context.camera.instance
+        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
+
         shader.apply {
             bind()
             putUniform("uProjection", context.camera.projection)
@@ -58,11 +64,11 @@ open class SingleBeing(
             putUniform("uTextureScale", being.textureScale)
 
             being.texture?.bind() ?: emptySet<Texture>().bind()
-            putUniforms(this)
+            applyUniforms(this)
         }
         mesh.bind()
         GL11.glDrawElements(
-            GL11.GL_TRIANGLES, mesh.getIndicesCount(), GL11.GL_UNSIGNED_INT, 0
+            glMode, mesh.getIndicesCount(), GL11.GL_UNSIGNED_INT, 0
         )
     }
 

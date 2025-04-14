@@ -5,11 +5,11 @@ import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.dynamics.ActionInterface
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.IDebugDraw
+import juniojsv.engine.extensions.VecmathVector3f
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.utils.*
 import org.joml.Vector3f
 import com.bulletphysics.linearmath.Transform as BulletTransform
-import javax.vecmath.Vector3f as VecmathVector3f
 
 class PlayerController(being: BaseBeing) : ActionInterface() {
     private val body = being.collisionObject as? RigidBody ?: error("Player requires a RigidBody")
@@ -140,7 +140,7 @@ class Player(
             }
         }
 
-        being.setAsRigidBody(context, boundary)
+        being.createRigidBody(context, boundary)
         controller = PlayerController(being)
         context.physics.addController(controller)
     }

@@ -73,14 +73,13 @@ class WindowFrameBuffers(val window: Window) {
 //        overlay.bind()
 //        overlay.unbind()
 
-        viewport.apply {
-            uniforms["uSceneTexture"] = scene.getColorTexture()
-            uniforms["uVelocityTexture"] = velocity.getColorTexture()
-            uniforms["uOverlayTexture"] = overlay.getColorTexture()
-            uniforms["uPreviousFrameTexture"] = lastFrame
-            uniforms["uMotionBlur"] = context.render.motionBlur
-            render(context)
-        }
+        viewport.uniforms["uSceneTexture"] = scene.getColorTexture()
+        viewport.uniforms["uVelocityTexture"] = velocity.getColorTexture()
+        viewport.uniforms["uOverlayTexture"] = overlay.getColorTexture()
+        viewport.uniforms["uPreviousFrameTexture"] = lastFrame
+        viewport.uniforms["uMotionBlur"] = context.render.motionBlur
+        viewport.render(context)
+
         lastFrame.update()
     }
 }

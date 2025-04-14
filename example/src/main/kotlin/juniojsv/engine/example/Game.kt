@@ -1,10 +1,8 @@
 package juniojsv.engine.example
 
 import imgui.ImGui
-import juniojsv.engine.Config
 import juniojsv.engine.example.scenes.main.MainLayoutListener
 import juniojsv.engine.example.scenes.main.MainScene
-import juniojsv.engine.features.entity.debugger.Debugger
 import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.utils.Debounce
 import juniojsv.engine.features.utils.KeyboardHandler
@@ -24,7 +22,6 @@ class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRen
     private val movements = mutableSetOf<MovementDirection>()
 
     private lateinit var scene: Scene
-    private lateinit var debugger: Debugger
     private lateinit var buffers: WindowFrameBuffers
 
     private val camera
@@ -40,7 +37,6 @@ class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRen
                 }
             })
         }
-        debugger = Debugger()
         onSetupKeyBoard()
     }
 
@@ -49,8 +45,7 @@ class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRen
     }
 
     override fun onRenderOverlay() {
-        if (Config.isDebug)
-            debugger.render(context)
+        context.debugger.render(context)
     }
 
     override fun onRender() {

@@ -1,15 +1,19 @@
 package juniojsv.engine.extensions
 
-fun org.joml.Vector3f.toVecmath(): javax.vecmath.Vector3f =
-    javax.vecmath.Vector3f(x, y, z)
+import org.joml.Matrix4f
+import org.joml.Quaternionf
+import org.joml.Vector3f
 
-fun javax.vecmath.Vector3f.toJoml(): org.joml.Vector3f =
-    org.joml.Vector3f(x, y, z)
+fun Vector3f.toVecmath(): javax.vecmath.Vector3f =
+    VecmathVector3f(x, y, z)
 
-fun org.joml.Matrix4f.toVecmath(): javax.vecmath.Matrix4f {
+fun VecmathVector3f.toJoml(): Vector3f =
+    Vector3f(x, y, z)
+
+fun Matrix4f.toVecmath(): VecmathMatrix4f {
     val vals = FloatArray(16)
     this.get(vals)
-    return javax.vecmath.Matrix4f(
+    return VecmathMatrix4f(
         vals[0], vals[4], vals[8], vals[12],
         vals[1], vals[5], vals[9], vals[13],
         vals[2], vals[6], vals[10], vals[14],
@@ -17,8 +21,8 @@ fun org.joml.Matrix4f.toVecmath(): javax.vecmath.Matrix4f {
     )
 }
 
-fun javax.vecmath.Matrix4f.toJoml(): org.joml.Matrix4f {
-    return org.joml.Matrix4f(
+fun VecmathMatrix4f.toJoml(): Matrix4f {
+    return Matrix4f(
         m00, m10, m20, m30,
         m01, m11, m21, m31,
         m02, m12, m22, m32,
@@ -26,10 +30,10 @@ fun javax.vecmath.Matrix4f.toJoml(): org.joml.Matrix4f {
     )
 }
 
-fun org.joml.Quaternionf.toVecmath(): javax.vecmath.Quat4f {
+fun Quaternionf.toVecmath(): javax.vecmath.Quat4f {
     return javax.vecmath.Quat4f(x, y, z, w)
 }
 
-fun javax.vecmath.Quat4f.toJoml(): org.joml.Quaternionf {
-    return org.joml.Quaternionf(x, y, z, w)
+fun VecmathQuaternion4f.toJoml(): Quaternionf {
+    return Quaternionf(x, y, z, w)
 }

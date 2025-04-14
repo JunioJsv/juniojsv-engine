@@ -7,24 +7,28 @@ import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.texture.Texture.Companion.bind
-import juniojsv.engine.features.utils.factories.ShadersProgramFactory
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
 import org.lwjgl.system.MemoryUtil
+import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.properties.Delegates
 
 class MultiBeing(
-    private val mesh: Mesh,
+    mesh: Mesh,
     private val shader: ShadersProgram,
-    isDebuggable: Boolean = true,
+    private val isDebuggable: Boolean = true,
     private val isFrustumCullingEnabled: Boolean = true,
     private val isPhysicsEnabled: Boolean = true,
-    private val isShaderOverridable: Boolean = true
-) : BeingRender(isDebuggable), IWindowContextListener {
+    private val isShaderOverridable: Boolean = true,
+    private val glMode: Int = GL30.GL_TRIANGLES,
+    var isEnabled: Boolean = true,
+) : BeingRender(mesh, isDebuggable), IWindowContextListener {
     private val boundary = mesh.boundary
     private val beings = mutableListOf<BaseBeing>()
-    private lateinit var textures: Set<Texture>
+    private val textures: MutableSet<Texture> = mutableSetOf()
+    private val commands = ConcurrentLinkedQueue<() -> Unit>()
+
     private var transformationsVbo by Delegates.notNull<Int>()
     private var previousTransformationsVbo by Delegates.notNull<Int>()
     private var texturesIndexesVbo by Delegates.notNull<Int>()
@@ -39,22 +43,31 @@ class MultiBeing(
         isPhysicsEnabled: Boolean = true,
         isShaderOverridable: Boolean = true
     ) : this(mesh, shader, isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable) {
-        update(beings)
+        commands.add { replace(beings) }
     }
 
-    fun update(beings: List<BaseBeing>) {
+    fun replace(beings: List<BaseBeing>) {
         if (beings.isNotEmpty()) disposeBeings()
-        this.beings.addAll(beings)
-        textures = this.beings.mapNotNull { it.texture }.toSet()
-        didSetup = false
+        for (being in beings) add(being)
+    }
+
+    fun add(being: BaseBeing) {
+        if (boundary != null) {
+            if (isPhysicsEnabled) being.createRigidBody(this)
+            if (isDebuggable) being.createDebugger(this)
+        }
+        beings.add(being)
+        being.texture?.let { textures.add(it) }
+    }
+
+    fun remove(being: BaseBeing) {
+        beings.remove(being)
+        being.dispose(context)
     }
 
     override fun setup(context: IWindowContext) {
         super.setup(context)
         context.addListener(this)
-        if (isPhysicsEnabled && boundary != null) for (being in beings) {
-            being.setAsRigidBody(context, boundary)
-        }
     }
 
     init {
@@ -206,24 +219,33 @@ class MultiBeing(
     override fun render(context: IWindowContext) {
         super.render(context)
 
-        val light = context.render.ambientLight
-        val frustum = context.camera.frustum
-        val camera = context.camera.instance
-        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
+        var command = commands.poll()
+        while (command != null) {
+            command()
+            command = commands.poll()
+        }
 
-        var beings: List<BaseBeing> = this.beings
-        if (isFrustumCullingEnabled && boundary != null) {
-            beings = beings.filter { being ->
-                boundary.isInsideFrustum(frustum, being.transform).also { isInsideFrustum ->
-                    if (canDebug && isInsideFrustum)
-                        context.render.debugBeings.add(boundary.getDebugBeing(being.transform))
-                }
+        if (!isEnabled) return
+
+        val beings: List<BaseBeing> = this.beings.filter { being ->
+            var isVisible = being.isEnabled
+
+            if (isVisible && isFrustumCullingEnabled && boundary != null) {
+                val isInsideFrustum = being.isInsideFrustum(this)
+                being.debugger?.being?.isEnabled = isInsideFrustum
+                isVisible = isInsideFrustum
             }
+
+            isVisible
         }
 
         if (beings.isEmpty()) return
 
         updateVbos(beings)
+
+        val light = context.render.ambientLight
+        val camera = context.camera.instance
+        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
 
         shader.apply {
             bind()
@@ -237,10 +259,10 @@ class MultiBeing(
             putUniform("uTime", context.time.elapsedInSeconds.toFloat())
 
             textures.bind()
-            putUniforms(this)
+            applyUniforms(this)
         }
         mesh.bind()
-        GL33.glDrawElementsInstanced(GL33.GL_TRIANGLES, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, beings.size)
+        GL33.glDrawElementsInstanced(glMode, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, beings.size)
     }
 
     override fun onPostRender(context: IWindowContext) {

@@ -1,5 +1,6 @@
 package juniojsv.engine.features.context
 
+import juniojsv.engine.features.debugger.DebuggerRender
 import juniojsv.engine.features.utils.IDisposable
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW
@@ -15,6 +16,7 @@ interface IWindowContext : IDisposable {
     val gui: IGuiContext
     val render: IRenderContext
     val physics: IPhysicsContext
+    val debugger: DebuggerRender
 
     fun addListener(listener: IWindowContextListener)
     fun removeListener(listener: IWindowContextListener)
@@ -26,6 +28,7 @@ class WindowContext(private val window: Window) : IWindowContext {
     override val gui = GuiContext(window)
     override val render = RenderContext()
     override val physics = PhysicsContext()
+    override val debugger: DebuggerRender by lazy { DebuggerRender() }
 
     init {
         physics.start()

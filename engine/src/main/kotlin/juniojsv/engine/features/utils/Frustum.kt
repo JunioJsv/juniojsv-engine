@@ -33,7 +33,7 @@ class Frustum {
         }
     }
 
-    fun isRectangleInside(position: Vector3f, extents: Vector3f): Boolean {
+    fun isBoxInside(position: Vector3f, extents: Vector3f): Boolean {
         val halfExtents = Vector3f(extents).div(2f)
         for (plane in planes) {
 
@@ -50,7 +50,7 @@ class Frustum {
         return true
     }
 
-    fun isRectangleInside(position: Vector3f, extents: Vector3f, rotation: Vector3f): Boolean {
+    fun isBoxInside(position: Vector3f, extents: Vector3f, rotation: Vector3f): Boolean {
         val halfExtents = Vector3f(extents).div(2f)
 
         val rotationMatrix = Matrix3f()

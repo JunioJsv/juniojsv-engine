@@ -27,6 +27,10 @@
     "VELOCITY_INSTANCED": {
       "vertex": "shaders/velocity_instanced.vert",
       "fragment": "shaders/velocity.frag"
+    },
+    "DEBUGGER": {
+      "vertex": "shaders/debugger.vert",
+      "fragment": "shaders/debugger.frag"
     }
   }
 }

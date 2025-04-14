@@ -3,14 +3,13 @@ package juniojsv.engine.features.utils
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.util.ObjectArrayList
-import juniojsv.engine.features.entity.debugger.DebugEllipsoid
-import juniojsv.engine.features.entity.debugger.IDebugBeing
+import juniojsv.engine.features.debugger.Debugger
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
-class BoundaryEllipsoid(val radius: Vector3f) : IBoundaryShape {
+class BoundaryEllipsoid(val radius: Vector3f, val details: Float = .5f) : IBoundaryShape {
     override fun isInsideFrustum(frustum: Frustum, transform: Transform): Boolean {
         val scale = transform.scale
         val position = transform.position
@@ -27,7 +26,7 @@ class BoundaryEllipsoid(val radius: Vector3f) : IBoundaryShape {
         return frustum.isEllipsoidInside(position, radius)
     }
 
-    private fun createEllipsoidShape(radius: Vector3f, details: Float = 1.0f): ConvexHullShape {
+    private fun createEllipsoidShape(radius: Vector3f): ConvexHullShape {
         val sector = (36 * details).roundToInt()
         val stack = (18 * details).roundToInt()
 
@@ -59,11 +58,11 @@ class BoundaryEllipsoid(val radius: Vector3f) : IBoundaryShape {
         return ConvexHullShape(points)
     }
 
-    override fun getDebugBeing(transform: Transform): IDebugBeing {
-        return DebugEllipsoid(transform.copy(scale = Vector3f(radius).mul(transform.scale)))
+    override fun createCollisionShape(scale: Vector3f): CollisionShape {
+        return createEllipsoidShape(Vector3f(radius).mul(scale))
     }
 
-    override fun getCollisionShape(scale: Vector3f): CollisionShape {
-        return createEllipsoidShape(Vector3f(radius).mul(scale), .5f)
+    override fun createDebugger(transform: Transform): Debugger {
+        return Debugger.Ellipsoid(transform, this)
     }
 }
