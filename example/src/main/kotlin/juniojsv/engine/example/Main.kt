@@ -1,7 +1,8 @@
 package juniojsv.engine.example
 
-import juniojsv.engine.features.window.Resolution
+import juniojsv.engine.Config
 
 fun main() {
-    Game(Resolution(1024, 768)).init()
+    Config.isWindowResizable = false
+    Game().init()
 }

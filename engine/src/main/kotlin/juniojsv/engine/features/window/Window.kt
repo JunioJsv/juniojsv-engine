@@ -17,11 +17,10 @@ import org.lwjgl.opengl.GL43
 import kotlin.properties.Delegates
 import kotlin.system.exitProcess
 
-abstract class Window(resolution: Resolution) {
-    abstract val title: String
-
-    var resolution = resolution
+abstract class Window(private val title: String) {
+    lateinit var resolution: Resolution
         private set
+
     private val glslVersion = "#version 330"
 
     var id by Delegates.notNull<Long>()
@@ -45,11 +44,33 @@ abstract class Window(resolution: Resolution) {
         if (!Config.isWindowResizable)
             GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_FALSE)
 
+        val isMaximizedWindow = !Config.isFullScreen && Config.resolution == null
+        if (isMaximizedWindow)
+            GLFW.glfwWindowHint(GLFW.GLFW_MAXIMIZED, GLFW.GLFW_TRUE)
+
+        val monitor: Long = GLFW.glfwGetPrimaryMonitor()
+        if (monitor == 0L) throw Exception("Can't find primary monitor")
+
+        resolution = Config.resolution
+            ?: GLFW.glfwGetVideoMode(monitor)?.let { Resolution(it.width(), it.height()) }
+                    ?: Resolution(800, 600)
+
         id = GLFW.glfwCreateWindow(
             resolution.width,
             resolution.height,
-            title, 0, 0
+            title,
+            if (Config.isFullScreen) monitor else 0,
+            0
         )
+
+        if (isMaximizedWindow) {
+            GLFW.glfwMaximizeWindow(id)
+            val width = intArrayOf(0)
+            val height = intArrayOf(0)
+            GLFW.glfwGetFramebufferSize(id, width, height)
+            resolution = Resolution(width[0], height[0])
+        }
+
         setup()
         while (!GLFW.glfwWindowShouldClose(id)) (context as WindowContext).apply {
             onPreRender()

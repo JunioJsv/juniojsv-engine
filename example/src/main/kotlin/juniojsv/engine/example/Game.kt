@@ -3,19 +3,16 @@ package juniojsv.engine.example
 import imgui.ImGui
 import juniojsv.engine.example.scenes.main.MainLayoutListener
 import juniojsv.engine.example.scenes.main.MainScene
+import juniojsv.engine.features.render.RenderPipeline
 import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.utils.Debounce
 import juniojsv.engine.features.utils.KeyboardHandler
 import juniojsv.engine.features.utils.MovementDirection
 import juniojsv.engine.features.utils.Resources
-import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
-import juniojsv.engine.features.render.RenderPipeline
 import org.lwjgl.glfw.GLFW
 
-class Game(resolution: Resolution) : Window(resolution), RenderPipeline.ICallbacks {
-    override val title: String = "Example"
-
+class Game : Window("Example"), RenderPipeline.ICallbacks {
     private val keyboard = KeyboardHandler()
 
     private var isCameraEnabled = false
