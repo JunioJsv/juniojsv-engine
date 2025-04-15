@@ -6,7 +6,8 @@ import com.bulletphysics.dynamics.RigidBodyConstructionInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import juniojsv.engine.extensions.VecmathVector3f
 import juniojsv.engine.features.context.IWindowContext
-import juniojsv.engine.features.debugger.Debugger
+import juniojsv.engine.features.render.Debugger
+import juniojsv.engine.features.render.BaseRender
 import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.utils.IBoundaryShape
 import juniojsv.engine.features.utils.Transform
@@ -36,7 +37,7 @@ class BaseBeing(
         }
     }
 
-    fun createRigidBody(render: BeingRender) {
+    fun createRigidBody(render: BaseRender) {
         val context = render.context
         val boundary = render.mesh.boundary ?: return
 
@@ -64,7 +65,7 @@ class BaseBeing(
         collisionObject = body
     }
 
-    fun createDebugger(render: BeingRender) {
+    fun createDebugger(render: BaseRender) {
         val context = render.context
         val boundary = render.mesh.boundary ?: return
 
@@ -74,7 +75,7 @@ class BaseBeing(
         this.debugger = debugger
     }
 
-    fun isInsideFrustum(render: BeingRender): Boolean {
+    fun isInsideFrustum(render: BaseRender): Boolean {
         val context = render.context
         val boundary = render.mesh.boundary ?: return true
 

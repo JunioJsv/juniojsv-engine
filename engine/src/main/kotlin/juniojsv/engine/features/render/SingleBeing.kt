@@ -1,27 +1,37 @@
-package juniojsv.engine.features.entity
+package juniojsv.engine.features.render
 
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.context.IWindowContextListener
+import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.texture.Texture.Companion.bind
+import juniojsv.engine.features.utils.RenderTarget
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 
-open class SingleBeing(
+class SingleBeing(
     mesh: Mesh,
-    private val shader: ShadersProgram,
+    shader: ShadersProgram,
     private val being: BaseBeing = BaseBeing(),
-    private val isDebuggable: Boolean = true,
-    private val isFrustumCullingEnabled: Boolean = true,
+    isDebuggable: Boolean = true,
+    isFrustumCullingEnabled: Boolean = true,
     private val isPhysicsEnabled: Boolean = true,
-    private val isShaderOverridable: Boolean = true,
+    isShaderOverridable: Boolean = true,
     private val glMode: Int = GL30.GL_TRIANGLES,
-    var isEnabled: Boolean = true,
-) : BeingRender(mesh, isDebuggable), IWindowContextListener {
+    isEnabled: Boolean = true,
+) : BaseRender(
+    RenderTarget.SINGLE,
+    mesh,
+    shader,
+    isDebuggable,
+    isShaderOverridable,
+    isFrustumCullingEnabled,
+    isEnabled
+), IWindowContextListener {
     private val boundary = mesh.boundary
 
     override fun setup(context: IWindowContext) {
@@ -38,7 +48,7 @@ open class SingleBeing(
 
         if (!isEnabled || !being.isEnabled) return
 
-        if (isFrustumCullingEnabled && boundary != null) {
+        if (isFrustumCullingEnabled() && boundary != null) {
             val isInsideFrustum = being.isInsideFrustum(this)
             being.debugger?.being?.isEnabled = isInsideFrustum
             if (!isInsideFrustum) return
@@ -47,24 +57,23 @@ open class SingleBeing(
         val transformation: Matrix4f = being.transform.transformation()
         val light = context.render.ambientLight
         val camera = context.camera.instance
-        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
 
-        shader.apply {
-            bind()
-            putUniform("uProjection", context.camera.projection)
-            putUniform("uView", context.camera.view)
-            putUniform("uPreviousProjection", context.camera.previousProjection)
-            putUniform("uPreviousView", context.camera.previousView)
-            putUniform("uCameraPosition", camera.position)
-            putUniform("uModel", transformation)
-            putUniform("uPreviousModel", being.transform.previous.transformation())
-            putUniform("uLightPosition", light?.position ?: Vector3f(0f))
-            putUniform("uLightColor", light?.color ?: Vector3f(0f))
-            putUniform("uTime", context.time.elapsedInSeconds.toFloat())
-            putUniform("uTextureScale", being.textureScale)
+        being.texture?.bind() ?: emptySet<Texture>().bind()
 
-            being.texture?.bind() ?: emptySet<Texture>().bind()
-            applyUniforms(this)
+        getShader().also {
+            it.bind()
+            uniforms["uProjection"] = context.camera.projection
+            uniforms["uView"] = context.camera.view
+            uniforms["uPreviousProjection"] = context.camera.previousProjection
+            uniforms["uPreviousView"] = context.camera.previousView
+            uniforms["uCameraPosition"] = camera.position
+            uniforms["uModel"] = transformation
+            uniforms["uPreviousModel"] = being.transform.previous.transformation()
+            uniforms["uLightPosition"] = light?.position ?: Vector3f(0f)
+            uniforms["uLightColor"] = light?.color ?: Vector3f(0f)
+            uniforms["uTime"] = context.time.elapsedInSeconds.toFloat()
+            uniforms["uTextureScale"] = being.textureScale
+            it.applyUniforms()
         }
         mesh.bind()
         GL11.glDrawElements(
@@ -80,9 +89,5 @@ open class SingleBeing(
         super.dispose()
         being.dispose(context)
         context.removeListener(this)
-    }
-
-    companion object {
-        var shader: ShadersProgram? = null
     }
 }

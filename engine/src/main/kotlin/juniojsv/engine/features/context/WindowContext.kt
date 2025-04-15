@@ -1,6 +1,6 @@
 package juniojsv.engine.features.context
 
-import juniojsv.engine.features.debugger.DebuggerRender
+import juniojsv.engine.features.render.DebuggerRender
 import juniojsv.engine.features.utils.IDisposable
 import juniojsv.engine.features.window.Window
 import org.lwjgl.glfw.GLFW

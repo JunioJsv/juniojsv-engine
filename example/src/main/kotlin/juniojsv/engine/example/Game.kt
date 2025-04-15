@@ -10,10 +10,10 @@ import juniojsv.engine.features.utils.MovementDirection
 import juniojsv.engine.features.utils.Resources
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
-import juniojsv.engine.features.window.WindowFrameBuffers
+import juniojsv.engine.features.render.RenderPipeline
 import org.lwjgl.glfw.GLFW
 
-class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRenderCallbacks {
+class Game(resolution: Resolution) : Window(resolution), RenderPipeline.ICallbacks {
     override val title: String = "Example"
 
     private val keyboard = KeyboardHandler()
@@ -22,18 +22,18 @@ class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRen
     private val movements = mutableSetOf<MovementDirection>()
 
     private lateinit var scene: Scene
-    private lateinit var buffers: WindowFrameBuffers
+    private lateinit var pipeline: RenderPipeline
 
     private val camera
         get() = context.camera.instance
 
     override fun onCreate() {
         Resources.registry()
-        buffers = WindowFrameBuffers(this)
+        pipeline = RenderPipeline(this)
         scene = MainScene().apply {
             layout.addListener(object : MainLayoutListener {
                 override fun didResolutionScaleChanged(scale: Float) {
-                    buffers.refresh()
+                    pipeline.refresh()
                 }
             })
         }
@@ -49,7 +49,7 @@ class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRen
     }
 
     override fun onRender() {
-        buffers.render(this)
+        pipeline.render(this)
         keyboard.pump(context)
         camera.move(movements)
         movements.clear()
@@ -83,7 +83,7 @@ class Game(resolution: Resolution) : Window(resolution), WindowFrameBuffers.IRen
 
     override fun onResize(width: Int, height: Int) {
         super.onResize(width, height)
-        buffers.refresh()
+        pipeline.refresh()
     }
 
     private fun onSetupKeyBoard() {

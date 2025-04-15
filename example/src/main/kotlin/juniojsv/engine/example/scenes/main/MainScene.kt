@@ -1,7 +1,12 @@
 package juniojsv.engine.example.scenes.main
 
 import juniojsv.engine.features.context.IWindowContext
-import juniojsv.engine.features.entity.*
+import juniojsv.engine.features.entity.BaseBeing
+import juniojsv.engine.features.entity.Player
+import juniojsv.engine.features.render.MultiBeing
+import juniojsv.engine.features.render.Render
+import juniojsv.engine.features.render.SingleBeing
+import juniojsv.engine.features.render.SkyBox
 import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.texture.FileTexture
 import juniojsv.engine.features.utils.Scale

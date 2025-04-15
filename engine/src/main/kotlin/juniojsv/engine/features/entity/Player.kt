@@ -7,6 +7,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.IDebugDraw
 import juniojsv.engine.extensions.VecmathVector3f
 import juniojsv.engine.features.context.IWindowContext
+import juniojsv.engine.features.render.Render
 import juniojsv.engine.features.utils.*
 import org.joml.Vector3f
 import com.bulletphysics.linearmath.Transform as BulletTransform

@@ -3,7 +3,7 @@ package juniojsv.engine.features.utils
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.util.ObjectArrayList
-import juniojsv.engine.features.debugger.Debugger
+import juniojsv.engine.features.render.Debugger
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.roundToInt

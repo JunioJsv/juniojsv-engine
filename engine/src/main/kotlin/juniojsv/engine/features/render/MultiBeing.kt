@@ -1,7 +1,8 @@
-package juniojsv.engine.features.entity
+package juniojsv.engine.features.render
 
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.context.IWindowContextListener
+import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
@@ -13,6 +14,7 @@ import juniojsv.engine.features.utils.Constants.INT_BYTE_SIZE
 import juniojsv.engine.features.utils.Constants.INT_SIZE
 import juniojsv.engine.features.utils.Constants.MAT4_BYTE_SIZE
 import juniojsv.engine.features.utils.Constants.VEC4_SIZE
+import juniojsv.engine.features.utils.RenderTarget
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
@@ -23,22 +25,21 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 class MultiBeing(
     mesh: Mesh,
-    private val shader: ShadersProgram,
-    private val isDebuggable: Boolean = true,
-    private val isFrustumCullingEnabled: Boolean = true,
+    shader: ShadersProgram,
+    isDebuggable: Boolean = true,
+    isFrustumCullingEnabled: Boolean = true,
     private val isPhysicsEnabled: Boolean = true,
-    private val isShaderOverridable: Boolean = true,
+    isShaderOverridable: Boolean = true,
     private val glMode: Int = GL30.GL_TRIANGLES,
-    var isEnabled: Boolean = true,
-) : BeingRender(mesh, isDebuggable), IWindowContextListener {
+    isEnabled: Boolean = true,
+) : BaseRender(RenderTarget.MULTI, mesh, shader, isDebuggable, isShaderOverridable, isFrustumCullingEnabled, isEnabled),
+    IWindowContextListener {
     private val boundary = mesh.boundary
     private val beings = mutableListOf<BaseBeing>()
     private val textures: MutableSet<Texture> = mutableSetOf()
     private val commands = ConcurrentLinkedQueue<() -> Unit>()
 
     companion object {
-        var shader: ShadersProgram? = null
-
         private const val INSTANCE_DATA_START_LOCATION = 3
         private const val VBO_COUNT = 4
 
@@ -304,7 +305,7 @@ class MultiBeing(
         val beings: List<BaseBeing> = this.beings.filter { being ->
             var isVisible = being.isEnabled
 
-            if (isVisible && isFrustumCullingEnabled && boundary != null) {
+            if (isVisible && isFrustumCullingEnabled() && boundary != null) {
                 val isInsideFrustum = being.isInsideFrustum(this)
                 being.debugger?.being?.isEnabled = isInsideFrustum
                 isVisible = isInsideFrustum
@@ -319,22 +320,22 @@ class MultiBeing(
 
         val light = context.render.ambientLight
         val camera = context.camera.instance
-        val shader = if (isShaderOverridable) Companion.shader ?: shader else shader
 
-        shader.apply {
-            bind()
-            putUniform("uProjection", context.camera.projection)
-            putUniform("uView", context.camera.view)
-            putUniform("uPreviousProjection", context.camera.previousProjection)
-            putUniform("uPreviousView", context.camera.previousView)
-            putUniform("uCameraPosition", camera.position)
-            putUniform("uLightPosition", light?.position ?: Vector3f(0f))
-            putUniform("uLightColor", light?.color ?: Vector3f(0f))
-            putUniform("uTime", context.time.elapsedInSeconds.toFloat())
+        textures.bind()
 
-            textures.bind()
-            applyUniforms(this)
+        getShader().also {
+            it.bind()
+            uniforms["uProjection"] = context.camera.projection
+            uniforms["uView"] = context.camera.view
+            uniforms["uPreviousProjection"] = context.camera.previousProjection
+            uniforms["uPreviousView"] = context.camera.previousView
+            uniforms["uCameraPosition"] = camera.position
+            uniforms["uLightPosition"] = light?.position ?: Vector3f(0f)
+            uniforms["uLightColor"] = light?.color ?: Vector3f(0f)
+            uniforms["uTime"] = context.time.elapsedInSeconds.toFloat()
+            it.applyUniforms()
         }
+
         mesh.bind()
         GL33.glDrawElementsInstanced(glMode, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, beings.size)
     }

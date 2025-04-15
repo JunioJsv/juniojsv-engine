@@ -1,4 +1,4 @@
-package juniojsv.engine.features.entity
+package juniojsv.engine.features.render
 
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.utils.IDisposable

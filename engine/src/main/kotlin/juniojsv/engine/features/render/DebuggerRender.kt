@@ -1,10 +1,8 @@
-package juniojsv.engine.features.debugger
+package juniojsv.engine.features.render
 
 import juniojsv.engine.Config
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.entity.BaseBeing
-import juniojsv.engine.features.entity.MultiBeing
-import juniojsv.engine.features.entity.Render
 import juniojsv.engine.features.utils.BoundaryBox
 import juniojsv.engine.features.utils.BoundaryEllipsoid
 import juniojsv.engine.features.utils.Transform
