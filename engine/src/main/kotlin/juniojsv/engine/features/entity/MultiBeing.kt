@@ -1,18 +1,25 @@
 package juniojsv.engine.features.entity
 
-import juniojsv.engine.extensions.toBuffer
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.context.IWindowContextListener
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
 import juniojsv.engine.features.texture.Texture.Companion.bind
+import juniojsv.engine.features.utils.Constants.BYTES_PER_FLOAT
+import juniojsv.engine.features.utils.Constants.FLOAT_BYTE_SIZE
+import juniojsv.engine.features.utils.Constants.FLOAT_SIZE
+import juniojsv.engine.features.utils.Constants.INT_BYTE_SIZE
+import juniojsv.engine.features.utils.Constants.INT_SIZE
+import juniojsv.engine.features.utils.Constants.MAT4_BYTE_SIZE
+import juniojsv.engine.features.utils.Constants.VEC4_SIZE
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
-import org.lwjgl.system.MemoryUtil
+import org.slf4j.LoggerFactory
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.properties.Delegates
 
 class MultiBeing(
     mesh: Mesh,
@@ -29,10 +36,34 @@ class MultiBeing(
     private val textures: MutableSet<Texture> = mutableSetOf()
     private val commands = ConcurrentLinkedQueue<() -> Unit>()
 
-    private var transformationsVbo by Delegates.notNull<Int>()
-    private var previousTransformationsVbo by Delegates.notNull<Int>()
-    private var texturesIndexesVbo by Delegates.notNull<Int>()
-    private var texturesScaleVbo by Delegates.notNull<Int>()
+    companion object {
+        var shader: ShadersProgram? = null
+
+        private const val INSTANCE_DATA_START_LOCATION = 3
+        private const val VBO_COUNT = 4
+
+        /** Uses locations 3, 4, 5, 6 */
+        private const val LOCATION_MODEL_MATRIX = INSTANCE_DATA_START_LOCATION
+        private const val MODEL_VBO_INDEX = 0
+
+        /** Uses locations 7, 8, 9, 10 */
+        private const val LOCATION_PREVIOUS_MODEL_MATRIX = LOCATION_MODEL_MATRIX + VEC4_SIZE
+        private const val PREVIOUS_MODEL_VBO_INDEX = MODEL_VBO_INDEX + 1
+
+        /** Uses location 11 */
+        private const val LOCATION_TEXTURE_INDEX = LOCATION_PREVIOUS_MODEL_MATRIX + VEC4_SIZE
+        private const val TEXTURE_VBO_INDEX = PREVIOUS_MODEL_VBO_INDEX + 1
+
+        /** Uses location 12 */
+        private const val LOCATION_TEXTURE_SCALE = LOCATION_TEXTURE_INDEX + FLOAT_SIZE
+        private const val TEXTURE_SCALE_VBO_INDEX = TEXTURE_VBO_INDEX + 1
+
+        private const val INSTANCE_DIVISOR = 1 // Update attribute per instance
+
+        private val logger = LoggerFactory.getLogger(MultiBeing::class.java)
+    }
+
+    private val vbos = IntArray(VBO_COUNT)
 
     constructor(
         mesh: Mesh,
@@ -73,76 +104,58 @@ class MultiBeing(
     init {
         GL30.glBindVertexArray(mesh.vao)
 
-        var index = 3
-
-        /// aModel (3, 4, 5, 6)
-        GL30.glGenBuffers().also { vbo ->
-            val size = 4
-            transformationsVbo = vbo
+        vbos[MODEL_VBO_INDEX] = GL30.glGenBuffers().also { vbo ->
             GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo)
 
-            for (i in 0..3) {
+            for (i in 0 until VEC4_SIZE) {
+                val location = LOCATION_MODEL_MATRIX + i
                 GL30.glVertexAttribPointer(
-                    index + i,
-                    size,
+                    location,
+                    VEC4_SIZE,
                     GL30.GL_FLOAT,
                     false,
-                    16 * size,
-                    (i * size * size).toLong()
+                    MAT4_BYTE_SIZE,
+                    (i * VEC4_SIZE * BYTES_PER_FLOAT).toLong()
                 )
-                GL30.glEnableVertexAttribArray(index + i)
-                GL33.glVertexAttribDivisor(index + i, 1)
+                GL30.glEnableVertexAttribArray(location)
+                GL33.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
             }
-
-            index += size
         }
 
-        /// aPreviousModel (7, 8, 9, 10)
-        GL30.glGenBuffers().also { vbo ->
-            val size = 4
-            previousTransformationsVbo = vbo
+        vbos[PREVIOUS_MODEL_VBO_INDEX] = GL30.glGenBuffers().also { vbo ->
             GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo)
 
-            for (i in 0..3) {
+            for (i in 0 until VEC4_SIZE) {
+                val location = LOCATION_PREVIOUS_MODEL_MATRIX + i
                 GL30.glVertexAttribPointer(
-                    index + i,
-                    size,
+                    location,
+                    VEC4_SIZE,
                     GL30.GL_FLOAT,
                     false,
-                    16 * size,
-                    (i * size * size).toLong()
+                    MAT4_BYTE_SIZE,
+                    (i * VEC4_SIZE * BYTES_PER_FLOAT).toLong()
                 )
-                GL30.glEnableVertexAttribArray(index + i)
-                GL33.glVertexAttribDivisor(index + i, 1)
+                GL30.glEnableVertexAttribArray(location)
+                GL33.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
             }
-
-            index += size
         }
 
-        /// aTextureIndex (11)
-        GL30.glGenBuffers().also { vbo ->
-            val size = 1
-            texturesIndexesVbo = vbo
+        vbos[TEXTURE_VBO_INDEX] = GL30.glGenBuffers().also { vbo ->
             GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo)
 
-            GL30.glVertexAttribIPointer(index, size, GL30.GL_INT, 0, 0)
-            GL30.glEnableVertexAttribArray(index)
-            GL33.glVertexAttribDivisor(index, 1)
-
-            index += size
+            val location = LOCATION_TEXTURE_INDEX
+            GL30.glVertexAttribIPointer(location, INT_SIZE, GL30.GL_INT, 0, 0)
+            GL30.glEnableVertexAttribArray(location)
+            GL33.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
         }
 
-        /// aTextureScale (12)
-        GL30.glGenBuffers().also { vbo ->
-            val size = 1
-            texturesScaleVbo = vbo
+        vbos[TEXTURE_SCALE_VBO_INDEX] = GL30.glGenBuffers().also { vbo ->
             GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbo)
 
-            GL30.glVertexAttribPointer(index, size, GL30.GL_FLOAT, false, 0, 0)
-            GL30.glEnableVertexAttribArray(index)
-            GL33.glVertexAttribDivisor(index, 1)
-
-            index += size
+            val location = LOCATION_TEXTURE_SCALE
+            GL30.glVertexAttribPointer(location, FLOAT_SIZE, GL30.GL_FLOAT, false, 0, 0)
+            GL30.glEnableVertexAttribArray(location)
+            GL33.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
         }
 
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, 0)
@@ -150,70 +163,131 @@ class MultiBeing(
     }
 
     private fun updateVbos(beings: List<BaseBeing>) {
-        updateTransformationsVbo(beings)
-        updatePreviousTransformationsVbo(beings)
-        updateTexturesIndexesVbo(beings)
-        updateTexturesScaleVbo(beings)
+        updateModelVbo(beings)
+        updatePreviousModelVbo(beings)
+        updateTextureIndexVbo(beings)
+        updateTextureScaleVbo(beings)
         GL30.glBindVertexArray(0)
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, 0)
     }
 
 
-    private fun updateTexturesIndexesVbo(beings: List<BaseBeing>) {
-        GL30.glBindVertexArray(mesh.vao)
-        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, texturesIndexesVbo)
-        val textureIndexes = IntArray(beings.size)
-        for ((index, being) in beings.withIndex()) {
-            val textureIndex = textures.indexOfFirst { being.texture?.id == it.id }
-            textureIndexes[index] = textureIndex
+    private fun updateTextureIndexVbo(beings: List<BaseBeing>) {
+        val bytes = (beings.size * INT_BYTE_SIZE).toLong()
+        if (bytes == 0L) return
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbos[TEXTURE_VBO_INDEX])
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, bytes, GL30.GL_STREAM_DRAW)
+
+        var buffer: ByteBuffer? = null
+
+        try {
+            buffer = GL30.glMapBufferRange(
+                GL30.GL_ARRAY_BUFFER,
+                0,
+                bytes,
+                GL30.GL_MAP_WRITE_BIT or GL30.GL_MAP_INVALIDATE_BUFFER_BIT
+            )
+            if (buffer == null) return
+            buffer.order(ByteOrder.nativeOrder())
+
+            for (being in beings) {
+                val textureIndex = textures.indexOfFirst { being.texture?.id == it.id }
+                buffer.putInt(textureIndex)
+            }
+        } catch (e: Exception) {
+            logger.error("Error updating texture index VBO: ${e.message}")
+        } finally {
+            if (buffer != null) GL30.glUnmapBuffer(GL30.GL_ARRAY_BUFFER)
         }
 
-        val textureIndexesBuffer = textureIndexes.toBuffer()
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, textureIndexesBuffer, GL30.GL_STREAM_DRAW)
-        MemoryUtil.memFree(textureIndexesBuffer)
     }
 
-    private fun updateTexturesScaleVbo(beings: List<BaseBeing>) {
-        GL30.glBindVertexArray(mesh.vao)
-        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, texturesScaleVbo)
-        val textureScales = FloatArray(beings.size)
-        for ((index, being) in beings.withIndex()) {
-            textureScales[index] = being.textureScale
-        }
+    private fun updateTextureScaleVbo(beings: List<BaseBeing>) {
+        val bytes = (beings.size * FLOAT_BYTE_SIZE).toLong()
+        if (bytes == 0L) return
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbos[TEXTURE_SCALE_VBO_INDEX])
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, bytes, GL30.GL_STREAM_DRAW)
 
-        val textureScalesBuffer = textureScales.toBuffer()
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, textureScalesBuffer, GL30.GL_STREAM_DRAW)
-        MemoryUtil.memFree(textureScalesBuffer)
+        var buffer: ByteBuffer? = null
+
+        try {
+            buffer = GL30.glMapBufferRange(
+                GL30.GL_ARRAY_BUFFER,
+                0,
+                bytes,
+                GL30.GL_MAP_WRITE_BIT or GL30.GL_MAP_INVALIDATE_BUFFER_BIT
+            )
+            if (buffer == null) return
+            buffer.order(ByteOrder.nativeOrder())
+
+            for (being in beings) {
+                buffer.putFloat(being.textureScale)
+            }
+        } catch (e: Exception) {
+            logger.error("Error updating texture scale VBO: ${e.message}")
+        } finally {
+            if (buffer != null) GL30.glUnmapBuffer(GL30.GL_ARRAY_BUFFER)
+        }
     }
 
-    private fun updateTransformationsVbo(beings: List<BaseBeing>) {
-        GL30.glBindVertexArray(mesh.vao)
-        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, transformationsVbo)
-        val transformationsBuffer = MemoryUtil.memAllocFloat(beings.size * 16)
-        for (being in beings) {
-            val transformationMatrix = being.transform.transformation()
-            val transformationArray = FloatArray(16)
-            transformationMatrix.get(transformationArray)
-            transformationsBuffer.put(transformationArray)
+    private fun updateModelVbo(beings: List<BaseBeing>) {
+        val bytes = (beings.size * MAT4_BYTE_SIZE).toLong()
+        if (bytes == 0L) return
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbos[MODEL_VBO_INDEX])
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, bytes, GL30.GL_STREAM_DRAW)
+
+        var buffer: ByteBuffer? = null
+
+        try {
+            buffer = GL30.glMapBufferRange(
+                GL30.GL_ARRAY_BUFFER,
+                0,
+                bytes,
+                GL30.GL_MAP_WRITE_BIT or GL30.GL_MAP_INVALIDATE_BUFFER_BIT
+            )
+            if (buffer == null) return
+            buffer.order(ByteOrder.nativeOrder())
+
+            for ((index, being) in beings.withIndex()) {
+                val transformationMatrix = being.transform.transformation()
+                val position = index * MAT4_BYTE_SIZE
+                transformationMatrix.get(position, buffer)
+            }
+        } catch (e: Exception) {
+            logger.error("Error updating model VBO: ${e.message}")
+        } finally {
+            if (buffer != null) GL30.glUnmapBuffer(GL30.GL_ARRAY_BUFFER)
         }
-        transformationsBuffer.flip()
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, transformationsBuffer, GL30.GL_STREAM_DRAW)
-        MemoryUtil.memFree(transformationsBuffer)
     }
 
-    private fun updatePreviousTransformationsVbo(beings: List<BaseBeing>) {
-        GL30.glBindVertexArray(mesh.vao)
-        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, previousTransformationsVbo)
-        val transformationsBuffer = MemoryUtil.memAllocFloat(beings.size * 16)
-        for (being in beings) {
-            val transformationMatrix = being.transform.previous.transformation()
-            val transformationArray = FloatArray(16)
-            transformationMatrix.get(transformationArray)
-            transformationsBuffer.put(transformationArray)
+    private fun updatePreviousModelVbo(beings: List<BaseBeing>) {
+        val bytes = (beings.size * MAT4_BYTE_SIZE).toLong()
+        if (bytes == 0L) return
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbos[PREVIOUS_MODEL_VBO_INDEX])
+        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, bytes, GL30.GL_STREAM_DRAW)
+
+        var buffer: ByteBuffer? = null
+
+        try {
+            buffer = GL30.glMapBufferRange(
+                GL30.GL_ARRAY_BUFFER,
+                0,
+                bytes,
+                GL30.GL_MAP_WRITE_BIT or GL30.GL_MAP_INVALIDATE_BUFFER_BIT
+            )
+            if (buffer == null) return
+            buffer.order(ByteOrder.nativeOrder())
+
+            for ((index, being) in beings.withIndex()) {
+                val transformationMatrix = being.transform.previous.transformation()
+                val position = index * MAT4_BYTE_SIZE
+                transformationMatrix.get(position, buffer)
+            }
+        } catch (e: Exception) {
+            logger.error("Error updating previous model VBO: ${e.message}")
+        } finally {
+            if (buffer != null) GL30.glUnmapBuffer(GL30.GL_ARRAY_BUFFER)
         }
-        transformationsBuffer.flip()
-        GL30.glBufferData(GL30.GL_ARRAY_BUFFER, transformationsBuffer, GL30.GL_STREAM_DRAW)
-        MemoryUtil.memFree(transformationsBuffer)
     }
 
     override fun render(context: IWindowContext) {
@@ -276,14 +350,8 @@ class MultiBeing(
 
     override fun dispose() {
         super.dispose()
-        GL30.glDeleteBuffers(transformationsVbo)
-        GL30.glDeleteBuffers(texturesIndexesVbo)
-        GL30.glDeleteBuffers(texturesScaleVbo)
+        GL30.glDeleteBuffers(vbos)
         context.removeListener(this)
         disposeBeings()
-    }
-
-    companion object {
-        var shader: ShadersProgram? = null
     }
 }
