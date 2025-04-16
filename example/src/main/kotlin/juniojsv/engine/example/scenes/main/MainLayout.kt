@@ -112,7 +112,7 @@ class MainLayout(private val callbacks: MainLayoutCallbacks) : ImGuiLayout() {
         }
 
         ImGui.text("Motion Blur")
-        if (ImGui.sliderFloat("Strength", motionBlur, 0f, .9f)) {
+        if (ImGui.sliderFloat("Strength", motionBlur, 0f, 1f)) {
             context.render.motionBlur = motionBlur.first()
         }
 

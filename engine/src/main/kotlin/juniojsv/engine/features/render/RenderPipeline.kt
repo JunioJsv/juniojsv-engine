@@ -16,7 +16,7 @@ class RenderPipeline(val window: Window) {
 
     interface ICallbacks {
         fun onRenderScene()
-        fun onRenderOverlay()
+        fun onRenderDebugger()
     }
 
     val context get() = window.context
@@ -63,7 +63,7 @@ class RenderPipeline(val window: Window) {
     private fun onScenePass(callbacks: ICallbacks) {
         scene.bind(context)
         callbacks.onRenderScene()
-        callbacks.onRenderOverlay()
+        callbacks.onRenderDebugger()
         scene.unbind(context)
     }
 
@@ -80,12 +80,14 @@ class RenderPipeline(val window: Window) {
 //        overlay.bind()
 //        overlay.unbind()
 
+        val fps = context.time.averageFps
         viewport.also {
             it.uniforms["uSceneTexture"] = scene.fbo.getColorTexture()
+            it.uniforms["uSceneDepthTexture"] = scene.fbo.getDepthTexture()
             it.uniforms["uVelocityTexture"] = velocity.fbo.getColorTexture()
             it.uniforms["uOverlayTexture"] = overlay.fbo.getColorTexture()
             it.uniforms["uPreviousFrameTexture"] = lastFrame
-            it.uniforms["uMotionBlur"] = context.render.motionBlur
+            it.uniforms["uVelocityScale"] = ((fps / 180) * context.render.motionBlur).toFloat()
             it.render(context)
         }
 

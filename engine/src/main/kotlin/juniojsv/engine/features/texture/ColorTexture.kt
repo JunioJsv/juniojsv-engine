@@ -40,6 +40,8 @@ class ColorTexture(width: Int, height: Int, color: Vector3f? = null, internalFor
 
         GL32.glTexParameteri(type, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_LINEAR)
         GL32.glTexParameteri(type, GL32.GL_TEXTURE_MAG_FILTER, GL32.GL_LINEAR)
+        GL32.glTexParameteri(type, GL32.GL_TEXTURE_WRAP_S, GL32.GL_CLAMP_TO_EDGE)
+        GL32.glTexParameteri(type, GL32.GL_TEXTURE_WRAP_T, GL32.GL_CLAMP_TO_EDGE)
         GL32.glBindTexture(type, 0)
     }
 

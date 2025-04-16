@@ -41,7 +41,7 @@ class Game : Window("Example"), RenderPipeline.ICallbacks {
         scene.render(context)
     }
 
-    override fun onRenderOverlay() {
+    override fun onRenderDebugger() {
         context.debugger.render(context)
     }
 
