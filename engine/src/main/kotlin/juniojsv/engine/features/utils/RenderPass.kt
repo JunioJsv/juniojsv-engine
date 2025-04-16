@@ -4,6 +4,7 @@ import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.utils.RenderTarget.MULTI
 import juniojsv.engine.features.utils.RenderTarget.SINGLE
+import org.lwjgl.opengl.GL30
 
 /**
  * [SINGLE] is used to render a single object.
@@ -25,8 +26,8 @@ class RenderPassOverrides(
 }
 
 class RenderPass(val fbo: FrameBuffer, val overrides: RenderPassOverrides = RenderPassOverrides.DEFAULT) {
-    fun bind(context: IWindowContext) {
-        fbo.bind()
+    fun bind(context: IWindowContext, clear: Set<Int> = setOf(GL30.GL_COLOR_BUFFER_BIT, GL30.GL_DEPTH_BUFFER_BIT)) {
+        fbo.bind(clear)
         context.render.overrides = overrides
     }
 

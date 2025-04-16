@@ -3,11 +3,13 @@ package juniojsv.engine.features.context
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
 import com.bulletphysics.collision.dispatch.CollisionDispatcher
 import com.bulletphysics.collision.dispatch.CollisionObject
+import com.bulletphysics.collision.dispatch.CollisionWorld
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration
 import com.bulletphysics.dynamics.ActionInterface
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
+import com.bulletphysics.linearmath.IDebugDraw
 import juniojsv.engine.features.entity.BaseBeing
 import juniojsv.engine.features.utils.FrameTimer
 import org.slf4j.LoggerFactory
@@ -54,6 +56,20 @@ class PhysicsContext : IPhysicsContext {
         thread = thread(name = name) {
             logger.info("Starting $name thread.")
             timer.reset()
+            val action = object : ActionInterface() {
+                override fun updateAction(collisionWorld: CollisionWorld, deltaTimeStep: Float) {
+                    val collisionObjects = world.collisionObjectArray
+                    for (i in 0 until collisionObjects.size) {
+                        val collisionObject = collisionObjects.getQuick(i)
+                        val being = collisionObject.userPointer as? BaseBeing
+                        being?.transform?.setAsPrevious()
+                        being?.applyCollisionObjectTransform()
+                    }
+                }
+
+                override fun debugDraw(debugDrawer: IDebugDraw?) {}
+            }
+            world.addAction(action)
             while (running) {
                 val fpsWasUpdated = timer.update()
                 val deltaTime = timer.deltaTime.toFloat()
@@ -66,17 +82,11 @@ class PhysicsContext : IPhysicsContext {
 
                 world.stepSimulation(deltaTime * speed, 3, 1 / 60f)
 
-                val collisionObjects = world.collisionObjectArray
-                for (i in 0 until collisionObjects.size) {
-                    val collisionObject = collisionObjects.getQuick(i)
-                    val being = collisionObject.userPointer as? BaseBeing
-                    being?.applyCollisionObjectTransform()
-                }
-
                 if (fpsWasUpdated) logStats()
 
                 Thread.sleep(1)
             }
+            world.removeAction(action)
             logger.info("Stopping $name thread.")
         }
     }

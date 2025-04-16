@@ -12,9 +12,11 @@ out vec2 vUV;
 out vec3 vNormal;
 flat out int vTextureIndex;
 flat out float vTextureScale;
+out vec4 vFragLightPosition;
 
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform mat4 uLightSpaceMatrix;
 
 void main() {
     vWorldPosition = (aModel * vec4(aPosition, 1.)).xyz;
@@ -22,6 +24,7 @@ void main() {
     vNormal = normalize((aModel * vec4(aNormal, 0.)).xyz);
     vTextureIndex = aTextureIndex;
     vTextureScale = aTextureScale;
+    vFragLightPosition = uLightSpaceMatrix * vec4(vWorldPosition, 1.);
 
     gl_Position = uProjection * uView * vec4(vWorldPosition, 1.);
 }

@@ -98,9 +98,8 @@ class MainLayout(private val callbacks: MainLayoutCallbacks) : ImGuiLayout() {
 
         ImGui.text("Ambient Color")
         if (ImGui.colorEdit3("Color", ambientColor)) {
-            val position = context.render.ambientLight?.position ?: Vector3f(0f)
             val color = Vector3f(ambientColor[0], ambientColor[1], ambientColor[2])
-            context.render.ambientLight = Light(position, color)
+            context.render.ambientLight?.color?.set(color)
         }
 
         ImGui.text("Resolution Scale")

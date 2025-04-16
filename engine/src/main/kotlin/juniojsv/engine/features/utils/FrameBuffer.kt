@@ -43,22 +43,26 @@ class FrameBuffer(
         } as ColorTexture
     }
 
-    fun copy(source: FrameBuffer) {
+    fun copy(
+        source: FrameBuffer,
+        attachments: Set<Int> = setOf(GL32.GL_COLOR_ATTACHMENT0, GL32.GL_DEPTH_ATTACHMENT)
+    ) {
         GL32.glBindFramebuffer(GL32.GL_READ_FRAMEBUFFER, source.fbo)
         GL32.glBindFramebuffer(GL32.GL_DRAW_FRAMEBUFFER, fbo)
-        if (source.hasColorAttachment)
+        if (attachments.contains(GL32.GL_COLOR_ATTACHMENT0) && source.hasColorAttachment)
             GL32.glBlitFramebuffer(
                 0, 0, source.resolution.width, source.resolution.height,
                 0, 0, resolution.width, resolution.height,
                 GL32.GL_COLOR_BUFFER_BIT, GL32.GL_LINEAR
             )
-        if (source.hasDepthAttachment)
+        if (attachments.contains(GL32.GL_DEPTH_ATTACHMENT) && source.hasDepthAttachment)
             GL32.glBlitFramebuffer(
                 0, 0, source.resolution.width, source.resolution.height,
                 0, 0, resolution.width, resolution.height,
                 GL32.GL_DEPTH_BUFFER_BIT, GL32.GL_NEAREST
             )
-        GL32.glBindFramebuffer(GL32.GL_FRAMEBUFFER, 0)
+        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, 0)
+        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0)
     }
 
     private fun create() {
@@ -104,12 +108,12 @@ class FrameBuffer(
         GL32.glBindFramebuffer(GL32.GL_FRAMEBUFFER, 0)
     }
 
-    fun bind() {
+    fun bind(clear: Set<Int> = setOf(GL30.GL_COLOR_BUFFER_BIT, GL30.GL_DEPTH_BUFFER_BIT)) {
         GL32.glBindFramebuffer(GL32.GL_FRAMEBUFFER, fbo)
         GL32.glViewport(0, 0, resolution.width, resolution.height)
-        if (hasDepthAttachment)
+        if (hasDepthAttachment && clear.contains(GL30.GL_DEPTH_BUFFER_BIT))
             GL30.glClear(GL30.GL_DEPTH_BUFFER_BIT)
-        if (hasColorAttachment)
+        if (hasColorAttachment && clear.contains(GL11.GL_COLOR_BUFFER_BIT))
             GL30.glClear(GL11.GL_COLOR_BUFFER_BIT)
     }
 

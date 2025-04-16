@@ -5,6 +5,7 @@ import juniojsv.engine.features.utils.Resources
 import org.lwjgl.opengl.GL32
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.File
 import kotlin.properties.Delegates
 
 sealed class Shader(val file: String, val type: Int) : IDisposable {
@@ -21,7 +22,24 @@ sealed class Shader(val file: String, val type: Int) : IDisposable {
     }
 
     private fun compile() {
-        val source = Resources.text(file)
+        val directory = File(file).parent
+        var source = Resources.text(file)
+
+        val includeRegex = Regex("""#include\s*[<"]([^">]+)[>"]""")
+        val includes = includeRegex.findAll(source).toList()
+        if (includes.isNotEmpty()) {
+            val includesSources = mutableListOf<String>()
+            includes.forEach { matchResult ->
+                val includeFile = matchResult.groupValues[1]
+                val includePath = directory?.let { File(it, includeFile).invariantSeparatorsPath } ?: includeFile
+                val includeSource = Resources.text(includePath)
+                includesSources.add(includeSource)
+            }
+            source = includeRegex.replace(source) {
+                includesSources.removeAt(0)
+            }
+
+        }
 
         GL32.glShaderSource(id, source)
         GL32.glCompileShader(id)
@@ -46,4 +64,3 @@ sealed class Shader(val file: String, val type: Int) : IDisposable {
 class FragmentShader(file: String) : Shader(file, GL32.GL_FRAGMENT_SHADER)
 
 class VertexShader(file: String) : Shader(file, GL32.GL_VERTEX_SHADER)
-

@@ -1,16 +1,16 @@
 {
   "shaders": {
     "DEFAULT": {
-      "vertex": "shaders/default.vert",
-      "fragment": "shaders/default.frag"
+      "vertex": "shaders/default/default.vert",
+      "fragment": "shaders/default/default.frag"
     },
     "DEFAULT_INSTANCED": {
-      "vertex": "shaders/default_instanced.vert",
-      "fragment": "shaders/default_instanced.frag"
+      "vertex": "shaders/default/default_instanced.vert",
+      "fragment": "shaders/default/default_instanced.frag"
     },
     "DEFAULT_INSTANCED_DEBUG": {
-      "vertex": "shaders/default_instanced.vert",
-      "fragment": "shaders/default_instanced_debug.frag"
+      "vertex": "shaders/default/default_instanced.vert",
+      "fragment": "shaders/default/default_instanced_debug.frag"
     },
     "WINDOW": {
       "vertex": "shaders/window.vert",
@@ -31,6 +31,14 @@
     "DEBUGGER": {
       "vertex": "shaders/debugger.vert",
       "fragment": "shaders/debugger.frag"
+    },
+    "SHADOW_MAP": {
+      "vertex": "shaders/shadow_map.vert",
+      "fragment": "shaders/shadow_map.frag"
+    },
+    "SHADOW_MAP_INSTANCED": {
+      "vertex": "shaders/shadow_map_instanced.vert",
+      "fragment": "shaders/shadow_map.frag"
     }
   }
 }

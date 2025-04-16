@@ -6,40 +6,38 @@ import org.lwjgl.opengl.GL30
 
 class TextureUnits {
     companion object {
-        private val units = arrayOf(
-            GL13.GL_TEXTURE0,
-            GL13.GL_TEXTURE1,
-            GL13.GL_TEXTURE2,
-            GL13.GL_TEXTURE3,
-            GL13.GL_TEXTURE4,
-            GL13.GL_TEXTURE5,
-            GL13.GL_TEXTURE6,
-            GL13.GL_TEXTURE7,
-            GL13.GL_TEXTURE8,
-            GL13.GL_TEXTURE9,
-            GL13.GL_TEXTURE10,
-            GL13.GL_TEXTURE11,
-            GL13.GL_TEXTURE12,
-            GL13.GL_TEXTURE13,
-            GL13.GL_TEXTURE14,
-            GL13.GL_TEXTURE15
-        )
+        /**
+         * Array of supported texture types.
+         */
+        val TYPES = arrayOf(GL30.GL_TEXTURE_2D, GL30.GL_TEXTURE_CUBE_MAP)
 
-        private val bindings = mapOf(
-            *units.map { unit -> unit to mutableSetOf<Int>() }.toTypedArray()
-        )
+        /**
+         * Array of available texture units.
+         */
+        private val units = Array(32) { GL13.GL_TEXTURE0 + it }
+
+        /**
+         * Retrieves the current bindings for a specific bind type across all texture units.
+         *
+         * @param bindType The type of binding to query (e.g., GL30.GL_TEXTURE_BINDING_2D).
+         * @return A list of integers representing the bound texture IDs for each unit.
+         */
+        fun getBindings(bindType: Int): List<Int> {
+            val bindings = units.map { unit ->
+                GL30.glActiveTexture(unit)
+                GL30.glGetInteger(bindType)
+            }
+            GL30.glActiveTexture(units[0])
+            return bindings
+        }
 
         /**
          * Unbinds all textures from all texture units.
-         * This method iterates through each texture unit and unbinds any texture that is currently bound to it.
          */
         fun unbindAll() {
-            bindings.forEach { (unit, types) ->
+            units.forEach { unit ->
                 GL30.glActiveTexture(unit)
-                types.forEach { type ->
-                    GL30.glBindTexture(type, 0)
-                }
-                types.clear()
+                TYPES.forEach { type -> GL30.glBindTexture(type, 0) }
             }
             GL30.glActiveTexture(units[0])
         }
@@ -50,10 +48,10 @@ class TextureUnits {
          * @param index The index of the texture unit to bind to.
          * @param texture The texture to bind.
          * @return `true` if the texture was bound, `false` if it was already bound.
-         * @throws NoSuchElementException if the index is out of bounds.
+         * @throws NoSuchElementException if the specified texture unit index is out of bounds.
          */
         fun bind(index: Int, texture: Texture): Boolean {
-            if (index > units.size - 1) {
+            if (index < 0 || index > units.size - 1) {
                 throw NoSuchElementException("Texture unit $index not found, units available 0..${units.size}")
             }
             val unit = units[index]
@@ -62,7 +60,6 @@ class TextureUnits {
             if (isAlreadyBound) return false
             val type = texture.getType()
             GL30.glBindTexture(type, texture.id)
-            bindings[unit]?.add(type)
             GL30.glActiveTexture(units[0])
             return true
         }
@@ -72,9 +69,8 @@ class TextureUnits {
          *
          * @param index The index of the texture unit to bind to.
          * @param texture The texture to bind.
-         * @param uniform The name of the uniform in the shader program to set.
+         * @param uniform The name of the uniform in the shader program.
          * @return `true` if the texture was bound, `false` if it was already bound.
-         * @throws NoSuchElementException if the index is out of bounds.
          */
         fun bind(index: Int, texture: Texture, uniform: String): Boolean {
             val didBind = bind(index, texture)
@@ -82,40 +78,43 @@ class TextureUnits {
             return didBind
         }
 
-
         /**
-         * Binds a texture to the first available texture unit that does not already contain a texture of the same type.
-         *
+         * Binds a texture to an available texture unit, or returns the index if it's already bound.
          * @param texture The texture to bind.
-         * @param uniform The name of the uniform in the shader program to set.
-         * @return `true` if the texture was bound, `false` if it was already bound or if no suitable unit was found.
-         * @throws NoSuchElementException if no suitable texture unit is found.
-         * @see bind(index: Int, texture: Texture, uniform: String)
+         * @param uniform The name of the uniform in the shader program.
+         * @return The index of the texture unit the texture is bound to, or -1 if it could not be bound.
          */
-        fun bind(texture: Texture, uniform: String): Boolean {
-            val index = units.indexOfFirst { unit -> bindings[unit]?.let { !it.contains(texture.getType()) } ?: true }
-            return bind(index, texture, uniform)
+        fun bind(texture: Texture, uniform: String? = null): Int {
+            val bindings = getBindings(texture.getBindType())
+            var index = bindings.indexOfFirst { id -> texture.id == id }
+            if (index != -1) {
+                if (uniform != null) ShadersProgram.putUniform(uniform, index)
+                return index
+            }
+
+            index = bindings.indexOfFirst { id -> id == 0 }
+
+            val didBind = if (uniform != null) bind(index, texture, uniform) else bind(index, texture)
+            return if (didBind) index else -1
         }
 
         /**
-         * Binds a set of textures to consecutive texture units and sets the corresponding uniform in the shader program.
+         * Binds a set of textures to available texture units and sets the corresponding uniform array in the shader program.
          *
          * @param textures The set of textures to bind.
-         * @param uniform The name of the uniform in the shader program to set. Defaults to "textures".
-         * @return The number of textures that were bound.
-         * @throws NoSuchElementException if there are not enough texture units to bind all textures.
+         * @param uniform The name of the uniform array in the shader program.
+         * @return A list of the texture unit indexes the textures were bound to.
          */
-        fun bind(textures: Set<Texture>, uniform: String = "uTextures"): Int {
+        fun bind(textures: Set<Texture>, uniform: String = "uTextures"): List<Int> {
             if (textures.isEmpty()) {
                 unbindAll()
             }
-            val count = textures.withIndex().count { (index, texture) ->
-                bind(index, texture)
-            }
 
-            ShadersProgram.putUniform(uniform, IntArray(count) { it })
+            val indexes = textures.map { bind(it) }
 
-            return count
+            ShadersProgram.putUniform(uniform, IntArray(indexes.size) { indexes[it] })
+
+            return indexes
         }
     }
 }

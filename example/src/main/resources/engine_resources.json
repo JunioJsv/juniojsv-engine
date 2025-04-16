@@ -1,7 +1,7 @@
 {
   "shaders": {
     "TEST": {
-      "vertex": "shaders/default.vert",
+      "vertex": "shaders/default/default.vert",
       "fragment": "shaders/test.frag"
     }
   },

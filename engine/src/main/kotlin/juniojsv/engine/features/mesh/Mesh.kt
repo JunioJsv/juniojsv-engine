@@ -21,11 +21,24 @@ class Mesh(
     private val vbos: MutableList<Int> = mutableListOf()
     private var count by Delegates.notNull<Int>()
 
-    init {
-        count = indices?.count() ?: (vertices.count() / 3)
+    fun getIndicesCount(): Int = count
+
+    private fun calculateUVs(): FloatArray {
+        val uvs = FloatArray(vertices.size / 3 * 2) { 0f }
+        var uvIndex = 0
+        for (i in vertices.indices step 3) {
+            val x = vertices[i]
+            val y = vertices[i + 1]
+            uvs[uvIndex++] = (x + 1) / 2
+            uvs[uvIndex++] = (y + 1) / 2
+
+        }
+        return uvs
     }
 
-    fun getIndicesCount(): Int = count
+    private fun calculateNormals(): FloatArray {
+        return FloatArray(vertices.size) { 0f }
+    }
 
     init {
         GL30.glBindVertexArray(vao)
@@ -43,8 +56,7 @@ class Mesh(
             MemoryUtil.memFree(it)
         }
 
-
-        uv?.toBuffer()?.let {
+        (if (uv?.isNotEmpty() == true) uv else calculateUVs()).toBuffer().let {
             GL15.glGenBuffers().also { vbo ->
                 vbos.add(vbo)
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
@@ -57,7 +69,7 @@ class Mesh(
             MemoryUtil.memFree(it)
         }
 
-        normals?.toBuffer()?.let {
+        (if (normals?.isNotEmpty() == true) normals else calculateNormals()).toBuffer().let {
             GL15.glGenBuffers().also { vbo ->
                 vbos.add(vbo)
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo)
@@ -76,7 +88,10 @@ class Mesh(
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo)
                 GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, it, GL15.GL_STATIC_DRAW)
             }
+            count = indices.count()
             MemoryUtil.memFree(it)
+        } ?: run {
+            count = vertices.count() / 3
         }
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0)

@@ -8,6 +8,7 @@ import juniojsv.engine.features.utils.RenderPassOverrides
 import juniojsv.engine.features.utils.RenderTarget
 import juniojsv.engine.features.utils.factories.QuadMesh
 import juniojsv.engine.features.utils.factories.ShadersProgramFactory
+import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.features.window.Window
 import org.lwjgl.opengl.GL30
 
@@ -39,6 +40,20 @@ class RenderPipeline(val window: Window) {
             )
         )
     )
+    private val shadows = RenderPass(
+        FrameBuffer(
+            window,
+            Resolution(1024 * 8, 1024 * 8),
+            attachments = setOf(GL30.GL_DEPTH_ATTACHMENT)
+        ),
+        RenderPassOverrides(
+            shaders = mutableMapOf(
+                RenderTarget.SINGLE to ShadersProgramFactory.create("SHADOW_MAP"),
+                RenderTarget.MULTI to ShadersProgramFactory.create("SHADOW_MAP_INSTANCED")
+            ),
+            isFrustumCullingEnabled = false
+        )
+    )
 
     private val viewport = SingleBeing(
         QuadMesh.create(),
@@ -63,7 +78,6 @@ class RenderPipeline(val window: Window) {
     private fun onScenePass(callbacks: ICallbacks) {
         scene.bind(context)
         callbacks.onRenderScene()
-        callbacks.onRenderDebugger()
         scene.unbind(context)
     }
 
@@ -73,12 +87,35 @@ class RenderPipeline(val window: Window) {
         velocity.unbind(context)
     }
 
+    private fun onShadowsPass(callbacks: ICallbacks) {
+        val light = context.render.ambientLight ?: return
+        val camera = context.camera.instance
+        light.lerpPosition(camera.position, .995f)
+        light.target = camera.position
+
+        shadows.bind(context)
+        shadows.overrides.uniforms["uLightSpaceMatrix"] = light.space
+        GL30.glCullFace(GL30.GL_FRONT)
+        callbacks.onRenderScene()
+        GL30.glCullFace(GL30.GL_BACK)
+        shadows.unbind(context)
+
+        context.render.overrides.uniforms["uLightSpaceMatrix"] = light.space
+        context.render.overrides.uniforms["uShadowMapTexture"] = shadows.fbo.getDepthTexture()
+    }
+
+    private fun onOverlayPass(callbacks: ICallbacks) {
+        overlay.fbo.copy(scene.fbo, attachments = setOf(GL30.GL_DEPTH_ATTACHMENT))
+        overlay.bind(context, clear = setOf(GL30.GL_COLOR_BUFFER_BIT))
+        callbacks.onRenderDebugger()
+        overlay.unbind(context)
+    }
+
     fun render(callbacks: ICallbacks) {
+        onShadowsPass(callbacks)
         onScenePass(callbacks)
         onVelocityPass(callbacks)
-
-//        overlay.bind()
-//        overlay.unbind()
+        onOverlayPass(callbacks)
 
         val fps = context.time.averageFps
         viewport.also {

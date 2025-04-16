@@ -82,7 +82,7 @@ class SingleBeing(
     }
 
     override fun onPostRender(context: IWindowContext) {
-        being.transform.setAsPrevious()
+        if (!isPhysicsEnabled) being.transform.setAsPrevious()
     }
 
     override fun dispose() {

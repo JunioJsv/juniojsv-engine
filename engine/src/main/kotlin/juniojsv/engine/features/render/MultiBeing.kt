@@ -341,7 +341,7 @@ class MultiBeing(
     }
 
     override fun onPostRender(context: IWindowContext) {
-        beings.forEach { it.transform.setAsPrevious() }
+        if (!isPhysicsEnabled) beings.forEach { it.transform.setAsPrevious() }
     }
 
     private fun disposeBeings() {

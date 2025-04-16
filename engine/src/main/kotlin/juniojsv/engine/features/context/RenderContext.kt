@@ -14,7 +14,7 @@ interface IRenderContext {
 class RenderContext : IRenderContext {
     override var ambientLight: Light? = null
     override var resolutionScale: Float = 1f
-    override var motionBlur: Float = 1f
+    override var motionBlur: Float = .5f
     override var overrides = RenderPassOverrides.DEFAULT
 
     fun onPreRender() {

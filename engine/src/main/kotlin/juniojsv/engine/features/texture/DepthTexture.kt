@@ -20,8 +20,9 @@ class DepthTexture(width: Int, height: Int) : Texture() {
         )
         GL32.glTexParameteri(type, GL32.GL_TEXTURE_MIN_FILTER, GL32.GL_NEAREST)
         GL32.glTexParameteri(type, GL32.GL_TEXTURE_MAG_FILTER, GL32.GL_NEAREST)
-        GL32.glTexParameteri(type, GL32.GL_TEXTURE_WRAP_S, GL32.GL_CLAMP_TO_EDGE)
-        GL32.glTexParameteri(type, GL32.GL_TEXTURE_WRAP_T, GL32.GL_CLAMP_TO_EDGE)
+        GL32.glTexParameteri(type, GL32.GL_TEXTURE_WRAP_S, GL32.GL_CLAMP_TO_BORDER)
+        GL32.glTexParameteri(type, GL32.GL_TEXTURE_WRAP_T, GL32.GL_CLAMP_TO_BORDER)
+        GL32.glTexParameterfv(type, GL32.GL_TEXTURE_BORDER_COLOR, floatArrayOf(1f, 1f, 1f, 1f))
         GL32.glBindTexture(type, 0)
     }
 
