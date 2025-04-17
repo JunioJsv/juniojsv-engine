@@ -1,8 +1,12 @@
+uniform bool uIsShadowsEnabled;
+
 float rand(vec2 co) {
     return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 float calculateShadow(vec4 fragLightPos) {
+    if (!uIsShadowsEnabled) return 0.0;
+
     vec3 projCoords = fragLightPos.xyz / fragLightPos.w;
     projCoords = projCoords * 0.5 + 0.5;
     if (projCoords.z > 1.0) return 0.0;

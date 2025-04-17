@@ -12,13 +12,13 @@ import juniojsv.engine.features.utils.*
 import org.joml.Vector3f
 import com.bulletphysics.linearmath.Transform as BulletTransform
 
-class PlayerController(being: BaseBeing) : ActionInterface() {
-    private val body = being.collisionObject as? RigidBody ?: error("Player requires a RigidBody")
+class PlayerController(entity: Entity) : ActionInterface() {
+    private val body = entity.physics?.collisionObject as? RigidBody ?: error("Player requires a RigidBody")
     private val acceleration = Scale.METER.length(50f)
     private val maxVelocity = Scale.METER.length(5f)
     private val jumpVelocity = Scale.METER.length(5f)
     private val airControlFactor = 0.2f
-    private val mass = being.mass
+    private val mass = entity.physics?.config?.mass ?: error("Player requires mass")
 
     private val linearVelocity = VecmathVector3f()
     private val transform = BulletTransform()
@@ -111,14 +111,16 @@ class Player(
     private val boundary: BoundaryEllipsoid = BoundaryEllipsoid(Vector3f(.5f, 1f, .5f))
 ) : Render(), IMovable {
 
-    private val being = BaseBeing(
+    private val entity = Entity(
         transform,
-        restitution = 0f,
-        friction = 1.0f,
-        linearDamping = 0.1f,
-        angularDamping = 1.0f,
-        angularFactor = 0f,
-        mass = 80f
+        physics = PhysicsConfig(
+            restitution = 0f,
+            friction = 1.0f,
+            linearDamping = 0.1f,
+            angularDamping = 1.0f,
+            angularFactor = 0f,
+            mass = 80f
+        )
     )
 
     lateinit var camera: Camera
@@ -136,13 +138,13 @@ class Player(
         super.setup(context)
 
         camera = context.camera.getOrPut(cameraName) { window ->
-            Camera(being.transform.position, window).also { cam ->
+            Camera(entity.transform.position, window).also { cam ->
                 cam.parent = this
             }
         }
 
-        being.createRigidBody(context, boundary)
-        controller = PlayerController(being)
+        entity.physics?.createRigidBody(context, boundary)
+        controller = PlayerController(entity)
         context.physics.addController(controller)
     }
 
@@ -182,7 +184,7 @@ class Player(
         if (didSetup) {
             context.physics.removeController(controller)
         }
-        being.dispose(context)
+        entity.dispose(context)
         context.camera.remove(cameraName)
     }
 }

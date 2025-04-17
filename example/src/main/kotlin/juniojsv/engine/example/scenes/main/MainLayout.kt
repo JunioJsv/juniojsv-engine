@@ -5,7 +5,6 @@ import imgui.flag.ImGuiComboFlags
 import imgui.flag.ImGuiWindowFlags
 import juniojsv.engine.Config
 import juniojsv.engine.features.context.IWindowContext
-import juniojsv.engine.features.entity.Light
 import juniojsv.engine.features.gui.ImGuiLayout
 import org.joml.Vector3f
 
@@ -94,6 +93,10 @@ class MainLayout(private val callbacks: MainLayoutCallbacks) : ImGuiLayout() {
 
         if (ImGui.checkbox("Show Debug Objects", Config.isDebug)) {
             Config.isDebug = !Config.isDebug
+        }
+
+        if (ImGui.checkbox("Enable Shadows", Config.isShadowsEnabled)) {
+            Config.isShadowsEnabled = !Config.isShadowsEnabled
         }
 
         ImGui.text("Ambient Color")

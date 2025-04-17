@@ -7,5 +7,6 @@ object Config {
     var isWindowResizable = true
     var isFullScreen = false
     var isVsyncEnabled = false
+    var isShadowsEnabled = true
     var resolution: Resolution? = null
 }

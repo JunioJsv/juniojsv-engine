@@ -18,7 +18,7 @@ class SkyBox(
     var scale: Float = Scale.KILOMETER.length(1f),
     isShaderOverridable: Boolean = true,
     isEnabled: Boolean = true
-) : BaseRender(RenderTarget.SINGLE, mesh, shader, false, isShaderOverridable, false, isEnabled) {
+) : MeshRenderer(RenderTarget.SINGLE, mesh, shader, false, isShaderOverridable, false, isEnabled) {
     private fun transformation(): Matrix4f = Matrix4f().scale(scale)
 
     private fun getAmbientLightColor(): Vector3f = texture.faceWithMaxPixelLuminance.value.color

@@ -27,7 +27,7 @@ class Light(
     /**
      * The original position of the light.
      */
-    private val origin = Vector3f(position)
+    val origin = Vector3f(position)
 
     /**
      * The current position of the light.

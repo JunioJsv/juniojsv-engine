@@ -10,7 +10,7 @@ import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.linearmath.IDebugDraw
-import juniojsv.engine.features.entity.BaseBeing
+import juniojsv.engine.features.entity.PhysicsComponent
 import juniojsv.engine.features.utils.FrameTimer
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -61,9 +61,9 @@ class PhysicsContext : IPhysicsContext {
                     val collisionObjects = world.collisionObjectArray
                     for (i in 0 until collisionObjects.size) {
                         val collisionObject = collisionObjects.getQuick(i)
-                        val being = collisionObject.userPointer as? BaseBeing
-                        being?.transform?.setAsPrevious()
-                        being?.applyCollisionObjectTransform()
+                        val physicsComponent = collisionObject.userPointer as? PhysicsComponent
+                        physicsComponent?.transform?.setAsPrevious()
+                        physicsComponent?.syncWithCollisionObject()
                     }
                 }
 

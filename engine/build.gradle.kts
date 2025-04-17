@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -31,4 +33,8 @@ dependencies {
     implementation("cz.advel.jbullet:jbullet:20101010-1")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.compilerOptions {
+    freeCompilerArgs.set(listOf("-Xnon-local-break-continue"))
 }

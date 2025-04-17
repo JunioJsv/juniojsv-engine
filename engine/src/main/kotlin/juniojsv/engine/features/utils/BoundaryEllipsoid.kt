@@ -3,7 +3,6 @@ package juniojsv.engine.features.utils
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.collision.shapes.ConvexHullShape
 import com.bulletphysics.util.ObjectArrayList
-import juniojsv.engine.features.render.Debugger
 import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -19,7 +18,7 @@ class BoundaryEllipsoid(val radius: Vector3f, val details: Float = .5f) : IBound
 
         if (isSphere) return frustum.isSphereInside(position, radius.x)
 
-        if (transform.hasRotation()) {
+        if (transform.isRotated()) {
             return frustum.isEllipsoidInside(position, radius, transform.rotation)
         }
 
@@ -62,7 +61,8 @@ class BoundaryEllipsoid(val radius: Vector3f, val details: Float = .5f) : IBound
         return createEllipsoidShape(Vector3f(radius).mul(scale))
     }
 
-    override fun createDebugger(transform: Transform): Debugger {
-        return Debugger.Ellipsoid(transform, this)
+    override fun createShapeTransform(transform: Transform): Transform {
+        val scale = Vector3f(radius).mul(transform.scale)
+        return Transform(transform.position, transform.rotation, scale)
     }
 }

@@ -1,11 +1,9 @@
 package juniojsv.engine.features.render
 
-import juniojsv.engine.features.entity.BaseBeing
+import juniojsv.engine.Config
+import juniojsv.engine.features.entity.Entity
 import juniojsv.engine.features.texture.CopyFrameBufferTexture
-import juniojsv.engine.features.utils.FrameBuffer
-import juniojsv.engine.features.utils.RenderPass
-import juniojsv.engine.features.utils.RenderPassOverrides
-import juniojsv.engine.features.utils.RenderTarget
+import juniojsv.engine.features.utils.*
 import juniojsv.engine.features.utils.factories.QuadMesh
 import juniojsv.engine.features.utils.factories.ShadersProgramFactory
 import juniojsv.engine.features.window.Resolution
@@ -55,10 +53,10 @@ class RenderPipeline(val window: Window) {
         )
     )
 
-    private val viewport = SingleBeing(
+    private val viewport = EntityRender(
         QuadMesh.create(),
         ShadersProgramFactory.create("WINDOW"),
-        BaseBeing(),
+        Entity(),
         isFrustumCullingEnabled = false,
         isDebuggable = false,
         isPhysicsEnabled = false,
@@ -90,6 +88,12 @@ class RenderPipeline(val window: Window) {
     private fun onShadowsPass(callbacks: ICallbacks) {
         val light = context.render.ambientLight ?: return
         val camera = context.camera.instance
+
+        context.render.overrides.uniforms["uIsShadowsEnabled"] = Config.isShadowsEnabled
+        if (!Config.isShadowsEnabled) {
+            return
+        }
+
         light.lerpPosition(camera.position, .995f)
         light.target = camera.position
 

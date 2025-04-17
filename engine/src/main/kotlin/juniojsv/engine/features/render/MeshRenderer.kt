@@ -4,7 +4,7 @@ import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.utils.RenderTarget
 
-abstract class BaseRender(
+abstract class MeshRenderer(
     private val target: RenderTarget,
     val mesh: Mesh,
     private val shader: ShadersProgram,

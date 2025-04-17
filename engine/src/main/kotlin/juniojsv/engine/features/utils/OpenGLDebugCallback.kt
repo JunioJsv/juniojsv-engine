@@ -27,7 +27,6 @@ class OpenGLDebugCallback private constructor() : GLDebugMessageCallback() {
 
         when (severity) {
             GL43.GL_DEBUG_SEVERITY_HIGH -> {
-                logger.error("OpenGL HIGH: $messageStr")
                 throw RuntimeException(messageStr) // Terminate immediately on high severity
             }
 

@@ -14,10 +14,15 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL43
+import org.slf4j.LoggerFactory
 import kotlin.properties.Delegates
 import kotlin.system.exitProcess
 
 abstract class Window(private val title: String) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(this::class.java)
+    }
+
     lateinit var resolution: Resolution
         private set
 
@@ -73,9 +78,14 @@ abstract class Window(private val title: String) {
 
         setup()
         while (!GLFW.glfwWindowShouldClose(id)) (context as WindowContext).apply {
-            onPreRender()
-            onRender()
-            onPostRender()
+            try {
+                onPreRender()
+                onRender()
+                onPostRender()
+            } catch (e: Exception) {
+                logger.error(e.message, e.cause)
+                break
+            }
         }
         dispose()
     }

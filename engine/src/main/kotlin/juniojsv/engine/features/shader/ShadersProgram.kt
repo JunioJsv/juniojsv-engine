@@ -81,6 +81,9 @@ class ShadersProgram : IDisposable {
                     is IntArray ->
                         GL20.glUniform1iv(location, value)
 
+                    is Boolean ->
+                        GL20.glUniform1i(location, if (value) 1 else 0)
+
                     is Texture ->
                         TextureUnits.bind(value, name)
 

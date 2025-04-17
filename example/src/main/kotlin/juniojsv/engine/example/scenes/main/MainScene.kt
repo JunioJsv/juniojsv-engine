@@ -1,12 +1,14 @@
 package juniojsv.engine.example.scenes.main
 
 import juniojsv.engine.features.context.IWindowContext
-import juniojsv.engine.features.entity.BaseBeing
+import juniojsv.engine.features.entity.Entity
+import juniojsv.engine.features.entity.MaterialConfig
+import juniojsv.engine.features.entity.PhysicsConfig
 import juniojsv.engine.features.entity.Player
 import juniojsv.engine.features.mesh.ObjMeshLoader
-import juniojsv.engine.features.render.MultiBeing
+import juniojsv.engine.features.render.MultiEntityRender
 import juniojsv.engine.features.render.Render
-import juniojsv.engine.features.render.SingleBeing
+import juniojsv.engine.features.render.EntityRender
 import juniojsv.engine.features.render.SkyBox
 import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.texture.FileTexture
@@ -42,18 +44,20 @@ class MainScene : Scene(), MainLayoutCallbacks {
     override fun setup(context: IWindowContext) {
         super.setup(context)
 
-        floor = SingleBeing(
+        floor = EntityRender(
             CubeMesh.create(),
             defaultShadersProgram,
-            BaseBeing(
+            Entity(
                 Transform(
                     Vector3f(0f, Scale.KILOMETER.length(1.8f), 0f),
                     scale = Vector3f(Scale.KILOMETER.length(1f)),
                     rotation = Vector3f(-7f, 0f, 0f)
                 ),
-                TextureFactory.createTexture("METAL_07"),
-                textureScale = 500f,
-                mass = 0f
+                MaterialConfig(
+                    TextureFactory.createTexture("METAL_07"),
+                    scale = 500f,
+                ),
+                PhysicsConfig(mass = 0f)
             ).also {
                 val y = Vector3f(it.transform.position).add(it.transform.scale).y
                 player = Player(
@@ -104,9 +108,9 @@ class MainScene : Scene(), MainLayoutCallbacks {
         val maxSize = Scale.METER.length(2f)
 
         meshes.forEach { mesh ->
-            val beings = List(count / meshes.size) {
+            val entities = List(count / meshes.size) {
                 val size = maxSize * random.nextFloat().coerceAtLeast(0.5f)
-                BaseBeing(
+                Entity(
                     Transform(
                         Vector3f(
                             (random.nextInt(offset) - offset / 2).toFloat(),
@@ -116,18 +120,22 @@ class MainScene : Scene(), MainLayoutCallbacks {
                         rotation = Vector3f(random.nextFloat() * 360f),
                         scale = Vector3f(size)
                     ),
-                    textures.random(),
-                    textureScale = 4f * random.nextFloat().coerceAtLeast(0.1f),
-                    mass = 100f * size
+                    MaterialConfig(
+                        textures.random(),
+                        scale = 4f * random.nextFloat().coerceAtLeast(0.1f),
+                    ),
+                    PhysicsConfig(
+                        mass = 100f * size
+                    )
                 )
             }
 
             if (instanced) {
                 objects.add(
-                    MultiBeing(mesh, defaultShaderProgramInstanced, beings)
+                    MultiEntityRender(mesh, defaultShaderProgramInstanced, entities)
                 )
             } else {
-                objects.addAll(beings.map { SingleBeing(mesh, defaultShadersProgram, it) })
+                objects.addAll(entities.map { EntityRender(mesh, defaultShadersProgram, it) })
             }
         }
     }

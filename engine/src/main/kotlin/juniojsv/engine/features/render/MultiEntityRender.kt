@@ -2,7 +2,7 @@ package juniojsv.engine.features.render
 
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.context.IWindowContextListener
-import juniojsv.engine.features.entity.BaseBeing
+import juniojsv.engine.features.entity.Entity
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.features.texture.Texture
@@ -23,7 +23,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.ConcurrentLinkedQueue
 
-class MultiBeing(
+class MultiEntityRender(
     mesh: Mesh,
     shader: ShadersProgram,
     isDebuggable: Boolean = true,
@@ -32,10 +32,18 @@ class MultiBeing(
     isShaderOverridable: Boolean = true,
     private val glMode: Int = GL30.GL_TRIANGLES,
     isEnabled: Boolean = true,
-) : BaseRender(RenderTarget.MULTI, mesh, shader, isDebuggable, isShaderOverridable, isFrustumCullingEnabled, isEnabled),
+) : MeshRenderer(
+    RenderTarget.MULTI,
+    mesh,
+    shader,
+    isDebuggable,
+    isShaderOverridable,
+    isFrustumCullingEnabled,
+    isEnabled
+),
     IWindowContextListener {
     private val boundary = mesh.boundary
-    private val beings = mutableListOf<BaseBeing>()
+    private val entities = mutableListOf<Entity>()
     private val textures: MutableSet<Texture> = mutableSetOf()
     private val commands = ConcurrentLinkedQueue<() -> Unit>()
 
@@ -61,7 +69,7 @@ class MultiBeing(
 
         private const val INSTANCE_DIVISOR = 1 // Update attribute per instance
 
-        private val logger = LoggerFactory.getLogger(MultiBeing::class.java)
+        private val logger = LoggerFactory.getLogger(MultiEntityRender::class.java)
     }
 
     private val vbos = IntArray(VBO_COUNT)
@@ -69,32 +77,33 @@ class MultiBeing(
     constructor(
         mesh: Mesh,
         shader: ShadersProgram,
-        beings: List<BaseBeing>,
+        entities: List<Entity>,
         isDebuggable: Boolean = true,
         isFrustumCullingEnabled: Boolean = true,
         isPhysicsEnabled: Boolean = true,
         isShaderOverridable: Boolean = true
     ) : this(mesh, shader, isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable) {
-        commands.add { replace(beings) }
+        commands.add { replace(entities) }
     }
 
-    fun replace(beings: List<BaseBeing>) {
-        if (beings.isNotEmpty()) disposeBeings()
-        for (being in beings) add(being)
+    fun replace(entities: List<Entity>) {
+        if (entities.isNotEmpty()) disposeEntities()
+        for (entity in entities) add(entity)
     }
 
-    fun add(being: BaseBeing) {
+    fun add(entity: Entity) {
         if (boundary != null) {
-            if (isPhysicsEnabled) being.createRigidBody(this)
-            if (isDebuggable) being.createDebugger(this)
+            if (isPhysicsEnabled) entity.createRigidBody(this)
+            if (isDebuggable) entity.createDebugger(this)
         }
-        beings.add(being)
-        being.texture?.let { textures.add(it) }
+        entities.add(entity)
+        entity.material?.texture?.let { textures.add(it) }
     }
 
-    fun remove(being: BaseBeing) {
-        beings.remove(being)
-        being.dispose(context)
+    fun remove(entity: Entity) {
+        if (entities.remove(entity)) {
+            entity.dispose(context)
+        }
     }
 
     override fun setup(context: IWindowContext) {
@@ -163,18 +172,18 @@ class MultiBeing(
         GL30.glBindVertexArray(0)
     }
 
-    private fun updateVbos(beings: List<BaseBeing>) {
-        updateModelVbo(beings)
-        updatePreviousModelVbo(beings)
-        updateTextureIndexVbo(beings)
-        updateTextureScaleVbo(beings)
+    private fun updateVbos(entities: List<Entity>) {
+        updateModelVbo(entities)
+        updatePreviousModelVbo(entities)
+        updateTextureIndexVbo(entities)
+        updateTextureScaleVbo(entities)
         GL30.glBindVertexArray(0)
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, 0)
     }
 
 
-    private fun updateTextureIndexVbo(beings: List<BaseBeing>) {
-        val bytes = (beings.size * INT_BYTE_SIZE).toLong()
+    private fun updateTextureIndexVbo(entities: List<Entity>) {
+        val bytes = (entities.size * INT_BYTE_SIZE).toLong()
         if (bytes == 0L) return
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbos[TEXTURE_VBO_INDEX])
         GL30.glBufferData(GL30.GL_ARRAY_BUFFER, bytes, GL30.GL_STREAM_DRAW)
@@ -191,8 +200,9 @@ class MultiBeing(
             if (buffer == null) return
             buffer.order(ByteOrder.nativeOrder())
 
-            for (being in beings) {
-                val textureIndex = textures.indexOfFirst { being.texture?.id == it.id }
+            for (entity in entities) {
+                val material = entity.material
+                val textureIndex = textures.indexOfFirst { material?.texture?.id == it.id }
                 buffer.putInt(textureIndex)
             }
         } catch (e: Exception) {
@@ -203,8 +213,8 @@ class MultiBeing(
 
     }
 
-    private fun updateTextureScaleVbo(beings: List<BaseBeing>) {
-        val bytes = (beings.size * FLOAT_BYTE_SIZE).toLong()
+    private fun updateTextureScaleVbo(entities: List<Entity>) {
+        val bytes = (entities.size * FLOAT_BYTE_SIZE).toLong()
         if (bytes == 0L) return
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbos[TEXTURE_SCALE_VBO_INDEX])
         GL30.glBufferData(GL30.GL_ARRAY_BUFFER, bytes, GL30.GL_STREAM_DRAW)
@@ -221,8 +231,9 @@ class MultiBeing(
             if (buffer == null) return
             buffer.order(ByteOrder.nativeOrder())
 
-            for (being in beings) {
-                buffer.putFloat(being.textureScale)
+            for (entity in entities) {
+                val material = entity.material
+                buffer.putFloat(material?.scale ?: 1f)
             }
         } catch (e: Exception) {
             logger.error("Error updating texture scale VBO: ${e.message}")
@@ -231,8 +242,8 @@ class MultiBeing(
         }
     }
 
-    private fun updateModelVbo(beings: List<BaseBeing>) {
-        val bytes = (beings.size * MAT4_BYTE_SIZE).toLong()
+    private fun updateModelVbo(entities: List<Entity>) {
+        val bytes = (entities.size * MAT4_BYTE_SIZE).toLong()
         if (bytes == 0L) return
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbos[MODEL_VBO_INDEX])
         GL30.glBufferData(GL30.GL_ARRAY_BUFFER, bytes, GL30.GL_STREAM_DRAW)
@@ -249,8 +260,8 @@ class MultiBeing(
             if (buffer == null) return
             buffer.order(ByteOrder.nativeOrder())
 
-            for ((index, being) in beings.withIndex()) {
-                val transformationMatrix = being.transform.transformation()
+            for ((index, entity) in entities.withIndex()) {
+                val transformationMatrix = entity.transform.transformation()
                 val position = index * MAT4_BYTE_SIZE
                 transformationMatrix.get(position, buffer)
             }
@@ -261,8 +272,8 @@ class MultiBeing(
         }
     }
 
-    private fun updatePreviousModelVbo(beings: List<BaseBeing>) {
-        val bytes = (beings.size * MAT4_BYTE_SIZE).toLong()
+    private fun updatePreviousModelVbo(entities: List<Entity>) {
+        val bytes = (entities.size * MAT4_BYTE_SIZE).toLong()
         if (bytes == 0L) return
         GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, vbos[PREVIOUS_MODEL_VBO_INDEX])
         GL30.glBufferData(GL30.GL_ARRAY_BUFFER, bytes, GL30.GL_STREAM_DRAW)
@@ -279,8 +290,8 @@ class MultiBeing(
             if (buffer == null) return
             buffer.order(ByteOrder.nativeOrder())
 
-            for ((index, being) in beings.withIndex()) {
-                val transformationMatrix = being.transform.previous.transformation()
+            for ((index, entity) in entities.withIndex()) {
+                val transformationMatrix = entity.transform.previous.transformation()
                 val position = index * MAT4_BYTE_SIZE
                 transformationMatrix.get(position, buffer)
             }
@@ -302,21 +313,21 @@ class MultiBeing(
 
         if (!isEnabled) return
 
-        val beings: List<BaseBeing> = this.beings.filter { being ->
-            var isVisible = being.isEnabled
+        val entities: List<Entity> = this.entities.filter { entity ->
+            var isVisible = entity.isEnabled
 
             if (isVisible && isFrustumCullingEnabled() && boundary != null) {
-                val isInsideFrustum = being.isInsideFrustum(this)
-                being.debugger?.being?.isEnabled = isInsideFrustum
+                val isInsideFrustum = entity.isInsideFrustum(this)
+                entity.debugger?.entity?.isEnabled = isInsideFrustum
                 isVisible = isInsideFrustum
             }
 
             isVisible
         }
 
-        if (beings.isEmpty()) return
+        if (entities.isEmpty()) return
 
-        updateVbos(beings)
+        updateVbos(entities)
 
         val light = context.render.ambientLight
         val camera = context.camera.instance
@@ -330,29 +341,29 @@ class MultiBeing(
             uniforms["uPreviousProjection"] = context.camera.previousProjection
             uniforms["uPreviousView"] = context.camera.previousView
             uniforms["uCameraPosition"] = camera.position
-            uniforms["uLightPosition"] = light?.position ?: Vector3f(0f)
+            uniforms["uLightPosition"] = light?.origin ?: Vector3f(0f)
             uniforms["uLightColor"] = light?.color ?: Vector3f(0f)
             uniforms["uTime"] = context.time.elapsedInSeconds.toFloat()
             it.applyUniforms()
         }
 
         mesh.bind()
-        GL33.glDrawElementsInstanced(glMode, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, beings.size)
+        GL33.glDrawElementsInstanced(glMode, mesh.getIndicesCount(), GL33.GL_UNSIGNED_INT, 0, entities.size)
     }
 
     override fun onPostRender(context: IWindowContext) {
-        if (!isPhysicsEnabled) beings.forEach { it.transform.setAsPrevious() }
+        if (!isPhysicsEnabled) entities.forEach { it.transform.setAsPrevious() }
     }
 
-    private fun disposeBeings() {
-        beings.forEach { it.dispose(context) }
-        beings.clear()
+    private fun disposeEntities() {
+        entities.forEach { it.dispose(context) }
+        entities.clear()
     }
 
     override fun dispose() {
         super.dispose()
         GL30.glDeleteBuffers(vbos)
         context.removeListener(this)
-        disposeBeings()
+        disposeEntities()
     }
 }

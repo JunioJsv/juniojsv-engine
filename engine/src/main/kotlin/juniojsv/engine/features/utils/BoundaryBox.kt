@@ -3,7 +3,6 @@ package juniojsv.engine.features.utils
 import com.bulletphysics.collision.shapes.BoxShape
 import com.bulletphysics.collision.shapes.CollisionShape
 import juniojsv.engine.extensions.toVecmath
-import juniojsv.engine.features.render.Debugger
 import org.joml.Vector3f
 
 class BoundaryBox(val extents: Vector3f) : IBoundaryShape {
@@ -11,7 +10,7 @@ class BoundaryBox(val extents: Vector3f) : IBoundaryShape {
     override fun isInsideFrustum(frustum: Frustum, transform: Transform): Boolean {
         val scale = Vector3f(extents).mul(transform.scale)
 
-        if (transform.hasRotation()) return frustum.isBoxInside(
+        if (transform.isRotated()) return frustum.isBoxInside(
             transform.position, scale, transform.rotation
         )
 
@@ -25,7 +24,12 @@ class BoundaryBox(val extents: Vector3f) : IBoundaryShape {
         }.toVecmath())
     }
 
-    override fun createDebugger(transform: Transform): Debugger {
-        return Debugger.Box(transform, this)
+    override fun createShapeTransform(transform: Transform): Transform {
+        val scale = Vector3f(extents).apply {
+            mul(transform.scale)
+            div(2f)
+        }
+
+        return Transform(transform.position, transform.rotation, scale)
     }
 }
