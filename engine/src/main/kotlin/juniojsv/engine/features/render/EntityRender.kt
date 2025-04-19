@@ -69,7 +69,7 @@ class EntityRender(
             uniforms["uCameraPosition"] = camera.position
             uniforms["uModel"] = transformation
             uniforms["uPreviousModel"] = entity.transform.previous.transformation()
-            uniforms["uLightPosition"] = light?.origin ?: Vector3f(0f)
+            uniforms["uLightPosition"] = light?.position ?: Vector3f(0f)
             uniforms["uLightColor"] = light?.color ?: Vector3f(0f)
             uniforms["uTime"] = context.time.elapsedInSeconds.toFloat()
             uniforms["uTextureScale"] = entity.material?.scale ?: 1f

@@ -6,9 +6,9 @@ import juniojsv.engine.features.entity.MaterialConfig
 import juniojsv.engine.features.entity.PhysicsConfig
 import juniojsv.engine.features.entity.Player
 import juniojsv.engine.features.mesh.ObjMeshLoader
+import juniojsv.engine.features.render.EntityRender
 import juniojsv.engine.features.render.MultiEntityRender
 import juniojsv.engine.features.render.Render
-import juniojsv.engine.features.render.EntityRender
 import juniojsv.engine.features.render.SkyBox
 import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.texture.FileTexture

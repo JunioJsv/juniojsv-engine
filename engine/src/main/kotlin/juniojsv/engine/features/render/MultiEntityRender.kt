@@ -341,7 +341,7 @@ class MultiEntityRender(
             uniforms["uPreviousProjection"] = context.camera.previousProjection
             uniforms["uPreviousView"] = context.camera.previousView
             uniforms["uCameraPosition"] = camera.position
-            uniforms["uLightPosition"] = light?.origin ?: Vector3f(0f)
+            uniforms["uLightPosition"] = light?.position ?: Vector3f(0f)
             uniforms["uLightColor"] = light?.color ?: Vector3f(0f)
             uniforms["uTime"] = context.time.elapsedInSeconds.toFloat()
             it.applyUniforms()

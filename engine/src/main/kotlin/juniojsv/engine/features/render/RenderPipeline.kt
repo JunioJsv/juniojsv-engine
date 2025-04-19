@@ -94,8 +94,7 @@ class RenderPipeline(val window: Window) {
             return
         }
 
-        light.lerpPosition(camera.position, .995f)
-        light.target = camera.position
+        light.setShadowCasterTarget(camera.position, Scale.METER.length(400f))
 
         shadows.bind(context)
         shadows.overrides.uniforms["uLightSpaceMatrix"] = light.space
@@ -116,6 +115,7 @@ class RenderPipeline(val window: Window) {
     }
 
     fun render(callbacks: ICallbacks) {
+        context.render.overrides.uniforms["uIsDebug"] = Config.isDebug
         onShadowsPass(callbacks)
         onScenePass(callbacks)
         onVelocityPass(callbacks)

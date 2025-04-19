@@ -11,6 +11,7 @@ uniform sampler2D uTexture;
 uniform sampler2D uShadowMapTexture;
 uniform float uTextureScale;
 uniform vec3 uCameraPosition;
+uniform bool uIsDebug;
 
 #include <lighting.glsl>
 #include <shadows.glsl>
@@ -21,6 +22,10 @@ void main() {
 
     vec3 textureColor = texture(uTexture, vUV * uTextureScale).rgb;
     vec3 finalColor = textureColor * lighting;
+
+    if (uIsDebug && isInsideLightFrustum(vFragLightPosition)) {
+        finalColor += vec3(.1, 0, 0);
+    }
 
     gl_FragColor = vec4(finalColor, 1.0);
 }

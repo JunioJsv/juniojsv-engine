@@ -91,7 +91,7 @@ class MainLayout(private val callbacks: MainLayoutCallbacks) : ImGuiLayout() {
         ImGui.separator()
         ImGui.spacing()
 
-        if (ImGui.checkbox("Show Debug Objects", Config.isDebug)) {
+        if (ImGui.checkbox("Enable Debug Mode", Config.isDebug)) {
             Config.isDebug = !Config.isDebug
         }
 

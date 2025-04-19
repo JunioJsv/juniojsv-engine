@@ -4,6 +4,12 @@ float rand(vec2 co) {
     return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+bool isInsideLightFrustum(vec4 fragLightPos) {
+    vec3 projCoords = fragLightPos.xyz / fragLightPos.w;
+
+    return all(greaterThanEqual(projCoords, vec3(-1.0))) && all(lessThanEqual(projCoords, vec3(1.0)));
+}
+
 float calculateShadow(vec4 fragLightPos) {
     if (!uIsShadowsEnabled) return 0.0;
 
