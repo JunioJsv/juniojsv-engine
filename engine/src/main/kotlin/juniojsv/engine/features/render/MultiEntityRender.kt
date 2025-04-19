@@ -343,7 +343,7 @@ class MultiEntityRender(
             uniforms["uCameraPosition"] = camera.position
             uniforms["uLightPosition"] = light?.position ?: Vector3f(0f)
             uniforms["uLightColor"] = light?.color ?: Vector3f(0f)
-            uniforms["uTime"] = context.time.elapsedInSeconds.toFloat()
+            uniforms["uTime"] = context.time.current.toFloat()
             it.applyUniforms()
         }
 

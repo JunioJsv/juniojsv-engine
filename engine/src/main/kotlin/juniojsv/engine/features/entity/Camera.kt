@@ -12,15 +12,14 @@ import kotlin.math.sin
 
 class Camera(
     val position: Vector3f,
-    private val window: Window
+    private val window: Window,
+    private val parent: Any? = null,
 ) : IMovable {
     var fov = 75f
     var near = Scale.CENTIMETER.length(1f)
     var far = Scale.KILOMETER.length(100f)
 
     val rotation: Vector3f = Vector3f(0f)
-
-    var parent: Any? = null
 
     fun yaw() = toRadians(rotation.x.toDouble()).toFloat()
 
@@ -48,8 +47,8 @@ class Camera(
         }
 
         if (movements.isEmpty()) return
-        val delta = window.context.time.deltaInSeconds
-        val speed = (Scale.METER.length(100f) * delta).toFloat()
+        val deltaTime = window.context.time.deltaTime
+        val speed = (Scale.METER.length(100f) * deltaTime).toFloat()
 
         val forward = forward()
         val right = right()

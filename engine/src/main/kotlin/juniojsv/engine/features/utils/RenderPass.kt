@@ -25,14 +25,18 @@ class RenderPassOverrides(
     }
 }
 
-class RenderPass(val fbo: FrameBuffer, val overrides: RenderPassOverrides = RenderPassOverrides.DEFAULT) {
+class RenderPass(
+    val label: String,
+    val fbo: FrameBuffer,
+    val overrides: RenderPassOverrides = RenderPassOverrides.DEFAULT
+) {
     fun bind(context: IWindowContext, clear: Set<Int> = setOf(GL30.GL_COLOR_BUFFER_BIT, GL30.GL_DEPTH_BUFFER_BIT)) {
         fbo.bind(clear)
-        context.render.overrides = overrides
+        context.render.pass = this
     }
 
     fun unbind(context: IWindowContext) {
         fbo.unbind()
-        context.render.overrides = RenderPassOverrides.DEFAULT
+        context.render.pass = null
     }
 }

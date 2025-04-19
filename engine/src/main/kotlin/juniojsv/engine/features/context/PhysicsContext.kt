@@ -19,13 +19,21 @@ import kotlin.concurrent.thread
 
 interface IPhysicsContext {
     var speed: Float
-    fun addController(controller: ActionInterface)
-    fun removeController(controller: ActionInterface)
+    val lastUpdateTime: Double
+    fun addListener(listener: ActionInterface)
+    fun removeListener(listener: ActionInterface)
     fun addCollisionObject(collisionObject: CollisionObject)
     fun removeCollisionObject(collisionObject: CollisionObject)
 }
 
-class PhysicsContext : IPhysicsContext {
+class PhysicsContext() : IPhysicsContext {
+
+    companion object {
+        const val FIXED_TIME_STEP = 1f / 60f
+        const val MAX_SUB_STEPS = 1
+        private val logger = LoggerFactory.getLogger(PhysicsContext::class.java)
+    }
+
     private val broadphase = DbvtBroadphase()
     private val collisionConfiguration = DefaultCollisionConfiguration()
     private val dispatcher = CollisionDispatcher(collisionConfiguration)
@@ -39,14 +47,27 @@ class PhysicsContext : IPhysicsContext {
     private var running = false
     private var thread: Thread? = null
 
+    private var simulationTime = 0f
+    private var interpolationTime = 0f
+    private var lastInterpolationFactor = 0f
     private val timer = FrameTimer()
 
-    companion object {
-        private val logger = LoggerFactory.getLogger(PhysicsContext::class.java)
-    }
+    override val lastUpdateTime: Double
+        get() = timer.lastUpdate
 
     init {
         world.setGravity(Vector3f(0f, -9.81f, 0f))
+    }
+
+    private fun getPhysicsComponents(): List<PhysicsComponent> {
+        val collisionObjects = world.collisionObjectArray
+        val components = mutableListOf<PhysicsComponent>()
+        for (i in 0 until collisionObjects.size) {
+            val collisionObject = collisionObjects.getQuick(i)
+            val physicsComponent = collisionObject.userPointer as? PhysicsComponent
+            if (physicsComponent != null) components.add(physicsComponent)
+        }
+        return components
     }
 
     fun start() {
@@ -56,23 +77,22 @@ class PhysicsContext : IPhysicsContext {
         thread = thread(name = name) {
             logger.info("Starting $name thread.")
             timer.reset()
+
             val action = object : ActionInterface() {
                 override fun updateAction(collisionWorld: CollisionWorld, deltaTimeStep: Float) {
-                    val collisionObjects = world.collisionObjectArray
-                    for (i in 0 until collisionObjects.size) {
-                        val collisionObject = collisionObjects.getQuick(i)
-                        val physicsComponent = collisionObject.userPointer as? PhysicsComponent
-                        physicsComponent?.transform?.setAsPrevious()
-                        physicsComponent?.syncWithCollisionObject()
-                    }
+                    getPhysicsComponents().forEach { it.onSimulationUpdate() }
                 }
 
                 override fun debugDraw(debugDrawer: IDebugDraw?) {}
             }
             world.addAction(action)
+
             while (running) {
                 val fpsWasUpdated = timer.update()
                 val deltaTime = timer.deltaTime.toFloat()
+
+                simulationTime += deltaTime.coerceAtMost(FIXED_TIME_STEP) * speed
+                interpolationTime += deltaTime
 
                 var command = commands.poll()
                 while (command != null) {
@@ -80,23 +100,40 @@ class PhysicsContext : IPhysicsContext {
                     command = commands.poll()
                 }
 
-                world.stepSimulation(deltaTime * speed, 3, 1 / 60f)
+                val interpolationFactor = simulationTime / FIXED_TIME_STEP
+
+                while (simulationTime >= FIXED_TIME_STEP) {
+                    world.stepSimulation(FIXED_TIME_STEP, MAX_SUB_STEPS, FIXED_TIME_STEP)
+                    simulationTime -= FIXED_TIME_STEP
+                }
+
+                if (interpolationTime >= FIXED_TIME_STEP && interpolationFactor < 1f) {
+                    val deltaInterpolationFactor = interpolationFactor - lastInterpolationFactor
+                    if (deltaInterpolationFactor > 0f) {
+                        getPhysicsComponents().forEach {
+                            it.onSimulationInterpolate(interpolationFactor)
+                        }
+                    }
+                    lastInterpolationFactor = interpolationFactor
+                    interpolationTime = 0f
+                }
 
                 if (fpsWasUpdated) logStats()
 
-                Thread.sleep(1)
+                Thread.yield()
             }
+
             world.removeAction(action)
             logger.info("Stopping $name thread.")
         }
     }
 
-    override fun addController(controller: ActionInterface) {
-        commands.add { world.addAction(controller) }
+    override fun addListener(listener: ActionInterface) {
+        commands.add { world.addAction(listener) }
     }
 
-    override fun removeController(controller: ActionInterface) {
-        commands.add { world.removeAction(controller) }
+    override fun removeListener(listener: ActionInterface) {
+        commands.add { world.removeAction(listener) }
     }
 
     override fun addCollisionObject(collisionObject: CollisionObject) {
@@ -119,13 +156,13 @@ class PhysicsContext : IPhysicsContext {
 
     private fun logStats() {
         val collisionObjects = world.collisionObjectArray
-        val controllers = world.numActions
+        val listeners = world.numActions
         logger.info(
             """
             |Physics Stats:
             |  - Speed: $speed
             |  - Collision Objects: ${collisionObjects.size}
-            |  - Controllers: $controllers
+            |  - Listeners: $listeners
             |  - FPS: ${timer.getAverageFpsRounded()}
             """.trimMargin()
         )

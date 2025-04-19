@@ -50,13 +50,25 @@ class Frustum {
         return true
     }
 
-    fun isBoxInside(position: Vector3f, extents: Vector3f, rotation: Vector3f): Boolean {
-        val halfExtents = Vector3f(extents).div(2f)
+    fun isBoxInside(position: Vector3f, extents: Vector3f, rotation: Quaternionf): Boolean {
+        val rotationMatrix = Matrix3f().rotation(rotation)
 
+        return isBoxInside(position, extents, rotationMatrix)
+    }
+
+    fun isBoxInside(position: Vector3f, extents: Vector3f, rotation: Vector3f): Boolean {
         val rotationMatrix = Matrix3f()
             .rotationX(Math.toRadians(rotation.x.toDouble()).toFloat())
             .rotateY(Math.toRadians(rotation.y.toDouble()).toFloat())
             .rotateZ(Math.toRadians(rotation.z.toDouble()).toFloat())
+
+        return isBoxInside(position, extents, rotationMatrix)
+    }
+
+    fun isBoxInside(position: Vector3f, extents: Vector3f, rotation: Matrix3f): Boolean {
+        val halfExtents = Vector3f(extents).div(2f)
+
+        val rotationMatrix = Matrix3f().set(rotation)
 
         val localVertices = arrayOf(
             Vector3f(-halfExtents.x, -halfExtents.y, -halfExtents.z),
@@ -124,6 +136,17 @@ class Frustum {
             .rotationX(Math.toRadians(rotation.x.toDouble()).toFloat())
             .rotateY(Math.toRadians(rotation.y.toDouble()).toFloat())
             .rotateZ(Math.toRadians(rotation.z.toDouble()).toFloat())
+
+        return isEllipsoidInside(position, radius, rotationMatrix)
+    }
+
+    fun isEllipsoidInside(position: Vector3f, radius: Vector3f, rotation: Quaternionf): Boolean {
+        val rotationMatrix = Matrix3f().rotation(rotation)
+        return isEllipsoidInside(position, radius, rotationMatrix)
+    }
+
+    fun isEllipsoidInside(position: Vector3f, radius: Vector3f, rotation: Matrix3f): Boolean {
+        val rotationMatrix = Matrix3f().set(rotation)
 
         for (plane in planes) {
             val planeNormal = Vector3f(plane.x, plane.y, plane.z)

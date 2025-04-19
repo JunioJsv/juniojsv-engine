@@ -66,7 +66,7 @@ class SkyBox(
             uniforms["uView"] = context.camera.view
             uniforms["uPreviousProjection"] = context.camera.previousProjection
             uniforms["uPreviousView"] = context.camera.previousView
-            uniforms["uTime"] = context.time.elapsedInSeconds.toFloat()
+            uniforms["uTime"] = context.time.current.toFloat()
             it.applyUniforms()
         }
         mesh.bind()

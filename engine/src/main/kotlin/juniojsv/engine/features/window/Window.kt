@@ -69,6 +69,12 @@ abstract class Window(private val title: String) {
         )
 
         if (isMaximizedWindow) {
+            GLFW.glfwSetWindowSizeLimits(
+                id,
+                800, 600,
+                GLFW.GLFW_DONT_CARE,
+                GLFW.GLFW_DONT_CARE
+            )
             GLFW.glfwMaximizeWindow(id)
             val width = intArrayOf(0)
             val height = intArrayOf(0)

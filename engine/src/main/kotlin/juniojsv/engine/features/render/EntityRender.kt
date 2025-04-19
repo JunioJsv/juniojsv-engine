@@ -71,7 +71,7 @@ class EntityRender(
             uniforms["uPreviousModel"] = entity.transform.previous.transformation()
             uniforms["uLightPosition"] = light?.position ?: Vector3f(0f)
             uniforms["uLightColor"] = light?.color ?: Vector3f(0f)
-            uniforms["uTime"] = context.time.elapsedInSeconds.toFloat()
+            uniforms["uTime"] = context.time.current.toFloat()
             uniforms["uTextureScale"] = entity.material?.scale ?: 1f
             it.applyUniforms()
         }

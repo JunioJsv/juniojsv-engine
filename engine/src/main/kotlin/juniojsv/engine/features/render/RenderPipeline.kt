@@ -23,9 +23,14 @@ class RenderPipeline(val window: Window) {
     private fun resolutionWithScale() = window.resolution.withResolutionScale(window.context.render.resolutionScale)
     private val resolution get() = window.resolution
 
-    private val scene = RenderPass(FrameBuffer(window, resolutionWithScale()))
-    private val overlay = RenderPass(FrameBuffer(window, resolutionWithScale()))
+    private val scene = RenderPass(
+        "scene", FrameBuffer(window, resolutionWithScale())
+    )
+    private val overlay = RenderPass(
+        "overlay", FrameBuffer(window, resolutionWithScale())
+    )
     private val velocity = RenderPass(
+        "velocity",
         FrameBuffer(
             window,
             resolutionWithScale(),
@@ -39,6 +44,7 @@ class RenderPipeline(val window: Window) {
         )
     )
     private val shadows = RenderPass(
+        "shadows",
         FrameBuffer(
             window,
             Resolution(1024 * 8, 1024 * 8),
@@ -121,7 +127,7 @@ class RenderPipeline(val window: Window) {
         onVelocityPass(callbacks)
         onOverlayPass(callbacks)
 
-        val fps = context.time.averageFps
+        val fps = context.time.fps
         viewport.also {
             it.uniforms["uSceneTexture"] = scene.fbo.getColorTexture()
             it.uniforms["uSceneDepthTexture"] = scene.fbo.getDepthTexture()

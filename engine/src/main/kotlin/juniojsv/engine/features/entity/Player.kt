@@ -20,8 +20,9 @@ class PlayerController(entity: Entity) : ActionInterface() {
     private val airControlFactor = 0.2f
     private val mass = entity.physics?.config?.mass ?: error("Player requires mass")
 
-    private val linearVelocity = VecmathVector3f()
     private val transform = BulletTransform()
+    private val linearVelocity = VecmathVector3f()
+
     private val impulseAccumulator = VecmathVector3f()
     private var needsJump = false
 
@@ -138,14 +139,12 @@ class Player(
         super.setup(context)
 
         camera = context.camera.getOrPut(cameraName) { window ->
-            Camera(entity.transform.position, window).also { cam ->
-                cam.parent = this
-            }
+            Camera(entity.transform.position, window, this)
         }
 
         entity.physics?.createRigidBody(context, boundary)
         controller = PlayerController(entity)
-        context.physics.addController(controller)
+        context.physics.addListener(controller)
     }
 
     /**
@@ -182,7 +181,7 @@ class Player(
     override fun dispose() {
         super.dispose()
         if (didSetup) {
-            context.physics.removeController(controller)
+            context.physics.removeListener(controller)
         }
         entity.dispose(context)
         context.camera.remove(cameraName)

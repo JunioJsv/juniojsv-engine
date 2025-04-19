@@ -51,27 +51,29 @@ class CameraContext(private val window: Window) : ICameraContext {
 
     override var projection: Matrix4f = instance.view()
         private set
-    override var previousProjection: Matrix4f = projection
+    override var previousProjection: Matrix4f = Matrix4f(projection)
         private set
 
     override var view: Matrix4f = instance.view()
         private set
-    override var previousView: Matrix4f = view
+    override var previousView: Matrix4f = Matrix4f(view)
         private set
+
+    private val projectionView = Matrix4f()
 
     override var frustum = Frustum()
         private set
 
     fun onPreRender() {
-        projection = instance.projection()
-        view = instance.view()
-        val projectionView = Matrix4f()
+        projection.set(instance.projection())
+        view.set(instance.view())
+
         projection.mul(view, projectionView)
         frustum.update(projectionView)
     }
 
     fun onPostRender() {
-        previousProjection = projection
-        previousView = view
+        previousProjection.set(projection)
+        previousView.set(view)
     }
 }

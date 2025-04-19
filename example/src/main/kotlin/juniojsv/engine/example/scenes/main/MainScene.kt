@@ -17,7 +17,10 @@ import juniojsv.engine.features.utils.BoundaryEllipsoid
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.Transform
 import juniojsv.engine.features.utils.factories.*
+import org.joml.AxisAngle4d
+import org.joml.Quaternionf
 import org.joml.Vector3f
+import java.lang.Math.toRadians
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -50,8 +53,8 @@ class MainScene : Scene(), MainLayoutCallbacks {
             Entity(
                 Transform(
                     Vector3f(0f, Scale.KILOMETER.length(1.8f), 0f),
-                    scale = Vector3f(Scale.KILOMETER.length(1f)),
-                    rotation = Vector3f(-7f, 0f, 0f)
+                    scale = Vector3f(Scale.KILOMETER.length(0.995f)),
+                    rotation = Quaternionf(AxisAngle4d(toRadians(7.0), -1.0, 0.0, 0.0))
                 ),
                 MaterialConfig(
                     TextureFactory.createTexture("METAL_07"),
@@ -117,7 +120,14 @@ class MainScene : Scene(), MainLayoutCallbacks {
                             (random.nextInt(offset) + maxSize) + Scale.KILOMETER.length(3f),
                             (random.nextInt(offset) - offset / 2).toFloat()
                         ),
-                        rotation = Vector3f(random.nextFloat() * 360f),
+                        rotation = Quaternionf(
+                            AxisAngle4d(
+                                random.nextDouble() * toRadians(360.9),
+                                1.0,
+                                1.0,
+                                1.0
+                            )
+                        ),
                         scale = Vector3f(size)
                     ),
                     MaterialConfig(

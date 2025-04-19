@@ -1,6 +1,5 @@
 package juniojsv.engine.features.utils
 
-import com.bulletphysics.collision.dispatch.CollisionObject
 import juniojsv.engine.extensions.BulletTransform
 import juniojsv.engine.extensions.toJoml
 import juniojsv.engine.extensions.toVecmath
@@ -10,57 +9,55 @@ import org.joml.Vector3f
 import javax.vecmath.Quat4f
 
 data class Transform(
-    val position: Vector3f = Vector3f(0f),
-    val rotation: Vector3f = Vector3f(0f),
+    val position: Vector3f = Vector3f(),
+    val rotation: Quaternionf = Quaternionf(),
     val scale: Vector3f = Vector3f(Scale.METER.length(1f))
 ) {
-    val previous by lazy { Transform().also { it.set(this) } }
 
-    fun setAsPrevious() {
-        previous.set(this)
+    constructor(transform: Transform) : this() {
+        set(transform)
     }
 
-    fun set(source: Transform) {
+    constructor(transform: BulletTransform) : this() {
+        set(transform)
+    }
+
+    val previous by lazy { Transform().also { it.set(this) } }
+
+    fun interpolate(next: Transform, t: Float): Transform {
+        position.lerp(next.position, t)
+        rotation.slerp(next.rotation, t)
+        scale.lerp(next.scale, t)
+        return this
+    }
+
+    fun setAsPrevious(): Transform {
+        previous.set(this)
+        return previous
+    }
+
+    fun set(source: Transform): Transform {
         position.set(source.position)
         rotation.set(source.rotation)
         scale.set(source.scale)
+        return this
     }
 
-    fun set(source: CollisionObject) {
-        val worldTransform = BulletTransform()
-        source.getWorldTransform(worldTransform)
-
-        set(worldTransform)
-    }
-
-    fun set(source: BulletTransform) {
-        position.set(source.origin.toJoml())
-
+    fun set(source: BulletTransform): Transform {
+        // BulletTransform don't support scale
+        position.set(source.origin.x, source.origin.y, source.origin.z)
         val rotation = Quat4f()
         source.getRotation(rotation)
-        rotation.toJoml().also {
-            val euler = Vector3f()
-            it.getEulerAnglesXYZ(euler)
-
-            val eulerDegrees = Vector3f(
-                Math.toDegrees(euler.x.toDouble()).toFloat(),
-                Math.toDegrees(euler.y.toDouble()).toFloat(),
-                Math.toDegrees(euler.z.toDouble()).toFloat()
-            )
-            this.rotation.set(eulerDegrees)
-        }
+        this.rotation.set(rotation.toJoml())
+        return this
     }
 
     fun toBulletTransform(): BulletTransform {
+        // BulletTransform don't support scale
         val transform = BulletTransform().apply {
             setIdentity()
             origin.set(position.x, position.y, position.z)
-            val quaternion = Quaternionf().rotateXYZ(
-                Math.toRadians(rotation.x.toDouble()).toFloat(),
-                Math.toRadians(rotation.y.toDouble()).toFloat(),
-                Math.toRadians(rotation.z.toDouble()).toFloat()
-            )
-            setRotation(quaternion.toVecmath())
+            setRotation(rotation.toVecmath())
         }
         return transform
     }
@@ -68,13 +65,11 @@ data class Transform(
     fun transformation(): Matrix4f = Matrix4f()
         .apply {
             translate(position)
-            rotateX(Math.toRadians(rotation.x.toDouble()).toFloat())
-            rotateY(Math.toRadians(rotation.y.toDouble()).toFloat())
-            rotateZ(Math.toRadians(rotation.z.toDouble()).toFloat())
+            rotate(rotation)
             scale(scale)
         }
 
     fun isRotated(): Boolean {
-        return rotation.x != 0f || rotation.y != 0f || rotation.z != 0f
+        return rotation.x != 0f || rotation.y != 0f || rotation.z != 0f || rotation.w != 1f
     }
 }

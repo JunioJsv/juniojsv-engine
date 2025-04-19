@@ -25,6 +25,15 @@ class FrameTimer(private val fpsUpdateInterval: Double = 1.0) {
     var averageFps: Double = 0.0
         private set
 
+    /**
+     * Gets the time of the last update in seconds.
+     *
+     * This property converts the internal `lastTime` value from nanoseconds to seconds
+     * by dividing it by 1,000,000,000.0.
+     * Useful for debugging or monitoring purposes to assess the timer's state.
+     */
+    val lastUpdate get() = lastTime / 1_000_000_000.0
+
     private var lastTime: Long = System.nanoTime()
     private var frameCount: Int = 0
     private var accumulatedDeltaTimeInternal: Double = 0.0

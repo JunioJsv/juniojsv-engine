@@ -26,14 +26,12 @@ class Entity(
     physics: PhysicsConfig? = null,
     var isEnabled: Boolean = true
 ) : PhysicsComponentListener {
-    val physics = physics?.let { config -> PhysicsComponent(transform, config) }
+    val physics = physics?.let { config ->
+        PhysicsComponent(transform, config).also { it.addListener(this) }
+    }
 
     var debugger: TransformableShape? = null
         private set
-
-    init {
-        this.physics?.addListener(this)
-    }
 
     override fun didTransformChanged() {
         debugger?.update(transform)
