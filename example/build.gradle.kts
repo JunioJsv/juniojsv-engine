@@ -4,8 +4,6 @@ plugins {
     kotlin("jvm")
 }
 
-version = "1.0.0"
-
 application {
     mainClass.set("juniojsv.engine.example.MainKt")
     applicationDefaultJvmArgs = arrayListOf(

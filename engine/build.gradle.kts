@@ -5,8 +5,6 @@ plugins {
     kotlin("plugin.serialization")
 }
 
-version = "1.2.0"
-
 dependencies {
     implementation("de.javagl:obj:0.3.0")
 
@@ -34,6 +32,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 }
+
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.compilerOptions {
     freeCompilerArgs.set(listOf("-Xnon-local-break-continue"))
