@@ -1,0 +1,44 @@
+{
+  "shaders": {
+    "DEFAULT": {
+      "vertex": "shaders/default/default.vert",
+      "fragment": "shaders/default/default.frag"
+    },
+    "DEFAULT_INSTANCED": {
+      "vertex": "shaders/default/default_instanced.vert",
+      "fragment": "shaders/default/default_instanced.frag"
+    },
+    "DEFAULT_INSTANCED_DEBUG": {
+      "vertex": "shaders/default/default_instanced.vert",
+      "fragment": "shaders/default/default_instanced_debug.frag"
+    },
+    "WINDOW": {
+      "vertex": "shaders/window.vert",
+      "fragment": "shaders/window.frag"
+    },
+    "SKYBOX": {
+      "vertex": "shaders/skybox.vert",
+      "fragment": "shaders/skybox.frag"
+    },
+    "VELOCITY": {
+      "vertex": "shaders/velocity.vert",
+      "fragment": "shaders/velocity.frag"
+    },
+    "VELOCITY_INSTANCED": {
+      "vertex": "shaders/velocity_instanced.vert",
+      "fragment": "shaders/velocity.frag"
+    },
+    "DEBUGGER": {
+      "vertex": "shaders/debugger.vert",
+      "fragment": "shaders/debugger.frag"
+    },
+    "SHADOW_MAP": {
+      "vertex": "shaders/shadow_map.vert",
+      "fragment": "shaders/shadow_map.frag"
+    },
+    "SHADOW_MAP_INSTANCED": {
+      "vertex": "shaders/shadow_map_instanced.vert",
+      "fragment": "shaders/shadow_map.frag"
+    }
+  }
+}
