@@ -54,7 +54,12 @@ class MainScene : Scene(), MainLayoutCallbacks {
                 Transform(
                     Vector3f(0f, Scale.KILOMETER.length(1.8f), 0f),
                     scale = Vector3f(Scale.KILOMETER.length(0.995f)),
-                    rotation = Quaternionf(AxisAngle4d(toRadians(7.0), -1.0, 0.0, 0.0))
+                    rotation = Quaternionf(
+                        AxisAngle4d(
+                            toRadians(7.0),
+                            Vector3f(-1f, 0f, 0f).normalize()
+                        )
+                    )
                 ),
                 MaterialConfig(
                     TextureFactory.createTexture("METAL_07"),
@@ -122,10 +127,8 @@ class MainScene : Scene(), MainLayoutCallbacks {
                         ),
                         rotation = Quaternionf(
                             AxisAngle4d(
-                                random.nextDouble() * toRadians(360.9),
-                                1.0,
-                                1.0,
-                                1.0
+                                random.nextDouble() * toRadians(360.0),
+                                Vector3f(random.nextFloat()).normalize()
                             )
                         ),
                         scale = Vector3f(size)

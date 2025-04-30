@@ -22,7 +22,7 @@ data class Transform(
         set(transform)
     }
 
-    val previous by lazy { Transform().also { it.set(this) } }
+    val previous by lazy { Transform(this) }
 
     fun interpolate(next: Transform, t: Float): Transform {
         position.lerp(next.position, t)
@@ -63,11 +63,9 @@ data class Transform(
     }
 
     fun transformation(): Matrix4f = Matrix4f()
-        .apply {
-            translate(position)
-            rotate(rotation)
-            scale(scale)
-        }
+        .translate(position)
+        .rotate(rotation)
+        .scale(scale)
 
     fun isRotated(): Boolean {
         return rotation.x != 0f || rotation.y != 0f || rotation.z != 0f || rotation.w != 1f
