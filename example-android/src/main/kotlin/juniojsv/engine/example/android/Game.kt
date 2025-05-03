@@ -39,7 +39,9 @@ open class Game(applicationContext: Context) : AndroidWindow(applicationContext)
 
     override fun onRender() {
         pipeline.render(this)
-        camera.move(movement.x, movement.y)
+        if (movement.x != 0f || movement.y != 0f)
+            camera.move(movement.x, movement.y)
+
         if (buttons.contains("B"))
             camera.move(setOf(MovementDirection.UP))
 
