@@ -8,12 +8,17 @@ import com.bulletphysics.linearmath.IDebugDraw
 import juniojsv.engine.extensions.VecmathVector3f
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.render.Render
-import juniojsv.engine.features.utils.*
+import juniojsv.engine.features.utils.BoundaryEllipsoid
+import juniojsv.engine.features.utils.IMovable
+import juniojsv.engine.features.utils.MovementDirection
+import juniojsv.engine.features.utils.Scale
+import juniojsv.engine.features.utils.Transform
 import org.joml.Vector3f
 import com.bulletphysics.linearmath.Transform as BulletTransform
 
 class PlayerController(entity: Entity) : ActionInterface() {
-    private val body = entity.physics?.collisionObject as? RigidBody ?: error("Player requires a RigidBody")
+    private val body =
+        entity.physics?.collisionObject as? RigidBody ?: error("Player requires a RigidBody")
     private val acceleration = Scale.METER.length(50f)
     private val maxVelocity = Scale.METER.length(5f)
     private val jumpVelocity = Scale.METER.length(5f)
@@ -170,6 +175,21 @@ class Player(
             }
         }
 
+        if (directionJOML.lengthSquared() > 0.001f) {
+            directionJOML.normalize()
+            directionVecmath.set(directionJOML.x, directionJOML.y, directionJOML.z)
+            controller.addMovementInput(directionVecmath)
+        }
+    }
+
+    override fun move(x: Float, y: Float) {
+        if (!didSetup) return
+
+        val forward = camera.forward().also { it.y = 0f }.normalize()
+        val right = camera.right().also { it.y = 0f }.normalize()
+        directionJOML.zero()
+        directionJOML.add(forward.mul(y))
+        directionJOML.add(right.mul(x))
         if (directionJOML.lengthSquared() > 0.001f) {
             directionJOML.normalize()
             directionVecmath.set(directionJOML.x, directionJOML.y, directionJOML.z)

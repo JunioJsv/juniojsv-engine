@@ -16,7 +16,11 @@ import juniojsv.engine.features.utils.BoundaryBox
 import juniojsv.engine.features.utils.BoundaryEllipsoid
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.Transform
-import juniojsv.engine.features.utils.factories.*
+import juniojsv.engine.features.utils.factories.CubeMesh
+import juniojsv.engine.features.utils.factories.ShadersProgramFactory
+import juniojsv.engine.features.utils.factories.SkyboxMesh
+import juniojsv.engine.features.utils.factories.SphereMesh
+import juniojsv.engine.features.utils.factories.TextureFactory
 import org.joml.AxisAngle4d
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -80,7 +84,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
 
         skybox = SkyBox(
             SkyboxMesh.create(),
-            cubemaps.random(),
+            cubemaps.first(),
             ShadersProgramFactory.create("SKYBOX"),
             scale = Scale.KILOMETER.length(100f)
         )
@@ -96,7 +100,6 @@ class MainScene : Scene(), MainLayoutCallbacks {
             textures.add(texture)
         }
         textures.add(TextureFactory.createTexture("TEST"))
-        onGenerateObjects(100, false)
     }
 
     override fun render(context: IWindowContext) {
@@ -157,6 +160,10 @@ class MainScene : Scene(), MainLayoutCallbacks {
     private fun setSkyboxAsAmbientLight(context: IWindowContext) {
         val light = skybox.getAmbientLight()
         context.render.ambientLight = light
+    }
+
+    fun getCurrentSkyboxIndex(): Int {
+        return cubemaps.indexOf(skybox.texture)
     }
 
     override fun getSkyboxCount(): Int {

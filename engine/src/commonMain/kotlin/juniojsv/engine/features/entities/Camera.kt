@@ -73,6 +73,29 @@ class Camera(
         }
     }
 
+    override fun move(x: Float, y: Float) {
+        val parent = this.parent
+        if (parent is IMovable) {
+            parent.move(x, y)
+            return
+        }
+
+        val deltaTime = window.context.time.deltaTime
+        val speed = (Scale.Companion.METER.length(100f) * deltaTime).toFloat()
+
+        val forward = forward()
+        val right = right()
+        val direction = Vector3f()
+
+        direction.add(forward.mul(y))
+        direction.add(right.mul(x))
+
+        if (direction.length() > 0f) {
+            direction.normalize().mul(speed)
+            position.add(direction)
+        }
+    }
+
     fun rotate(x: Float, y: Float) {
         // Limit Pitch
         rotation.y = (rotation.y + y).coerceIn(-89f, 89f)

@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm") apply false
     kotlin("android") apply false
     kotlin("plugin.serialization") apply false
+    id("org.jetbrains.kotlin.plugin.compose") apply false
 }
 
 allprojects {

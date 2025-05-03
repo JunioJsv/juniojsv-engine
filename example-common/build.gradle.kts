@@ -43,7 +43,7 @@ kotlin {
 }
 
 android {
-    namespace = "$group.example"
+    namespace = "$group.example.common"
     compileSdk = 34
     defaultConfig {
         minSdk = 24
