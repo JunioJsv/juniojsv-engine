@@ -138,7 +138,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
                         scale = Vector3f(size)
                     ),
                     MaterialConfig(
-                        textures.random(),
+                        textures.random(random),
                         scale = 4f * random.nextFloat().coerceAtLeast(0.1f),
                     ),
                     PhysicsConfig(

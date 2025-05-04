@@ -4,6 +4,7 @@ import juniojsv.engine.extensions.toBuffer
 import juniojsv.engine.features.textures.Texture
 import juniojsv.engine.features.textures.TextureUnits
 import juniojsv.engine.features.utils.IDisposable
+import juniojsv.engine.features.utils.ShadersConfig.AttributesBuilder
 import juniojsv.engine.platforms.GL
 import juniojsv.engine.platforms.PlatformMemory
 import juniojsv.engine.platforms.constants.GL_CURRENT_PROGRAM
@@ -17,7 +18,8 @@ import org.slf4j.LoggerFactory
 
 data class Shaders(
     val vertex: VertexShader,
-    val fragment: FragmentShader
+    val fragment: FragmentShader,
+    val attributes: Map<Int, String> = AttributesBuilder().default().build()
 ) {
     val ids = listOf(vertex.id, fragment.id)
 
@@ -25,20 +27,16 @@ data class Shaders(
         return """Shaders(
             |   vertex=$vertex,
             |   fragment=$fragment
+            |   attributes=$attributes
             |)""".trimMargin()
     }
 }
 
-class ShadersProgram : IDisposable {
-    val id: Int
+class ShadersProgram(shaders: Shaders) : IDisposable {
+    val id: Int = GL.glCreateProgram()
 
-    constructor(shaders: Shaders) {
-        id = GL.glCreateProgram()
+    init {
         setup(shaders)
-    }
-
-    constructor(id: Int) {
-        this.id = id
     }
 
     companion object {
@@ -98,7 +96,8 @@ class ShadersProgram : IDisposable {
             }
         }
 
-        fun putUniform(name: String, value: Any) = putUniform(getCurrentShaderProgramId(), name, value)
+        fun putUniform(name: String, value: Any) =
+            putUniform(getCurrentShaderProgramId(), name, value)
 
         fun bind(id: Int) {
             if (id == getCurrentShaderProgramId()) return
@@ -114,9 +113,9 @@ class ShadersProgram : IDisposable {
     private fun setup(shaders: Shaders) {
         shaders.ids.forEach { GL.glAttachShader(id, it) }
 
-        GL.glBindAttribLocation(id, 0, "aPosition")
-        GL.glBindAttribLocation(id, 1, "aUV")
-        GL.glBindAttribLocation(id, 2, "aNormal")
+        shaders.attributes.forEach { (location, name) ->
+            GL.glBindAttribLocation(id, location, name)
+        }
 
         GL.glLinkProgram(id)
 
@@ -124,10 +123,7 @@ class ShadersProgram : IDisposable {
         if (linked == GL_FALSE) {
             val log = GL.glGetProgramInfoLog(id)
             logger.error(
-                """Error linking Shader Program:
-                |   $shaders
-                |   $log
-            """.trimMargin()
+                "Error linking Shader Program:\n$shaders\n$log"
             )
         }
 

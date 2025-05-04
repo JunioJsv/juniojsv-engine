@@ -4,7 +4,7 @@ in vec2 vUV;
 flat in int vTextureIndex;
 flat in float vTextureScale;
 
-uniform sampler2D uTextures[16];
+uniform sampler2D uTextures[32];
 
 out vec4 oFragColor;
 

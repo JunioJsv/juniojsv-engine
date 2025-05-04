@@ -10,7 +10,8 @@ import juniojsv.engine.platforms.PlatformResources
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-abstract class AndroidWindow(private val applicationContext: Context) : PlatformWindow(), GLSurfaceView.Renderer {
+abstract class AndroidWindow(private val applicationContext: Context) : PlatformWindow(),
+    GLSurfaceView.Renderer {
     override lateinit var context: IWindowContext
     override lateinit var resolution: Resolution
 
@@ -33,7 +34,7 @@ abstract class AndroidWindow(private val applicationContext: Context) : Platform
         context = WindowContext(this)
     }
 
-    override fun dispose() {
+    public override fun dispose() {
         context.dispose()
     }
 

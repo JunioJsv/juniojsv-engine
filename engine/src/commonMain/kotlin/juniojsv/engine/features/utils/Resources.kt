@@ -4,6 +4,7 @@ import juniojsv.engine.features.shader.FragmentShader
 import juniojsv.engine.features.shader.Shaders
 import juniojsv.engine.features.shader.VertexShader
 import juniojsv.engine.features.textures.RawTexture
+import juniojsv.engine.features.utils.ShadersConfig.Attributes.entries
 import juniojsv.engine.features.utils.factories.ShadersProgramFactory
 import juniojsv.engine.features.utils.factories.TextureFactory
 import juniojsv.engine.platforms.PlatformDecoders
@@ -22,10 +23,90 @@ import org.slf4j.LoggerFactory
 import java.io.InputStream
 
 @Serializable
-data class ShadersFiles(
+data class ShadersConfig(
     val vertex: String,
-    val fragment: String
-)
+    val fragment: String,
+    val attributes: Map<Int, String> = AttributesBuilder().default().build()
+) {
+    enum class Attributes(val label: String, val gap: Int = 1) {
+        POSITION("aPosition"),
+        UV("aUV"),
+        NORMAL("aNormal"),
+        MODEL("aModel", 4),
+        PREVIOUS_MODEL("aPreviousModel", 4),
+        TEXTURE_INDEX("aTextureIndex"),
+        TEXTURE_SCALE("aTextureScale");
+
+        fun previous(): Attributes? {
+            if (ordinal == 0) return null
+            return entries[ordinal - 1]
+        }
+
+        fun location(): Int {
+            var index = 0
+
+            for (i in ordinal - 1 downTo 0) {
+                index += entries[i].gap
+            }
+
+            return index
+        }
+    }
+
+    class AttributesBuilder() {
+        private val attributes = mutableMapOf<Int, String>()
+
+        fun default(): AttributesBuilder {
+            attributes.clear()
+            add(Attributes.POSITION)
+                .add(Attributes.UV)
+                .add(Attributes.NORMAL)
+            return this
+        }
+
+        fun add(attribute: Attributes): AttributesBuilder {
+            attributes[attribute.location()] = attribute.label
+            return this
+        }
+
+        fun addPosition(): AttributesBuilder {
+            add(Attributes.POSITION)
+            return this
+        }
+
+        fun addUV(): AttributesBuilder {
+            add(Attributes.UV)
+            return this
+        }
+
+        fun addNormal(): AttributesBuilder {
+            add(Attributes.NORMAL)
+            return this
+        }
+
+        fun addModel(): AttributesBuilder {
+            add(Attributes.MODEL)
+            return this
+        }
+
+        fun addPreviousModel(): AttributesBuilder {
+            add(Attributes.PREVIOUS_MODEL)
+            return this
+        }
+
+        fun addTextureIndex(): AttributesBuilder {
+            add(Attributes.TEXTURE_INDEX)
+            return this
+        }
+
+        fun addTextureScale(): AttributesBuilder {
+            add(Attributes.TEXTURE_SCALE)
+            return this
+        }
+
+        fun build(): Map<Int, String> = attributes
+    }
+}
 
 object FilesSerializer : KSerializer<Files> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Files")
@@ -66,13 +147,16 @@ object FilesSerializer : KSerializer<Files> {
 
 @Serializable(with = FilesSerializer::class)
 sealed class Files {
+    @Serializable
     data class Single(val file: String) : Files()
+
+    @Serializable
     data class Multiple(val files: Array<String>) : Files()
 }
 
 @Serializable
 data class ResourcesConfig(
-    val shaders: Map<String, ShadersFiles>? = null,
+    val shaders: Map<String, ShadersConfig>? = null,
     val textures: Map<String, Files>? = null
 )
 
@@ -80,45 +164,92 @@ object Resources {
     private val logger = LoggerFactory.getLogger(Resources::class.java)
     private val config = ResourcesConfig(
         shaders = mapOf(
-            "DEFAULT" to ShadersFiles(
+            "DEFAULT" to ShadersConfig(
                 vertex = "shaders/default/default.vert",
                 fragment = "shaders/default/default.frag"
             ),
-            "DEFAULT_INSTANCED" to ShadersFiles(
+            "DEFAULT_INSTANCED" to ShadersConfig(
                 vertex = "shaders/default/default_instanced.vert",
-                fragment = "shaders/default/default_instanced.frag"
+                fragment = "shaders/default/default_instanced.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .default()
+                    .addModel()
+                    .addTextureIndex()
+                    .addTextureScale()
+                    .build()
             ),
-            "DEFAULT_INSTANCED_DEBUG" to ShadersFiles(
+            "DEFAULT_INSTANCED_DEBUG" to ShadersConfig(
                 vertex = "shaders/default/default_instanced.vert",
-                fragment = "shaders/default/default_instanced_debug.frag"
+                fragment = "shaders/default/default_instanced_debug.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .default()
+                    .addModel()
+                    .addTextureIndex()
+                    .addTextureScale()
+                    .build()
             ),
-            "WINDOW" to ShadersFiles(
+            "WINDOW" to ShadersConfig(
                 vertex = "shaders/window.vert",
-                fragment = "shaders/window.frag"
+                fragment = "shaders/window.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .addPosition()
+                    .addUV()
+                    .build()
             ),
-            "SKYBOX" to ShadersFiles(
+            "SKYBOX" to ShadersConfig(
                 vertex = "shaders/skybox.vert",
-                fragment = "shaders/skybox.frag"
+                fragment = "shaders/skybox.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .addPosition()
+                    .build()
             ),
-            "VELOCITY" to ShadersFiles(
+            "VELOCITY" to ShadersConfig(
                 vertex = "shaders/velocity.vert",
-                fragment = "shaders/velocity.frag"
+                fragment = "shaders/velocity.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .addPosition()
+                    .build()
             ),
-            "VELOCITY_INSTANCED" to ShadersFiles(
+            "VELOCITY_INSTANCED" to ShadersConfig(
                 vertex = "shaders/velocity_instanced.vert",
-                fragment = "shaders/velocity.frag"
+                fragment = "shaders/velocity.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .addPosition()
+                    .addModel()
+                    .addPreviousModel()
+                    .build()
             ),
-            "DEBUGGER" to ShadersFiles(
+            "DEBUGGER" to ShadersConfig(
                 vertex = "shaders/debugger.vert",
-                fragment = "shaders/debugger.frag"
+                fragment = "shaders/debugger.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .addPosition()
+                    .addModel()
+                    .build()
             ),
-            "SHADOW_MAP" to ShadersFiles(
+            "SHADOW_MAP" to ShadersConfig(
                 vertex = "shaders/shadow_map.vert",
-                fragment = "shaders/shadow_map.frag"
+                fragment = "shaders/shadow_map.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .addPosition()
+                    .build()
             ),
-            "SHADOW_MAP_INSTANCED" to ShadersFiles(
+            "SHADOW_MAP_INSTANCED" to ShadersConfig(
                 vertex = "shaders/shadow_map_instanced.vert",
-                fragment = "shaders/shadow_map.frag"
+                fragment = "shaders/shadow_map.frag",
+                attributes = ShadersConfig
+                    .AttributesBuilder()
+                    .addPosition()
+                    .addModel()
+                    .build()
             )
         ),
         textures = null
@@ -133,13 +264,14 @@ object Resources {
 
     fun registry(config: ResourcesConfig) {
         try {
-            config.shaders?.forEach { (name, files) ->
+            config.shaders?.forEach { (name, config) ->
                 logger.info("Registering ShaderProgram $name.")
                 ShadersProgramFactory.registry(
                     name,
                     Shaders(
-                        VertexShader(files.vertex),
-                        FragmentShader(files.fragment)
+                        VertexShader(config.vertex),
+                        FragmentShader(config.fragment),
+                        config.attributes,
                     )
                 )
             }

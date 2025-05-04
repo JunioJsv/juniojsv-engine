@@ -9,8 +9,16 @@ import juniojsv.engine.features.textures.Texture
 import juniojsv.engine.features.textures.Texture.Companion.bind
 import juniojsv.engine.features.utils.Constants
 import juniojsv.engine.features.utils.RenderTarget
+import juniojsv.engine.features.utils.ShadersConfig
 import juniojsv.engine.platforms.GL
-import juniojsv.engine.platforms.constants.*
+import juniojsv.engine.platforms.constants.GL_ARRAY_BUFFER
+import juniojsv.engine.platforms.constants.GL_FLOAT
+import juniojsv.engine.platforms.constants.GL_INT
+import juniojsv.engine.platforms.constants.GL_MAP_INVALIDATE_BUFFER_BIT
+import juniojsv.engine.platforms.constants.GL_MAP_WRITE_BIT
+import juniojsv.engine.platforms.constants.GL_STREAM_DRAW
+import juniojsv.engine.platforms.constants.GL_TRIANGLES
+import juniojsv.engine.platforms.constants.GL_UNSIGNED_INT
 import org.joml.Vector3f
 import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
@@ -42,23 +50,11 @@ class MultiEntityRender(
     private val commands = ConcurrentLinkedQueue<() -> Unit>()
 
     companion object {
-        private const val INSTANCE_DATA_START_LOCATION = 3
         private const val VBO_COUNT = 4
 
-        /** Uses locations 3, 4, 5, 6 */
-        private const val LOCATION_MODEL_MATRIX = INSTANCE_DATA_START_LOCATION
         private const val MODEL_VBO_INDEX = 0
-
-        /** Uses locations 7, 8, 9, 10 */
-        private const val LOCATION_PREVIOUS_MODEL_MATRIX = LOCATION_MODEL_MATRIX + Constants.VEC4_SIZE
         private const val PREVIOUS_MODEL_VBO_INDEX = MODEL_VBO_INDEX + 1
-
-        /** Uses location 11 */
-        private const val LOCATION_TEXTURE_INDEX = LOCATION_PREVIOUS_MODEL_MATRIX + Constants.VEC4_SIZE
         private const val TEXTURE_VBO_INDEX = PREVIOUS_MODEL_VBO_INDEX + 1
-
-        /** Uses location 12 */
-        private const val LOCATION_TEXTURE_SCALE = LOCATION_TEXTURE_INDEX + Constants.FLOAT_SIZE
         private const val TEXTURE_SCALE_VBO_INDEX = TEXTURE_VBO_INDEX + 1
 
         private const val INSTANCE_DIVISOR = 1 // Update attribute per instance
@@ -76,7 +72,14 @@ class MultiEntityRender(
         isFrustumCullingEnabled: Boolean = true,
         isPhysicsEnabled: Boolean = true,
         isShaderOverridable: Boolean = true
-    ) : this(mesh, shader, isDebuggable, isFrustumCullingEnabled, isPhysicsEnabled, isShaderOverridable) {
+    ) : this(
+        mesh,
+        shader,
+        isDebuggable,
+        isFrustumCullingEnabled,
+        isPhysicsEnabled,
+        isShaderOverridable
+    ) {
         commands.add { replace(entities) }
     }
 
@@ -112,7 +115,7 @@ class MultiEntityRender(
             GL.glBindBuffer(GL_ARRAY_BUFFER, vbo)
 
             for (i in 0 until Constants.VEC4_SIZE) {
-                val location = LOCATION_MODEL_MATRIX + i
+                val location = ShadersConfig.Attributes.MODEL.location() + i
                 GL.glVertexAttribPointer(
                     location,
                     Constants.VEC4_SIZE,
@@ -130,7 +133,7 @@ class MultiEntityRender(
             GL.glBindBuffer(GL_ARRAY_BUFFER, vbo)
 
             for (i in 0 until Constants.VEC4_SIZE) {
-                val location = LOCATION_PREVIOUS_MODEL_MATRIX + i
+                val location = ShadersConfig.Attributes.PREVIOUS_MODEL.location() + i
                 GL.glVertexAttribPointer(
                     location,
                     Constants.VEC4_SIZE,
@@ -147,7 +150,7 @@ class MultiEntityRender(
         vbos[TEXTURE_VBO_INDEX] = GL.glGenBuffers().also { vbo ->
             GL.glBindBuffer(GL_ARRAY_BUFFER, vbo)
 
-            val location = LOCATION_TEXTURE_INDEX
+            val location = ShadersConfig.Attributes.TEXTURE_INDEX.location()
             GL.glVertexAttribIPointer(location, Constants.INT_SIZE, GL_INT, 0, 0)
             GL.glEnableVertexAttribArray(location)
             GL.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
@@ -156,7 +159,7 @@ class MultiEntityRender(
         vbos[TEXTURE_SCALE_VBO_INDEX] = GL.glGenBuffers().also { vbo ->
             GL.glBindBuffer(GL_ARRAY_BUFFER, vbo)
 
-            val location = LOCATION_TEXTURE_SCALE
+            val location = ShadersConfig.Attributes.TEXTURE_SCALE.location()
             GL.glVertexAttribPointer(location, Constants.FLOAT_SIZE, GL_FLOAT, false, 0, 0)
             GL.glEnableVertexAttribArray(location)
             GL.glVertexAttribDivisor(location, INSTANCE_DIVISOR)

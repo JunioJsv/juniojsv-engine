@@ -15,6 +15,22 @@ vec3 getTextureColor() {
     else if (vTextureIndex == 13) return texture(uTextures[13], vUV * vTextureScale).rgb;
     else if (vTextureIndex == 14) return texture(uTextures[14], vUV * vTextureScale).rgb;
     else if (vTextureIndex == 15) return texture(uTextures[15], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 16) return texture(uTextures[16], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 17) return texture(uTextures[17], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 18) return texture(uTextures[18], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 19) return texture(uTextures[19], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 20) return texture(uTextures[20], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 21) return texture(uTextures[21], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 22) return texture(uTextures[22], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 23) return texture(uTextures[23], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 24) return texture(uTextures[24], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 25) return texture(uTextures[25], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 26) return texture(uTextures[26], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 27) return texture(uTextures[27], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 28) return texture(uTextures[28], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 29) return texture(uTextures[29], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 30) return texture(uTextures[30], vUV * vTextureScale).rgb;
+    else if (vTextureIndex == 31) return texture(uTextures[31], vUV * vTextureScale).rgb;
 
     return vec3(0.0);
 }

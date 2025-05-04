@@ -42,12 +42,15 @@ open class Game(applicationContext: Context) : AndroidWindow(applicationContext)
         if (movement.x != 0f || movement.y != 0f)
             camera.move(movement.x, movement.y)
 
+        if (buttons.contains("A"))
+            context.camera.next()
+
         if (buttons.contains("B"))
             camera.move(setOf(MovementDirection.UP))
 
         (scene as? MainScene)?.apply {
             if (buttons.contains("Y"))
-                onGenerateObjects(100, false)
+                onGenerateObjects(100, true)
 
             if (buttons.contains("X")) {
                 val nextSkybox = (getCurrentSkyboxIndex() + 1) % getSkyboxCount()

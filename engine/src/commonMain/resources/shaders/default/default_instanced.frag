@@ -9,7 +9,7 @@ in vec4 vFragLightPosition;
 
 uniform vec3 uLightPosition;
 uniform vec3 uLightColor;
-uniform sampler2D uTextures[16];
+uniform sampler2D uTextures[32];
 uniform vec3 uCameraPosition;
 uniform sampler2D uShadowMapTexture;
 uniform bool uIsDebug;

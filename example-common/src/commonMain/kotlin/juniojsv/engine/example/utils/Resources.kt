@@ -2,11 +2,11 @@ package juniojsv.engine.example.utils
 
 import juniojsv.engine.features.utils.Files
 import juniojsv.engine.features.utils.ResourcesConfig
-import juniojsv.engine.features.utils.ShadersFiles
+import juniojsv.engine.features.utils.ShadersConfig
 
 val ResourcesCommon = ResourcesConfig(
     shaders = mapOf(
-        "TEST" to ShadersFiles(
+        "TEST" to ShadersConfig(
             vertex = "shaders/default/default.vert",
             fragment = "shaders/test.frag"
         )

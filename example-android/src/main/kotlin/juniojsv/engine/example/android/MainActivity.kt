@@ -25,4 +25,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onDestroy() {
+        game.dispose()
+        super.onDestroy()
+    }
 }

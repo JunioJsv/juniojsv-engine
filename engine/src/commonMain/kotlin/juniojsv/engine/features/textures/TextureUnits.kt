@@ -2,6 +2,7 @@ package juniojsv.engine.features.textures
 
 import juniojsv.engine.features.shader.ShadersProgram
 import juniojsv.engine.platforms.GL
+import juniojsv.engine.platforms.constants.GL_MAX_TEXTURE_IMAGE_UNITS
 import juniojsv.engine.platforms.constants.GL_TEXTURE0
 import juniojsv.engine.platforms.constants.GL_TEXTURE_2D
 import juniojsv.engine.platforms.constants.GL_TEXTURE_CUBE_MAP
@@ -16,7 +17,11 @@ class TextureUnits {
         /**
          * Array of available texture units.
          */
-        private val units = Array(32) { GL_TEXTURE0 + it }
+        private val units by lazy {
+            Array(GL.glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS)) {
+                GL_TEXTURE0 + it
+            }
+        }
 
         /**
          * Retrieves the current bindings for a specific bind type across all texture units.
@@ -76,7 +81,7 @@ class TextureUnits {
          */
         fun bind(index: Int, texture: Texture, uniform: String): Boolean {
             val didBind = bind(index, texture)
-            ShadersProgram.Companion.putUniform(uniform, index)
+            ShadersProgram.putUniform(uniform, index)
             return didBind
         }
 
@@ -90,13 +95,14 @@ class TextureUnits {
             val bindings = getBindings(texture.getBindType())
             var index = bindings.indexOfFirst { id -> texture.id == id }
             if (index != -1) {
-                if (uniform != null) ShadersProgram.Companion.putUniform(uniform, index)
+                if (uniform != null) ShadersProgram.putUniform(uniform, index)
                 return index
             }
 
             index = bindings.indexOfFirst { id -> id == 0 }
 
-            val didBind = if (uniform != null) bind(index, texture, uniform) else bind(index, texture)
+            val didBind =
+                if (uniform != null) bind(index, texture, uniform) else bind(index, texture)
             return if (didBind) index else -1
         }
 
@@ -112,9 +118,11 @@ class TextureUnits {
                 unbindAll()
             }
 
-            val indexes = textures.map { bind(it) }
+            val indexes = textures.sortedBy { it.id }.map { bind(it) }
 
-            ShadersProgram.Companion.putUniform(uniform, IntArray(indexes.size) { indexes[it] })
+            for ((i, value) in indexes.withIndex()) {
+                ShadersProgram.putUniform("$uniform[$i]", value)
+            }
 
             return indexes
         }
