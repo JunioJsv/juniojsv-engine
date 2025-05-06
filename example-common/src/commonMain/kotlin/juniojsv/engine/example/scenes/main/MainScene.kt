@@ -12,7 +12,6 @@ import juniojsv.engine.features.render.Render
 import juniojsv.engine.features.render.SkyBox
 import juniojsv.engine.features.scene.Scene
 import juniojsv.engine.features.textures.FileAtlasTexture
-import juniojsv.engine.features.textures.FileTexture
 import juniojsv.engine.features.utils.BoundaryEllipsoid
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.Transform
@@ -26,7 +25,6 @@ import kotlin.random.Random
 
 class MainScene : Scene(), MainLayoutCallbacks {
     private lateinit var skybox: SkyBox
-    private val textures = mutableListOf<FileTexture>()
     val layout = MainLayout(this)
     private val objects = mutableListOf<Render>()
     private lateinit var floor: Render
@@ -84,17 +82,6 @@ class MainScene : Scene(), MainLayoutCallbacks {
             scale = Scale.KILOMETER.length(100f)
         )
         setSkyboxAsAmbientLight(context)
-
-        for (i in 1 until 16) {
-            val random = Random.nextInt(1, 21)
-            val texture = TextureFactory.createTexture(
-                "METAL_#".replace(
-                    "#", "$random".padStart(2, '0')
-                )
-            )
-            textures.add(texture)
-        }
-        textures.add(TextureFactory.createTexture("TEST"))
     }
 
     override fun render(context: IWindowContext) {
@@ -133,7 +120,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
                         scale = Vector3f(size)
                     ),
                     MaterialConfig(
-                        atlas.getCell(random.nextInt(atlas.cells())),
+                        atlas.getCell(random.nextInt(atlas.cells)),
                         scale = 4f * random.nextFloat().coerceAtLeast(0.1f),
                     ),
                     PhysicsConfig(

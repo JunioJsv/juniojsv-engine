@@ -70,19 +70,19 @@ class FileAtlasTexture(file: String, val cols: Int, val rows: Int) : Texture() {
     }
 
 
-    fun cells(): Int {
-        return cols * rows
-    }
+    val cells = cols * rows
 
     fun getUVScale(): Vector2f {
         return uvScale
     }
 
+    private val cache = mutableMapOf<Int, AtlasCellTexture>()
+
     fun getCell(index: Int): AtlasCellTexture {
-        if (index < 0 || index >= cells()) {
+        if (index < 0 || index >= cells) {
             throw IllegalArgumentException("Index out of bounds: $index")
         }
-        return AtlasCellTexture(this, index)
+        return cache.getOrPut(index) { AtlasCellTexture(this, index) }
     }
 
     override fun getBindType(): Int {
