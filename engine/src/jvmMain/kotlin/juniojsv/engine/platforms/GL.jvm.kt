@@ -1,5 +1,9 @@
 package juniojsv.engine.platforms
 
+import juniojsv.engine.features.textures.RawTexture
+import juniojsv.engine.features.textures.Texture
+import juniojsv.engine.platforms.constants.GL_RGBA
+import juniojsv.engine.platforms.constants.GL_UNSIGNED_BYTE
 import org.lwjgl.opengl.GL43
 import org.lwjgl.opengl.GLCapabilities
 import org.lwjgl.opengl.GLDebugMessageCallbackI
@@ -13,6 +17,21 @@ private typealias imp = GL43
 actual typealias GLDebugMessageCallback = GLDebugMessageCallbackI
 
 actual object GL : JvmOpenGL()
+
+actual object GLUtils : JvmGLUtils()
+
+open class JvmGLUtils : IGLUtils {
+    override fun getTextureData(texture: Texture): RawTexture {
+        val width = texture.width
+        val height = texture.height
+        val pixels = PlatformMemory.allocInt(width * height)
+        val type = texture.getType()
+        GL.glBindTexture(type, texture.id)
+        GL.glGetTexImage(type, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
+        GL.glBindTexture(type, 0)
+        return RawTexture(pixels, width, height)
+    }
+}
 
 open class JvmOpenGL : IGL {
     fun createCapabilities(): GLCapabilities {
@@ -375,5 +394,27 @@ open class JvmOpenGL : IGL {
 
     override fun glBindAttribLocation(program: Int, index: Int, name: String) {
         imp.glBindAttribLocation(program, index, name)
+    }
+
+    override fun glGetTexImage(
+        target: Int,
+        level: Int,
+        format: Int,
+        type: Int,
+        pixels: IntBuffer
+    ) {
+        imp.glGetTexImage(target, level, format, type, pixels)
+    }
+
+    override fun glReadPixels(
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        pixels: IntBuffer
+    ) {
+        imp.glReadPixels(x, y, width, height, format, type, pixels)
     }
 }

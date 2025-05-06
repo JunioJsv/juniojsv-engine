@@ -14,6 +14,42 @@ class RawTexture(val pixels: IntBuffer, val width: Int, val height: Int) : IDisp
         PlatformMemory.free(pixels)
     }
 
+    fun put(x: Int, y: Int, pixel: Int) {
+        pixels.put(y * width + x, pixel)
+    }
+
+    fun put(x: Int, y: Int, width: Int, height: Int, pixels: IntBuffer) {
+        for (i in 0 until height) {
+            for (j in 0 until width) {
+                put(x + j, y + i, pixels.get(i * width + j))
+            }
+        }
+    }
+
+    fun resized(newWidth: Int, newHeight: Int): RawTexture {
+        val newPixels = PlatformMemory.allocInt(newWidth * newHeight)
+        val scaleX = width.toFloat() / newWidth
+        val scaleY = height.toFloat() / newHeight
+
+        for (y in 0 until newHeight) {
+            val srcY = y * scaleY
+            val y0 = srcY.toInt().coerceIn(0, height - 1)
+
+            for (x in 0 until newWidth) {
+                val srcX = x * scaleX
+                val x0 = srcX.toInt().coerceIn(0, width - 1)
+
+                val srcIndex = y0 * width + x0
+                val pixel = pixels.get(srcIndex)
+
+                newPixels.put(y * newWidth + x, pixel)
+            }
+        }
+
+        newPixels.rewind()
+        return RawTexture(newPixels, newWidth, newHeight)
+    }
+
     /**
      * Finds the pixel with the maximum luminance in the texture.
      *
@@ -55,8 +91,10 @@ class RawTexture(val pixels: IntBuffer, val width: Int, val height: Int) : IDisp
 }
 
 abstract class Texture {
-    var id: Int = GL.glGenTextures()
+    open var id: Int = GL.glGenTextures()
         protected set
+    abstract val width: Int
+    abstract val height: Int
 
     abstract fun getBindType(): Int
 

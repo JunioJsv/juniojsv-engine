@@ -1,10 +1,17 @@
 package juniojsv.engine.platforms
 
+import juniojsv.engine.features.textures.RawTexture
+import juniojsv.engine.features.textures.Texture
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
 expect interface GLDebugMessageCallback
+
+interface IGLUtils {
+    fun getTextureData(texture: Texture): RawTexture
+}
 
 interface IGL {
     fun glEnable(target: Int)
@@ -24,7 +31,15 @@ interface IGL {
     fun glBufferData(target: Int, size: Long, usage: Int)
     fun glDeleteBuffers(buffer: Int)
     fun glDeleteBuffers(buffers: IntArray)
-    fun glVertexAttribPointer(index: Int, size: Int, type: Int, normalized: Boolean, stride: Int, offset: Int)
+    fun glVertexAttribPointer(
+        index: Int,
+        size: Int,
+        type: Int,
+        normalized: Boolean,
+        stride: Int,
+        offset: Int
+    )
+
     fun glVertexAttribIPointer(index: Int, size: Int, type: Int, stride: Int, offset: Int)
     fun glEnableVertexAttribArray(index: Int)
     fun glGetInteger(pname: Int): Int
@@ -99,7 +114,14 @@ interface IGL {
     fun glDrawBuffers(buf: Int)
     fun glDrawBuffers(bufs: IntArray)
     fun glReadBuffer(src: Int)
-    fun glFramebufferTexture2D(target: Int, attachment: Int, textarget: Int, texture: Int, level: Int)
+    fun glFramebufferTexture2D(
+        target: Int,
+        attachment: Int,
+        textarget: Int,
+        texture: Int,
+        level: Int
+    )
+
     fun glGenFramebuffers(): Int
     fun glBlitFramebuffer(
         srcX0: Int,
@@ -122,6 +144,17 @@ interface IGL {
     fun glGetShaderSource(shader: Int): String
     fun glGetString(name: Int): String?
     fun glBindAttribLocation(program: Int, index: Int, name: String)
+    fun glGetTexImage(target: Int, level: Int, format: Int, type: Int, pixels: IntBuffer)
+    fun glReadPixels(
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        pixels: IntBuffer
+    )
 }
 
 expect object GL : IGL
+expect object GLUtils : IGLUtils

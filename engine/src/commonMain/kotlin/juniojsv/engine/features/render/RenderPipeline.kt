@@ -69,7 +69,7 @@ class RenderPipeline(val window: PlatformWindow) {
         isShaderOverridable = false
     )
 
-    private val lastFrame = CopyFrameBufferTexture(resolution)
+    private val lastFrame = CopyFrameBufferTexture(resolution.width, resolution.height)
 
     fun refresh() {
         resolutionWithScale().also {

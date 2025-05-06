@@ -5,13 +5,15 @@ layout (location = 1) in vec2 aUV;
 layout (location = 2) in vec3 aNormal;
 layout (location = 3) in mat4 aModel;
 layout (location = 11) in int aTextureIndex;
-layout (location = 12) in float aTextureScale;
+layout (location = 12) in vec2 aUVScale;
+layout (location = 13) in vec2 aUVOffest;
 
 out vec3 vWorldPosition;
 out vec2 vUV;
 out vec3 vNormal;
 flat out int vTextureIndex;
-flat out float vTextureScale;
+flat out vec2 vUVScale;
+flat out vec2 vUVOffest;
 out vec4 vFragLightPosition;
 
 uniform mat4 uView;
@@ -23,7 +25,8 @@ void main() {
     vUV = aUV;
     vNormal = normalize((aModel * vec4(aNormal, 0.)).xyz);
     vTextureIndex = aTextureIndex;
-    vTextureScale = aTextureScale;
+    vUVScale = aUVScale;
+    vUVOffest = aUVOffest;
     vFragLightPosition = uLightSpaceMatrix * vec4(vWorldPosition, 1.);
 
     gl_Position = uProjection * uView * vec4(vWorldPosition, 1.);

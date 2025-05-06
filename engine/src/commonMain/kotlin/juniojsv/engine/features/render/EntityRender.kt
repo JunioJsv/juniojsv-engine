@@ -5,13 +5,14 @@ import juniojsv.engine.features.context.IWindowContextListener
 import juniojsv.engine.features.entities.Entity
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
-import juniojsv.engine.features.textures.Texture
-import juniojsv.engine.features.textures.Texture.Companion.bind
+import juniojsv.engine.features.textures.AtlasCellTexture
+import juniojsv.engine.features.textures.TextureUnits
 import juniojsv.engine.features.utils.RenderTarget
 import juniojsv.engine.platforms.GL
 import juniojsv.engine.platforms.constants.GL_TRIANGLES
 import juniojsv.engine.platforms.constants.GL_UNSIGNED_INT
 import org.joml.Matrix4f
+import org.joml.Vector2f
 import org.joml.Vector3f
 
 class EntityRender(
@@ -59,7 +60,16 @@ class EntityRender(
         val light = context.render.ambientLight
         val camera = context.camera.instance
 
-        entity.material?.texture?.bind() ?: emptySet<Texture>().bind()
+        entity.material?.texture?.let {
+            it.bind()
+            if (it is AtlasCellTexture) {
+                uniforms["uUVScale"] = it.getUVScale()
+                uniforms["uUVOffset"] = it.getUVOffset()
+            } else {
+                uniforms["uUVScale"] = Vector2f(entity.material.scale)
+                uniforms["uUVOffset"] = Vector2f(0f)
+            }
+        } ?: TextureUnits.unbindAll()
 
         getShader().also {
             it.bind()
@@ -73,7 +83,6 @@ class EntityRender(
             uniforms["uLightPosition"] = light?.position ?: Vector3f(0f)
             uniforms["uLightColor"] = light?.color ?: Vector3f(0f)
             uniforms["uTime"] = context.time.current.toFloat()
-            uniforms["uTextureScale"] = entity.material?.scale ?: 1f
             it.applyUniforms()
         }
         mesh.bind()

@@ -5,24 +5,19 @@ import juniojsv.engine.features.context.IWindowContextListener
 import juniojsv.engine.features.entities.Entity
 import juniojsv.engine.features.mesh.Mesh
 import juniojsv.engine.features.shader.ShadersProgram
+import juniojsv.engine.features.textures.AtlasCellTexture
 import juniojsv.engine.features.textures.Texture
 import juniojsv.engine.features.textures.Texture.Companion.bind
-import juniojsv.engine.features.utils.Constants
 import juniojsv.engine.features.utils.RenderTarget
 import juniojsv.engine.features.utils.ShadersConfig
+import juniojsv.engine.features.vbo.IntVbo
+import juniojsv.engine.features.vbo.Matrix4fVbo
+import juniojsv.engine.features.vbo.Vector2fVbo
 import juniojsv.engine.platforms.GL
-import juniojsv.engine.platforms.constants.GL_ARRAY_BUFFER
-import juniojsv.engine.platforms.constants.GL_FLOAT
-import juniojsv.engine.platforms.constants.GL_INT
-import juniojsv.engine.platforms.constants.GL_MAP_INVALIDATE_BUFFER_BIT
-import juniojsv.engine.platforms.constants.GL_MAP_WRITE_BIT
-import juniojsv.engine.platforms.constants.GL_STREAM_DRAW
 import juniojsv.engine.platforms.constants.GL_TRIANGLES
 import juniojsv.engine.platforms.constants.GL_UNSIGNED_INT
+import org.joml.Vector2f
 import org.joml.Vector3f
-import org.slf4j.LoggerFactory
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class MultiEntityRender(
@@ -55,14 +50,19 @@ class MultiEntityRender(
         private const val MODEL_VBO_INDEX = 0
         private const val PREVIOUS_MODEL_VBO_INDEX = MODEL_VBO_INDEX + 1
         private const val TEXTURE_VBO_INDEX = PREVIOUS_MODEL_VBO_INDEX + 1
-        private const val TEXTURE_SCALE_VBO_INDEX = TEXTURE_VBO_INDEX + 1
+        private const val UV_SCALE_VBO_INDEX = TEXTURE_VBO_INDEX + 1
+        private const val UV_OFFSET_VBO_INDEX = UV_SCALE_VBO_INDEX + 1
 
         private const val INSTANCE_DIVISOR = 1 // Update attribute per instance
-
-        private val logger = LoggerFactory.getLogger(MultiEntityRender::class.java)
     }
 
-    private val vbos = IntArray(VBO_COUNT)
+    private val vbos = listOf(
+        Matrix4fVbo(mesh.vao, ShadersConfig.Attributes.MODEL.location(), INSTANCE_DIVISOR),
+        Matrix4fVbo(mesh.vao, ShadersConfig.Attributes.PREVIOUS_MODEL.location(), INSTANCE_DIVISOR),
+        IntVbo(mesh.vao, ShadersConfig.Attributes.TEXTURE_INDEX.location(), INSTANCE_DIVISOR),
+        Vector2fVbo(mesh.vao, ShadersConfig.Attributes.UV_SCALE.location(), INSTANCE_DIVISOR),
+        Vector2fVbo(mesh.vao, ShadersConfig.Attributes.UV_OFFSET.location(), INSTANCE_DIVISOR)
+    )
 
     constructor(
         mesh: Mesh,
@@ -108,195 +108,55 @@ class MultiEntityRender(
         context.addListener(this)
     }
 
-    init {
-        GL.glBindVertexArray(mesh.vao)
-
-        vbos[MODEL_VBO_INDEX] = GL.glGenBuffers().also { vbo ->
-            GL.glBindBuffer(GL_ARRAY_BUFFER, vbo)
-
-            for (i in 0 until Constants.VEC4_SIZE) {
-                val location = ShadersConfig.Attributes.MODEL.location() + i
-                GL.glVertexAttribPointer(
-                    location,
-                    Constants.VEC4_SIZE,
-                    GL_FLOAT,
-                    false,
-                    Constants.MAT4_BYTE_SIZE,
-                    i * Constants.VEC4_SIZE * Constants.BYTES_PER_FLOAT
-                )
-                GL.glEnableVertexAttribArray(location)
-                GL.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
-            }
-        }
-
-        vbos[PREVIOUS_MODEL_VBO_INDEX] = GL.glGenBuffers().also { vbo ->
-            GL.glBindBuffer(GL_ARRAY_BUFFER, vbo)
-
-            for (i in 0 until Constants.VEC4_SIZE) {
-                val location = ShadersConfig.Attributes.PREVIOUS_MODEL.location() + i
-                GL.glVertexAttribPointer(
-                    location,
-                    Constants.VEC4_SIZE,
-                    GL_FLOAT,
-                    false,
-                    Constants.MAT4_BYTE_SIZE,
-                    i * Constants.VEC4_SIZE * Constants.BYTES_PER_FLOAT
-                )
-                GL.glEnableVertexAttribArray(location)
-                GL.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
-            }
-        }
-
-        vbos[TEXTURE_VBO_INDEX] = GL.glGenBuffers().also { vbo ->
-            GL.glBindBuffer(GL_ARRAY_BUFFER, vbo)
-
-            val location = ShadersConfig.Attributes.TEXTURE_INDEX.location()
-            GL.glVertexAttribIPointer(location, Constants.INT_SIZE, GL_INT, 0, 0)
-            GL.glEnableVertexAttribArray(location)
-            GL.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
-        }
-
-        vbos[TEXTURE_SCALE_VBO_INDEX] = GL.glGenBuffers().also { vbo ->
-            GL.glBindBuffer(GL_ARRAY_BUFFER, vbo)
-
-            val location = ShadersConfig.Attributes.TEXTURE_SCALE.location()
-            GL.glVertexAttribPointer(location, Constants.FLOAT_SIZE, GL_FLOAT, false, 0, 0)
-            GL.glEnableVertexAttribArray(location)
-            GL.glVertexAttribDivisor(location, INSTANCE_DIVISOR)
-        }
-
-        GL.glBindBuffer(GL_ARRAY_BUFFER, 0)
-        GL.glBindVertexArray(0)
-    }
-
     private fun updateVbos(entities: List<Entity>) {
         updateModelVbo(entities)
         updatePreviousModelVbo(entities)
-        updateTextureIndexVbo(entities)
-        updateTextureScaleVbo(entities)
-        GL.glBindVertexArray(0)
-        GL.glBindBuffer(GL_ARRAY_BUFFER, 0)
+        updateTextureVbos(entities)
     }
 
-
-    private fun updateTextureIndexVbo(entities: List<Entity>) {
-        val bytes = (entities.size * Constants.INT_BYTE_SIZE).toLong()
-        if (bytes == 0L) return
-        GL.glBindBuffer(GL_ARRAY_BUFFER, vbos[TEXTURE_VBO_INDEX])
-        GL.glBufferData(GL_ARRAY_BUFFER, bytes, GL_STREAM_DRAW)
-
-        var buffer: ByteBuffer? = null
-
-        try {
-            buffer = GL.glMapBufferRange(
-                GL_ARRAY_BUFFER,
-                0,
-                bytes,
-                GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-            )
-            if (buffer == null) return
-            buffer.order(ByteOrder.nativeOrder())
-
-            for (entity in entities) {
-                val material = entity.material
-                val textureIndex = textures.indexOfFirst { material?.texture?.id == it.id }
-                buffer.putInt(textureIndex)
-            }
-        } catch (e: Exception) {
-            logger.error("Error updating texture index VBO: ${e.message}")
-        } finally {
-            if (buffer != null) GL.glUnmapBuffer(GL_ARRAY_BUFFER)
-        }
-
-    }
-
-    private fun updateTextureScaleVbo(entities: List<Entity>) {
-        val bytes = (entities.size * Constants.FLOAT_BYTE_SIZE).toLong()
-        if (bytes == 0L) return
-        GL.glBindBuffer(GL_ARRAY_BUFFER, vbos[TEXTURE_SCALE_VBO_INDEX])
-        GL.glBufferData(GL_ARRAY_BUFFER, bytes, GL_STREAM_DRAW)
-
-        var buffer: ByteBuffer? = null
-
-        try {
-            buffer = GL.glMapBufferRange(
-                GL_ARRAY_BUFFER,
-                0,
-                bytes,
-                GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-            )
-            if (buffer == null) return
-            buffer.order(ByteOrder.nativeOrder())
-
-            for (entity in entities) {
-                val material = entity.material
-                buffer.putFloat(material?.scale ?: 1f)
-            }
-        } catch (e: Exception) {
-            logger.error("Error updating texture scale VBO: ${e.message}")
-        } finally {
-            if (buffer != null) GL.glUnmapBuffer(GL_ARRAY_BUFFER)
-        }
-    }
 
     private fun updateModelVbo(entities: List<Entity>) {
-        val bytes = (entities.size * Constants.MAT4_BYTE_SIZE).toLong()
-        if (bytes == 0L) return
-        GL.glBindBuffer(GL_ARRAY_BUFFER, vbos[MODEL_VBO_INDEX])
-        GL.glBufferData(GL_ARRAY_BUFFER, bytes, GL_STREAM_DRAW)
-
-        var buffer: ByteBuffer? = null
-
-        try {
-            buffer = GL.glMapBufferRange(
-                GL_ARRAY_BUFFER,
-                0,
-                bytes,
-                GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-            )
-            if (buffer == null) return
-            buffer.order(ByteOrder.nativeOrder())
-
-            for ((index, entity) in entities.withIndex()) {
-                val transformationMatrix = entity.transform.transformation()
-                val position = index * Constants.MAT4_BYTE_SIZE
-                transformationMatrix.get(position, buffer)
-            }
-        } catch (e: Exception) {
-            logger.error("Error updating model VBO: ${e.message}")
-        } finally {
-            if (buffer != null) GL.glUnmapBuffer(GL_ARRAY_BUFFER)
-        }
+        val vbo = vbos[MODEL_VBO_INDEX] as Matrix4fVbo
+        vbo.update(entities.map { it.transform.transformation() })
     }
 
     private fun updatePreviousModelVbo(entities: List<Entity>) {
-        val bytes = (entities.size * Constants.MAT4_BYTE_SIZE).toLong()
-        if (bytes == 0L) return
-        GL.glBindBuffer(GL_ARRAY_BUFFER, vbos[PREVIOUS_MODEL_VBO_INDEX])
-        GL.glBufferData(GL_ARRAY_BUFFER, bytes, GL_STREAM_DRAW)
+        val vbo = vbos[PREVIOUS_MODEL_VBO_INDEX] as Matrix4fVbo
+        vbo.update(entities.map { it.transform.previous.transformation() })
+    }
 
-        var buffer: ByteBuffer? = null
+    private fun updateTextureVbos(entities: List<Entity>) {
+        val textureIndexVbo = vbos[TEXTURE_VBO_INDEX] as IntVbo
+        val uvScaleVbo = vbos[UV_SCALE_VBO_INDEX] as Vector2fVbo
+        val uvOffsetVbo = vbos[UV_OFFSET_VBO_INDEX] as Vector2fVbo
 
-        try {
-            buffer = GL.glMapBufferRange(
-                GL_ARRAY_BUFFER,
-                0,
-                bytes,
-                GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-            )
-            if (buffer == null) return
-            buffer.order(ByteOrder.nativeOrder())
+        val textureIndexes = mutableListOf<Int>()
+        val uvScales = mutableListOf<Vector2f>()
+        val uvOffsets = mutableListOf<Vector2f>()
 
-            for ((index, entity) in entities.withIndex()) {
-                val transformationMatrix = entity.transform.previous.transformation()
-                val position = index * Constants.MAT4_BYTE_SIZE
-                transformationMatrix.get(position, buffer)
+        for (entity in entities) {
+            val material = entity.material
+            val texture = material?.texture
+            if (texture == null) {
+                textureIndexes.add(-1)
+                uvScales.add(Vector2f(1f))
+                uvOffsets.add(Vector2f(0f))
+                continue
             }
-        } catch (e: Exception) {
-            logger.error("Error updating previous model VBO: ${e.message}")
-        } finally {
-            if (buffer != null) GL.glUnmapBuffer(GL_ARRAY_BUFFER)
+            val textureIndex = textures.indexOfFirst { it.id == texture.id }
+            textureIndexes.add(textureIndex)
+            if (texture is AtlasCellTexture) {
+                uvScales.add(texture.getUVScale())
+                uvOffsets.add(texture.getUVOffset())
+            } else {
+                uvScales.add(Vector2f(material.scale))
+                uvOffsets.add(Vector2f(0f))
+            }
         }
+
+        textureIndexVbo.update(textureIndexes)
+        uvScaleVbo.update(uvScales)
+        uvOffsetVbo.update(uvOffsets)
     }
 
     override fun render(context: IWindowContext) {
@@ -365,7 +225,7 @@ class MultiEntityRender(
 
     override fun dispose() {
         super.dispose()
-        GL.glDeleteBuffers(vbos)
+        vbos.forEach { it.dispose() }
         context.removeListener(this)
         disposeEntities()
     }

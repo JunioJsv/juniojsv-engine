@@ -2,7 +2,8 @@
 
 in vec2 vUV;
 flat in int vTextureIndex;
-flat in float vTextureScale;
+flat in vec2 vUVScale;
+flat in vec2 vUVOffest;
 
 uniform sampler2D uTextures[32];
 

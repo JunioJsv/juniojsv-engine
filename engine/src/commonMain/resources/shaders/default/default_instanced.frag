@@ -4,7 +4,8 @@ in vec3 vWorldPosition;
 in vec2 vUV;
 in vec3 vNormal;
 flat in int vTextureIndex;
-flat in float vTextureScale;
+flat in vec2 vUVScale;
+flat in vec2 vUVOffest;
 in vec4 vFragLightPosition;
 
 uniform vec3 uLightPosition;

@@ -62,6 +62,7 @@ val ResourcesCommon = ResourcesConfig(
                 "textures/desert_skybox/SkyboxDesert_N.png",
                 "textures/desert_skybox/SkyboxDesert_S.png"
             )
-        )
+        ),
+        "ATLAS" to Files.Single("textures/atlas.png")
     )
 )

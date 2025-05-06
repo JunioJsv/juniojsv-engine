@@ -2,8 +2,14 @@ package juniojsv.engine.platforms
 
 import android.opengl.GLES32
 import android.opengl.GLES32.DebugProc
+import juniojsv.engine.features.textures.RawTexture
+import juniojsv.engine.features.textures.Texture
 import juniojsv.engine.features.utils.ShaderConverter
+import juniojsv.engine.platforms.constants.GL_COLOR_ATTACHMENT0
+import juniojsv.engine.platforms.constants.GL_FRAMEBUFFER
+import juniojsv.engine.platforms.constants.GL_RGBA
 import juniojsv.engine.platforms.constants.GL_SHADER_TYPE
+import juniojsv.engine.platforms.constants.GL_UNSIGNED_BYTE
 import juniojsv.engine.platforms.constants.GL_VERTEX_SHADER
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
@@ -14,6 +20,32 @@ typealias imp = GLES32
 actual typealias GLDebugMessageCallback = DebugProc
 
 actual object GL : AndroidOpenGLES()
+
+actual object GLUtils : AndroidGLUtils()
+
+open class AndroidGLUtils : IGLUtils {
+    override fun getTextureData(texture: Texture): RawTexture {
+        val fbo = GL.glGenFramebuffers()
+        val width = texture.width
+        val height = texture.height
+        GL.glBindFramebuffer(GL_FRAMEBUFFER, fbo)
+        GL.glFramebufferTexture2D(
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0,
+            texture.getType(),
+            texture.id,
+            0
+        )
+
+        val pixels = PlatformMemory.allocInt(width * height) // RGBA
+        GL.glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
+
+        GL.glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        GL.glDeleteFramebuffers(fbo)
+
+        return RawTexture(pixels, width, height)
+    }
+}
 
 open class AndroidOpenGLES : IGL {
     override fun glEnable(target: Int) {
@@ -389,5 +421,27 @@ open class AndroidOpenGLES : IGL {
 
     override fun glBindAttribLocation(program: Int, index: Int, name: String) {
         imp.glBindAttribLocation(program, index, name)
+    }
+
+    override fun glGetTexImage(
+        target: Int,
+        level: Int,
+        format: Int,
+        type: Int,
+        pixels: IntBuffer
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun glReadPixels(
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        format: Int,
+        type: Int,
+        pixels: IntBuffer
+    ) {
+        imp.glReadPixels(x, y, width, height, format, type, pixels)
     }
 }

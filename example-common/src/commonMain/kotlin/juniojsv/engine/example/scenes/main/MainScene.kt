@@ -11,16 +11,12 @@ import juniojsv.engine.features.render.MultiEntityRender
 import juniojsv.engine.features.render.Render
 import juniojsv.engine.features.render.SkyBox
 import juniojsv.engine.features.scene.Scene
+import juniojsv.engine.features.textures.FileAtlasTexture
 import juniojsv.engine.features.textures.FileTexture
-import juniojsv.engine.features.utils.BoundaryBox
 import juniojsv.engine.features.utils.BoundaryEllipsoid
 import juniojsv.engine.features.utils.Scale
 import juniojsv.engine.features.utils.Transform
-import juniojsv.engine.features.utils.factories.CubeMesh
-import juniojsv.engine.features.utils.factories.ShadersProgramFactory
-import juniojsv.engine.features.utils.factories.SkyboxMesh
-import juniojsv.engine.features.utils.factories.SphereMesh
-import juniojsv.engine.features.utils.factories.TextureFactory
+import juniojsv.engine.features.utils.factories.*
 import org.joml.AxisAngle4d
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -40,11 +36,10 @@ class MainScene : Scene(), MainLayoutCallbacks {
     private val meshes = arrayOf(
         CubeMesh.create(),
         SphereMesh(.5f).create(),
-        objMeshLoader.get("models/suzanne.obj", BoundaryEllipsoid(Vector3f(1.6f, 1.08f, 0.9f))),
         objMeshLoader.get("models/teapot.obj", BoundaryEllipsoid(Vector3f(1f, .5f, .6f))),
-        objMeshLoader.get("models/dragon.obj", BoundaryBox(Vector3f(.5f, 1f, 1.3f))),
     )
     private val cubemaps = TextureFactory.getCubeMaps()
+    private val atlas = FileAtlasTexture("textures/atlas.png", 7, 3)
 
     private lateinit var player: Player
 
@@ -138,7 +133,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
                         scale = Vector3f(size)
                     ),
                     MaterialConfig(
-                        textures.random(random),
+                        atlas.getCell(random.nextInt(atlas.cells())),
                         scale = 4f * random.nextFloat().coerceAtLeast(0.1f),
                     ),
                     PhysicsConfig(

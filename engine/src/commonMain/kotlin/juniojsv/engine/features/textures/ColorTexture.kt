@@ -3,11 +3,25 @@ package juniojsv.engine.features.textures
 import juniojsv.engine.platforms.GL
 import juniojsv.engine.platforms.PlatformMemory
 import juniojsv.engine.platforms.SupportedPlatform
-import juniojsv.engine.platforms.constants.*
+import juniojsv.engine.platforms.constants.GL_CLAMP_TO_EDGE
+import juniojsv.engine.platforms.constants.GL_LINEAR
+import juniojsv.engine.platforms.constants.GL_RGBA
+import juniojsv.engine.platforms.constants.GL_TEXTURE_2D
+import juniojsv.engine.platforms.constants.GL_TEXTURE_BINDING_2D
+import juniojsv.engine.platforms.constants.GL_TEXTURE_MAG_FILTER
+import juniojsv.engine.platforms.constants.GL_TEXTURE_MIN_FILTER
+import juniojsv.engine.platforms.constants.GL_TEXTURE_WRAP_S
+import juniojsv.engine.platforms.constants.GL_TEXTURE_WRAP_T
+import juniojsv.engine.platforms.constants.GL_UNSIGNED_BYTE
 import juniojsv.engine.platforms.platform
 import org.joml.Vector3f
 
-class ColorTexture(width: Int, height: Int, color: Vector3f? = null, internalFormat: Int = GL_RGBA) : Texture() {
+class ColorTexture(
+    override val width: Int,
+    override val height: Int,
+    color: Vector3f? = null,
+    internalFormat: Int = GL_RGBA
+) : Texture() {
     init {
         val type = getType()
         GL.glBindTexture(type, id)
@@ -24,6 +38,12 @@ class ColorTexture(width: Int, height: Int, color: Vector3f? = null, internalFor
             buffer.flip()
             buffer
         }
+
+        GL.glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        GL.glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        GL.glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        GL.glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
         GL.glTexImage2D(
             type,
             0,
@@ -38,10 +58,7 @@ class ColorTexture(width: Int, height: Int, color: Vector3f? = null, internalFor
 
         pixels?.let { PlatformMemory.free(it) }
 
-        GL.glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        GL.glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        GL.glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-        GL.glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
         GL.glBindTexture(type, 0)
     }
 

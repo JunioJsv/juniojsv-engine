@@ -4,7 +4,6 @@ import juniojsv.engine.features.shader.FragmentShader
 import juniojsv.engine.features.shader.Shaders
 import juniojsv.engine.features.shader.VertexShader
 import juniojsv.engine.features.textures.RawTexture
-import juniojsv.engine.features.utils.ShadersConfig.Attributes.entries
 import juniojsv.engine.features.utils.factories.ShadersProgramFactory
 import juniojsv.engine.features.utils.factories.TextureFactory
 import juniojsv.engine.platforms.PlatformDecoders
@@ -35,7 +34,8 @@ data class ShadersConfig(
         MODEL("aModel", 4),
         PREVIOUS_MODEL("aPreviousModel", 4),
         TEXTURE_INDEX("aTextureIndex"),
-        TEXTURE_SCALE("aTextureScale");
+        UV_SCALE("aUVScale"),
+        UV_OFFSET("aUVOffest");
 
         fun previous(): Attributes? {
             if (ordinal == 0) return null
@@ -99,8 +99,13 @@ data class ShadersConfig(
             return this
         }
 
-        fun addTextureScale(): AttributesBuilder {
-            add(Attributes.TEXTURE_SCALE)
+        fun addUVScale(): AttributesBuilder {
+            add(Attributes.UV_SCALE)
+            return this
+        }
+
+        fun addUVOffset(): AttributesBuilder {
+            add(Attributes.UV_OFFSET)
             return this
         }
 
@@ -176,7 +181,8 @@ object Resources {
                     .default()
                     .addModel()
                     .addTextureIndex()
-                    .addTextureScale()
+                    .addUVScale()
+                    .addUVOffset()
                     .build()
             ),
             "DEFAULT_INSTANCED_DEBUG" to ShadersConfig(
@@ -187,7 +193,8 @@ object Resources {
                     .default()
                     .addModel()
                     .addTextureIndex()
-                    .addTextureScale()
+                    .addUVScale()
+                    .addUVOffset()
                     .build()
             ),
             "WINDOW" to ShadersConfig(
