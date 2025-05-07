@@ -60,6 +60,10 @@ open class AndroidOpenGLES : IGL {
         imp.glCullFace(mode)
     }
 
+    override fun glFrontFace(mode: Int) {
+        imp.glFrontFace(mode)
+    }
+
     override fun glClearColor(red: Float, green: Float, blue: Float, alpha: Float) {
         imp.glClearColor(red, green, blue, alpha)
     }
@@ -443,5 +447,9 @@ open class AndroidOpenGLES : IGL {
         pixels: IntBuffer
     ) {
         imp.glReadPixels(x, y, width, height, format, type, pixels)
+    }
+
+    override fun glPolygonOffset(factor: Float, units: Float) {
+        imp.glPolygonOffset(factor, units)
     }
 }

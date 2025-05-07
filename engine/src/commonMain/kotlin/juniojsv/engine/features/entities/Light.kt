@@ -11,17 +11,17 @@ class Light(
     /**
      * The size of the orthographic projection used for the light's shadow map.
      */
-    private val projectionSize: Float = Scale.METER.length(200f)
+    private val projectionSize: Float = Scale.METER.length(100f)
 
     /**
      * The near-clipping plane distance for the light's projection.
      */
-    private val near: Float = 0.1f
+    private val near: Float = 1f
 
     /**
      * The far clipping plane distance for the light's projection.
      */
-    private val far: Float = Scale.METER.length(800f)
+    private val far: Float = Scale.METER.length(600f)
 
     /**
      * Represents the position of the light in 3D space as a vector.

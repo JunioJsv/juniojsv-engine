@@ -6,7 +6,9 @@ import imgui.flag.ImGuiWindowFlags
 import juniojsv.engine.Config
 import juniojsv.engine.features.context.IWindowContext
 import juniojsv.engine.features.gui.ImGuiLayout
+import juniojsv.engine.features.render.RenderPipeline
 import org.joml.Vector3f
+import kotlin.properties.Delegates
 
 actual class MainLayout actual constructor(actual val callbacks: MainLayoutCallbacks) : ImGuiLayout() {
     private var instanced = false
@@ -17,6 +19,9 @@ actual class MainLayout actual constructor(actual val callbacks: MainLayoutCallb
     private val physicsSpeed = floatArrayOf(0f)
     private val skyboxIndex = intArrayOf(0)
     private val listeners = mutableSetOf<MainLayoutListener>()
+
+    private var skyboxCount: Int by Delegates.notNull<Int>()
+    lateinit var skyboxNames: Array<String>
 
     fun addListener(listener: MainLayoutListener) {
         listeners.add(listener)
@@ -34,6 +39,8 @@ actual class MainLayout actual constructor(actual val callbacks: MainLayoutCallb
         physicsSpeed[0] = context.physics.speed
         motionBlur[0] = context.render.motionBlur
         resolutionScale[0] = context.render.resolutionScale
+        skyboxCount = callbacks.getSkyboxCount()
+        skyboxNames = (0 until skyboxCount).map { "Skybox ${it + 1}" }.toTypedArray()
     }
 
     override fun render(context: IWindowContext) {
@@ -44,9 +51,8 @@ actual class MainLayout actual constructor(actual val callbacks: MainLayoutCallb
         )
 
         ImGui.text("Select Skybox")
-        val skyboxCount = callbacks.getSkyboxCount()
+
         if (skyboxCount > 0) {
-            val skyboxNames = (0 until skyboxCount).map { "Skybox ${it + 1}" }.toTypedArray()
             val currentSkyboxName = skyboxNames.getOrNull(skyboxIndex.first()) ?: ""
             if (ImGui.beginCombo("Skybox", currentSkyboxName, ImGuiComboFlags.NoArrowButton)) {
                 for (i in skyboxNames.indices) {

@@ -82,24 +82,23 @@ fun GameVirtualGamepad(
                         while (true) {
                             val event = awaitPointerEvent()
 
-                            for (change in event.changes) {
-                                val pointerId = change.id.value
-                                val position = change.position
-                                val action = when {
-                                    change.changedToDown() -> MotionEvent.ACTION_DOWN
-                                    change.changedToUp() -> MotionEvent.ACTION_UP
-                                    change.positionChanged() -> MotionEvent.ACTION_MOVE
-                                    else -> -1
-                                }
+                            val change = event.changes.first()
+                            val pointerId = change.id.value
+                            val position = change.position
+                            val action = when {
+                                change.changedToDown() -> MotionEvent.ACTION_DOWN
+                                change.changedToUp() -> MotionEvent.ACTION_UP
+                                change.positionChanged() -> MotionEvent.ACTION_MOVE
+                                else -> -1
+                            }
 
-                                if (action != -1) {
-                                    game.onTouchEvent(
-                                        pointerId,
-                                        position.x,
-                                        position.y,
-                                        action
-                                    )
-                                }
+                            if (action != -1) {
+                                game.onTouchEvent(
+                                    pointerId,
+                                    position.x,
+                                    position.y,
+                                    action
+                                )
                             }
                         }
                     }

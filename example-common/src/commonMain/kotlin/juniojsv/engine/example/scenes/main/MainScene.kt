@@ -99,7 +99,7 @@ class MainScene : Scene(), MainLayoutCallbacks {
         objects.clear()
         val random = Random(System.currentTimeMillis())
         val offset = Scale.KILOMETER.length(.3f).roundToInt()
-        val maxSize = Scale.METER.length(2f)
+        val maxSize = (Scale.KILOMETER.length(1f) / count).coerceAtLeast(Scale.METER.length(2f))
 
         meshes.forEach { mesh ->
             val entities = List(count / meshes.size) {

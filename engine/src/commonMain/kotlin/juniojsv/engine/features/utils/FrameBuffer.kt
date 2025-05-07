@@ -6,7 +6,24 @@ import juniojsv.engine.features.textures.Texture
 import juniojsv.engine.features.window.PlatformWindow
 import juniojsv.engine.features.window.Resolution
 import juniojsv.engine.platforms.GL
-import juniojsv.engine.platforms.constants.*
+import juniojsv.engine.platforms.constants.GL_COLOR_ATTACHMENT0
+import juniojsv.engine.platforms.constants.GL_COLOR_BUFFER_BIT
+import juniojsv.engine.platforms.constants.GL_DEPTH_ATTACHMENT
+import juniojsv.engine.platforms.constants.GL_DEPTH_BUFFER_BIT
+import juniojsv.engine.platforms.constants.GL_DRAW_FRAMEBUFFER
+import juniojsv.engine.platforms.constants.GL_FRAMEBUFFER
+import juniojsv.engine.platforms.constants.GL_FRAMEBUFFER_COMPLETE
+import juniojsv.engine.platforms.constants.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+import juniojsv.engine.platforms.constants.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
+import juniojsv.engine.platforms.constants.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT
+import juniojsv.engine.platforms.constants.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER
+import juniojsv.engine.platforms.constants.GL_FRAMEBUFFER_UNSUPPORTED
+import juniojsv.engine.platforms.constants.GL_LINEAR
+import juniojsv.engine.platforms.constants.GL_NEAREST
+import juniojsv.engine.platforms.constants.GL_NONE
+import juniojsv.engine.platforms.constants.GL_READ_FRAMEBUFFER
+import juniojsv.engine.platforms.constants.GL_RGBA
+import juniojsv.engine.platforms.constants.GL_TEXTURE_2D
 import kotlin.properties.Delegates
 
 class FrameBuffer(
@@ -138,6 +155,7 @@ class FrameBuffer(
     }
 
     fun resize(resolution: Resolution) {
+        if (this.resolution == resolution) return
         this.resolution = resolution
         dispose()
         create()

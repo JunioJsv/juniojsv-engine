@@ -8,11 +8,15 @@ import juniojsv.engine.features.utils.factories.QuadMesh
 import juniojsv.engine.features.utils.factories.ShadersProgramFactory
 import juniojsv.engine.features.window.PlatformWindow
 import juniojsv.engine.features.window.Resolution
+import juniojsv.engine.platforms.constants.GL_BACK
+import juniojsv.engine.platforms.constants.GL_COLOR_BUFFER_BIT
+import juniojsv.engine.platforms.constants.GL_DEPTH_ATTACHMENT
+import juniojsv.engine.platforms.constants.GL_FRONT
+import juniojsv.engine.platforms.constants.GL_RG16F
 import juniojsv.engine.platforms.GL
-import juniojsv.engine.platforms.constants.*
+
 
 class RenderPipeline(val window: PlatformWindow) {
-
     interface ICallbacks {
         fun onRenderScene()
         fun onRenderDebugger()
@@ -20,7 +24,9 @@ class RenderPipeline(val window: PlatformWindow) {
 
     val context get() = window.context
 
-    private fun resolutionWithScale() = window.resolution.withResolutionScale(window.context.render.resolutionScale)
+    private fun resolutionWithScale() =
+        window.resolution.withResolutionScale(window.context.render.resolutionScale)
+
     private val resolution get() = window.resolution
 
     private val scene = RenderPass(
@@ -100,7 +106,7 @@ class RenderPipeline(val window: PlatformWindow) {
             return
         }
 
-        light.setShadowCasterTarget(camera.position, Scale.Companion.METER.length(400f))
+        light.setShadowCasterTarget(camera.position, Scale.Companion.METER.length(300f))
 
         shadows.bind(context)
         shadows.overrides.uniforms["uLightSpaceMatrix"] = light.space

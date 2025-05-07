@@ -2,7 +2,6 @@ package juniojsv.engine.platforms
 
 import juniojsv.engine.features.textures.RawTexture
 import juniojsv.engine.features.textures.Texture
-import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
@@ -17,6 +16,7 @@ interface IGL {
     fun glEnable(target: Int)
     fun glDisable(target: Int)
     fun glCullFace(mode: Int)
+    fun glFrontFace(mode: Int)
     fun glClearColor(red: Float, green: Float, blue: Float, alpha: Float)
     fun glClear(mask: Int)
     fun glViewport(x: Int, y: Int, width: Int, height: Int)
@@ -154,6 +154,8 @@ interface IGL {
         type: Int,
         pixels: IntBuffer
     )
+
+    fun glPolygonOffset(factor: Float, units: Float)
 }
 
 expect object GL : IGL

@@ -18,7 +18,10 @@ float calculateShadow(vec4 fragLightPos) {
     if (projCoords.z > 1.0) return 0.0;
 
     float currentDepth = projCoords.z;
-    float bias = 0.000;
+    vec3 lightDir = normalize(uLightPosition - vWorldPosition);
+    vec3 normal = normalize(vNormal);
+    float bias = 0.00023711342;
+    bias = max(bias * (1.0 - dot(normal, lightDir)), 0.0);
     float shadow = 0.0;
 
     vec2 texelSize = 1.0 / vec2(textureSize(uShadowMapTexture, 0));
@@ -41,7 +44,7 @@ float calculateShadow(vec4 fragLightPos) {
     for (int i = 0; i < 8; ++i) {
         vec2 offset = (sampleOffsets[i] + jitter) * sampleRadius * texelSize;
         float closestDepth = texture(uShadowMapTexture, projCoords.xy + offset).r;
-        if (currentDepth > closestDepth + bias) {
+        if (currentDepth - bias > closestDepth) {
             shadow += 1.0;
         }
     }

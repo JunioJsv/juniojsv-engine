@@ -247,6 +247,7 @@ object Resources {
                 attributes = ShadersConfig
                     .AttributesBuilder()
                     .addPosition()
+                    .addNormal()
                     .build()
             ),
             "SHADOW_MAP_INSTANCED" to ShadersConfig(

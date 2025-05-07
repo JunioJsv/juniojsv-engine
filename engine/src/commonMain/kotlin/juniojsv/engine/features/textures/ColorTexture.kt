@@ -1,19 +1,9 @@
 package juniojsv.engine.features.textures
 
 import juniojsv.engine.platforms.GL
+import juniojsv.engine.platforms.Platform
 import juniojsv.engine.platforms.PlatformMemory
-import juniojsv.engine.platforms.SupportedPlatform
-import juniojsv.engine.platforms.constants.GL_CLAMP_TO_EDGE
-import juniojsv.engine.platforms.constants.GL_LINEAR
-import juniojsv.engine.platforms.constants.GL_RGBA
-import juniojsv.engine.platforms.constants.GL_TEXTURE_2D
-import juniojsv.engine.platforms.constants.GL_TEXTURE_BINDING_2D
-import juniojsv.engine.platforms.constants.GL_TEXTURE_MAG_FILTER
-import juniojsv.engine.platforms.constants.GL_TEXTURE_MIN_FILTER
-import juniojsv.engine.platforms.constants.GL_TEXTURE_WRAP_S
-import juniojsv.engine.platforms.constants.GL_TEXTURE_WRAP_T
-import juniojsv.engine.platforms.constants.GL_UNSIGNED_BYTE
-import juniojsv.engine.platforms.platform
+import juniojsv.engine.platforms.constants.*
 import org.joml.Vector3f
 
 class ColorTexture(
@@ -47,7 +37,7 @@ class ColorTexture(
         GL.glTexImage2D(
             type,
             0,
-            if (platform == SupportedPlatform.ANDROID) GL_RGBA else internalFormat,
+            if (Platform.isAndroid) GL_RGBA else internalFormat,
             width,
             height,
             0,

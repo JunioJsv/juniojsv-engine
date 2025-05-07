@@ -1,6 +1,7 @@
 package juniojsv.engine.features.textures
 
 import juniojsv.engine.platforms.GL
+import juniojsv.engine.platforms.Platform
 import juniojsv.engine.platforms.SupportedPlatform
 import juniojsv.engine.platforms.constants.GL_CLAMP_TO_BORDER
 import juniojsv.engine.platforms.constants.GL_DEPTH_COMPONENT
@@ -28,10 +29,6 @@ class DepthTexture(override val width: Int, override val height: Int) : Texture(
             SupportedPlatform.ANDROID -> GL_DEPTH_COMPONENT16
             SupportedPlatform.JVM_WINDOWS -> GL_DEPTH_COMPONENT32
         }
-        val valueType = when (platform) {
-            SupportedPlatform.ANDROID -> GL_UNSIGNED_SHORT
-            SupportedPlatform.JVM_WINDOWS -> GL_FLOAT
-        }
 
         GL.glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         GL.glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
@@ -46,7 +43,7 @@ class DepthTexture(override val width: Int, override val height: Int) : Texture(
             width, height,
             0,
             GL_DEPTH_COMPONENT,
-            valueType,
+            if (Platform.isAndroid) GL_UNSIGNED_SHORT else GL_FLOAT,
             null as ByteBuffer?
         )
 
