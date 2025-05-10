@@ -18,10 +18,8 @@ open class AndroidPlatformDecoders : IPlatformDecoders {
             val height = bitmap.height
             val buffer = IntArray(width * height)
 
-            // Obtém os pixels do bitmap
             bitmap.getPixels(buffer, 0, width, 0, 0, width, height)
 
-            // Converte os pixels para o formato desejado (RGBA para ABGR)
             val raw = IntArray(width * height) { index ->
                 val pixel = buffer[index]
                 val a: Int = (pixel shr 24) and 0xff
@@ -37,7 +35,6 @@ open class AndroidPlatformDecoders : IPlatformDecoders {
                 .put(raw)
                 .flip()
 
-            // Não se esqueça de reciclar o bitmap após o uso
             bitmap.recycle()
 
             RawTexture(pixels as IntBuffer, width, height)

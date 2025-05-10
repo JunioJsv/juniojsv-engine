@@ -140,7 +140,6 @@ class Mesh(
             if (vao == currentVao) return
             GL.glBindVertexArray(vao)
             if (vao != 0) {
-                // Todo(verify this)
                 GL.glEnableVertexAttribArray(0)
                 GL.glEnableVertexAttribArray(1)
                 GL.glEnableVertexAttribArray(2)
