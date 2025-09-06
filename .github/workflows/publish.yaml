@@ -23,6 +23,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Change Gradle wrapper permissions
+        run: chmod +x ./gradlew
+
       - name: Publish to GitHub Packages
         run: ./gradlew publish
         env:
