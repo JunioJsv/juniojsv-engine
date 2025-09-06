@@ -4,6 +4,7 @@ plugins {
     id("com.android.library")
     kotlin("multiplatform")
     kotlin("plugin.serialization")
+    id("maven-publish")
 }
 
 kotlin {
@@ -22,6 +23,7 @@ kotlin {
     }
 
     androidTarget {
+        publishLibraryVariants("release")
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -80,6 +82,19 @@ android {
     sourceSets {
         named("main") {
             assets.srcDirs("src/commonMain/resources")
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/JunioJsv/juniojsv-engine")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
         }
     }
 }
