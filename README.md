@@ -20,21 +20,21 @@ Instead of treating desktop and mobile as separate codebases, the engine shares 
 
 ```mermaid
 graph TD
-    subgraph Core Engine [":engine (Kotlin Multiplatform)"]
-        engineCommon["engine:commonMain\n• Scene & Entity Model\n• RenderPipeline & FBO Management\n• JBullet Physics Loop\n• GL Abstraction & Math\n• Shader Preprocessor"]
-        engineJvm["engine:jvmMain\n• LWJGL 3 (OpenGL 4.3)\n• GLFW Window & Events\n• ImGui Java Integration\n• Off-heap MemoryUtil"]
-        engineAndroid["engine:androidMain\n• Android GLES 3.2\n• GLSurfaceView.Renderer\n• ShaderConverter (GLSL to GLES)\n• Direct NIO Buffers"]
+    subgraph CoreEngine [":engine (Kotlin Multiplatform)"]
+        engineCommon["engine:commonMain<br/>• Scene & Entity Model<br/>• RenderPipeline & FBO Management<br/>• JBullet Physics Loop<br/>• GL Abstraction & Math<br/>• Shader Preprocessor"]
+        engineJvm["engine:jvmMain<br/>• LWJGL 3 (OpenGL 4.3)<br/>• GLFW Window & Events<br/>• ImGui Java Integration<br/>• Off-heap MemoryUtil"]
+        engineAndroid["engine:androidMain<br/>• Android GLES 3.2<br/>• GLSurfaceView.Renderer<br/>• ShaderConverter (GLSL to GLES)<br/>• Direct NIO Buffers"]
         engineCommon -.-> engineJvm
         engineCommon -.-> engineAndroid
     end
 
-    subgraph Showcase Modules
-        exampleCommon[":example-common (KMP)\n• Shared MainScene\n• Asset Registry\n• Textures & Shaders"]
-        exampleJvm[":example-jvm (JVM Application)\n• Desktop Entrypoint (Main.kt)\n• GLFW Event Polling\n• ImGui Control Panel"]
-        exampleAndroid[":example-android (Android App)\n• MainActivity & GLSurfaceView\n• Jetpack Compose Virtual Gamepad"]
+    subgraph ShowcaseModules ["Showcase Modules"]
+        exampleCommon[":example-common (KMP)<br/>• Shared MainScene<br/>• Asset Registry<br/>• Textures & Shaders"]
+        exampleJvm[":example-jvm (JVM Application)<br/>• Desktop Entrypoint (Main.kt)<br/>• GLFW Event Polling<br/>• ImGui Control Panel"]
+        exampleAndroid[":example-android (Android App)<br/>• MainActivity & GLSurfaceView<br/>• Jetpack Compose Virtual Gamepad"]
     end
 
-    exampleCommon --> Core Engine
+    exampleCommon --> engineCommon
     exampleJvm --> exampleCommon
     exampleAndroid --> exampleCommon
 ```
@@ -59,7 +59,7 @@ Rendering is orchestrated by [`RenderPipeline`](file:///F:/Projects/juniojsv-eng
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Loop as Window Loop
+    participant Win as Window Loop
     participant RP as RenderPipeline
     participant ShadowFBO as Shadow FBO (8192x8192 Depth)
     participant SceneFBO as Scene FBO (Color + Depth)
@@ -67,13 +67,13 @@ sequenceDiagram
     participant OverlayFBO as Overlay FBO (Debug)
     participant Composite as Fullscreen Viewport (window.frag)
 
-    Loop->>RP: render(callbacks)
+    Win->>RP: render(callbacks)
     RP->>ShadowFBO: 1. Shadow Pass (Front-face culling, Orthographic Sun Matrix)
     RP->>SceneFBO: 2. Scene Pass (Geometry, PCF Shadow Mapping, Dynamic Resolution Scale)
     RP->>VelocityFBO: 3. Velocity Pass (Per-instance screen-space motion vectors)
     RP->>OverlayFBO: 4. Overlay Pass (Depth blit from scene + wireframe debug draw)
     RP->>Composite: 5. Post-Processing & Composite
-    Composite-->>Loop: Final Frame with Depth-Aware Motion Blur & Mini Debug Viewports
+    Composite-->>Win: Final Frame with Depth-Aware Motion Blur & Mini Debug Viewports
 ```
 
 - **Directional Shadow Mapping**:
