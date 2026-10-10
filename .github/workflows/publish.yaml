@@ -3,6 +3,11 @@ on:
   workflow_dispatch:
   release:
     types: [released]
+
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   publish:
     name: Release build and publish
@@ -26,7 +31,29 @@ jobs:
       - name: Change Gradle wrapper permissions
         run: chmod +x ./gradlew
 
-      - name: Publish to GitHub Packages
-        run: ./gradlew publish
+      - name: Publish to GitHub Packages (All Platforms)
+        run: ./gradlew publish -PdesktopNatives=all
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Example Binaries (All Platforms)
+        run: ./gradlew :example-jvm:distZip :example-android:assembleDebug -PdesktopNatives=all
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: |
+            example-jvm/build/distributions/*.zip
+            example-android/build/outputs/apk/debug/*.apk
+
+      - name: Attach Binaries to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            example-jvm/build/distributions/*.zip
+            example-android/build/outputs/apk/debug/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

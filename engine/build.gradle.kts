@@ -51,14 +51,30 @@ kotlin {
                 api("org.lwjgl:lwjgl")
                 api("org.lwjgl:lwjgl-glfw")
                 api("org.lwjgl:lwjgl-opengl")
-                runtimeOnly("org.lwjgl:lwjgl::natives-windows")
-                runtimeOnly("org.lwjgl:lwjgl-glfw::natives-windows")
-                runtimeOnly("org.lwjgl:lwjgl-opengl::natives-windows")
-
                 val imGuiVersion = "1.81.0"
                 api("io.github.spair:imgui-java-binding:$imGuiVersion")
                 implementation("io.github.spair:imgui-java-lwjgl3:$imGuiVersion")
-                runtimeOnly("io.github.spair:imgui-java-natives-windows:$imGuiVersion")
+
+                val osName = System.getProperty("os.name").lowercase()
+                val detectedOs = when {
+                    osName.contains("win") -> "windows"
+                    osName.contains("mac") || osName.contains("darwin") -> "macos"
+                    osName.contains("linux") || osName.contains("unix") -> "linux"
+                    else -> "windows"
+                }
+                val desktopNatives = (findProperty("desktopNatives") as? String)?.lowercase() ?: detectedOs
+                val platforms = if (desktopNatives == "all") {
+                    listOf("windows", "linux", "macos")
+                } else {
+                    listOf(desktopNatives)
+                }
+
+                for (platform in platforms) {
+                    runtimeOnly("org.lwjgl:lwjgl::natives-$platform")
+                    runtimeOnly("org.lwjgl:lwjgl-glfw::natives-$platform")
+                    runtimeOnly("org.lwjgl:lwjgl-opengl::natives-$platform")
+                    runtimeOnly("io.github.spair:imgui-java-natives-$platform:$imGuiVersion")
+                }
 
                 implementation("ch.qos.logback:logback-classic:1.4.12")
             }
